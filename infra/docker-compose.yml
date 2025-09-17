@@ -20,7 +20,7 @@ services:
   #    - 9600:9600 # required for Performance Analyzer
   #  networks:
   #    - opensearch-net
-  go-litigate-localstack:
+  techboss-localstack:
     image: localstack/localstack:4.0.0
     ports:
       - "4467:4566"
@@ -31,7 +31,7 @@ services:
     healthcheck:
       test: curl localhost:4566/health
       interval: 1s
-  go-litigate-postgres:
+  techboss-postgres:
     image: postgres:17.0
     volumes:
       - ../.docker-data/postgres:/var/lib/postgresql/data
@@ -41,7 +41,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: unit_test
-  go-litigate-dynamodb:
+  techboss--dynamodb:
     image: amazon/dynamodb-local
     command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
     volumes:

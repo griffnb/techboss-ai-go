@@ -1,0 +1,53 @@
+{
+  "name": "techboss-ai-go",
+  "dockerComposeFile": ["./docker-compose.yml"],
+  "service": "backend",
+  "runServices": ["backend", "db", "localstack","dynamo"],
+  "shutdownAction": "stopCompose",
+  "workspaceFolder": "/workspaces/backend",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": "true",
+      "upgradePackages": "true"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest",
+      "ppa": "false"
+    }
+  },
+
+  "containerEnv": {
+    
+  },
+  "portsAttributes": {
+    "8085": { "label": "Backend","requireLocalPort": true },
+    "5432": { "label": "Postgres" }
+  },
+  
+
+  "overrideCommand": false,
+  "remoteUser": "root",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "formulahendry.auto-rename-tag",
+        "usernamehw.errorlens",
+        "astro-build.astro-vscode",
+        "openai.chatgpt",
+        "dbaeumer.vscode-eslint",
+        "github.vscode-github-actions",
+        "GitHub.copilot-chat",
+        "golang.go",
+        "bradgashler.htmltagwrap",
+        "Gruntfuggly.todo-tree",
+        "bradlc.vscode-tailwindcss",
+        "undefined_publisher.project-link",
+        "esbenp.prettier-vscode",
+        "keyzog.plop-path",
+        "jpmartinez.plop-generator-workspace",
+        "satansdeer.plop",
+        "tooltitudeteam.tooltitude"
+      ]
+    }
+  }
+}
