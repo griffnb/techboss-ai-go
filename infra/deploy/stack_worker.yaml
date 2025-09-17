@@ -1,0 +1,131 @@
+Parameters:
+  App:
+    Type: String
+    Default: sample-fargate
+
+  Environment:
+    Type: String
+    Default: development
+    Description: "development | staging | production"
+
+  Image:
+    Type: String
+
+  Architecture:
+    Type: String
+    AllowedValues:
+      - X86_64
+      - ARM64
+
+  SystemMemory:
+    Description: The amount of memory to allocate to the container
+    Type: Number
+    Default: 1024
+
+  ContainerPort:
+    Description: The port on which the container listens for requests
+    Type: Number
+    Default: 8080
+
+  SystemCPU:
+    Description: The amount of CPU to allocate to the container
+    Type: Number
+    Default: 512
+#256 (.25 vCPU) - Available memory values: 512 (0.5 GB), 1024 (1 GB), 2048 (2 GB)
+#512 (.5 vCPU) - Available memory values: 1024 (1 GB), 2048 (2 GB), 3072 (3 GB), 4096 (4 GB)
+#1024 (1 vCPU) - Available memory values: 2048 (2 GB), 3072 (3 GB), 4096 (4 GB), 5120 (5 GB), 6144 (6 GB), 7168 (7 GB), 8192 (8 GB)
+#2048 (2 vCPU) - Available memory values: 4096 (4 GB) and 16384 (16 GB) in increments of 1024 (1 GB)
+#4096 (4 vCPU) - Available memory values: 8192 (8 GB) and 30720 (30 GB) in increments of 1024 (1 GB)
+#8192 (8 vCPU) - Available memory values: 16 GB and 60 GB in 4 GB increments This option requires Linux platform 1.4.0 or later.
+#16384 (16vCPU) - Available memory values: 32GB and 120 GB in 8 GB increments This option requires Linux platform 1.4.0 or later.
+
+    
+
+  TaskCount:
+    Description: Number of Tasks
+    Type: Number
+    Default: 1
+
+  AssignPublicIp: 
+    Type: String
+    AllowedValues:
+      - ENABLED
+      - DISABLED
+    Description: Whether to assign a public IP address to the task's elastic network interface., need this for default VPC
+    Default: DISABLED
+
+Resources:
+
+  FargateService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster:
+        Fn::ImportValue: !Sub "${App}-cluster"
+      DesiredCount: !Ref TaskCount
+      TaskDefinition: !Ref TaskDefinition
+      DeploymentConfiguration:
+        MinimumHealthyPercent: 0
+      CapacityProviderStrategy:
+        - CapacityProvider: FARGATE_SPOT
+          Base: 1          
+          Weight: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: !Ref AssignPublicIp
+          SecurityGroups:
+            - Fn::ImportValue: !Sub "${App}-sg"
+          Subnets:
+            - !ImportValue PrivateSubnetA
+            - !ImportValue PrivateSubnetB
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Memory: !Ref SystemMemory
+      Cpu: !Ref SystemCPU
+      ExecutionRoleArn:
+        Fn::ImportValue: !Sub "${App}-exec-role"
+      TaskRoleArn:
+        Fn::ImportValue: !Sub "${App}-role"
+      Family: !Sub "${App}-taskdef"
+      NetworkMode: awsvpc     
+      RuntimePlatform:
+        CpuArchitecture: !Ref Architecture
+        OperatingSystemFamily: LINUX
+      RequiresCompatibilities:
+        - FARGATE
+      
+      ContainerDefinitions:
+        - Name: task
+          PortMappings:
+            - ContainerPort: !Ref ContainerPort
+          Image: !Ref Image
+          Environment:
+            - Name: SYS_ENV
+              Value: !Ref Environment
+            - Name: CLOUD
+              Value: "AWS"
+            - Name: REGION
+              Value: !Ref AWS::Region
+          #HealthCheck: scratch image cant do this
+          #  Command:
+          #    - CMD-SHELL
+          #    - !Sub curl -f http://localhost:${ContainerPort}/ || exit 1
+          #  Interval: 30
+          #  Timeout: 5
+          #  Retries: 3
+          #  StartPeriod: 10
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: 
+                Fn::ImportValue: !Sub "${App}-log-group"
+              awslogs-stream-prefix: task
+
+Outputs:
+  FargateService:
+    Description: "Fargate Service"
+    Value: !Ref FargateService
+    Export:
+      Name: !Sub "${App}-fargate-service"

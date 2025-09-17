@@ -1,0 +1,75 @@
+name: Redeploy Production
+
+on:
+  workflow_dispatch:
+
+# Define environment mappings
+jobs:
+    force_deploy_api:
+        name: Force Deploy API
+        runs-on: ubuntu-latest
+        environment:
+          name: production
+        permissions:
+          id-token: write
+          contents: read
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v4
+          - name: Login
+            uses: aws-actions/configure-aws-credentials@v4
+            with:
+              aws-region: us-east-1
+              role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/api-deploy-role
+              unset-current-credentials: true
+          - name: Deploy API
+            env:
+              APP: api
+            run: |
+              bash -ex infra/deploy/re_deploy.sh
+
+    force_deploy_taskmaster:
+        name: Force Deploy TaskMaster
+        runs-on: ubuntu-latest
+        environment:
+            name: production
+        permissions:
+            id-token: write
+            contents: read
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            - name: Login
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                aws-region: us-east-1
+                role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/task-master-deploy-role
+                unset-current-credentials: true
+            - name: Deploy TaskMaster
+              env:
+                  APP: task-master
+              run: |
+                    bash -ex infra/deploy/re_deploy.sh
+    
+    force_deploy_taskworker:
+        name: Force Deploy TaskWorker
+        runs-on: ubuntu-latest
+        environment:
+            name: production
+        permissions:
+            id-token: write
+            contents: read
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            - name: Login
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                aws-region: us-east-1
+                role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/task-worker-deploy-role
+                unset-current-credentials: true
+            - name: Deploy TaskWorker
+              env:
+                  APP: task-worker
+              run: |
+                    bash -ex infra/deploy/re_deploy.sh                    

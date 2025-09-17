@@ -1,0 +1,7 @@
+.DS_Store
+/.configs
+/.docker-data
+/bin
+/.test_files
+.qodo
+/.matcher

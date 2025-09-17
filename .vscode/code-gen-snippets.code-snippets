@@ -1,0 +1,36 @@
+{
+  "Add Column": {
+    "prefix": "add-column",
+    "body": [
+      "model.AddMigration(&model.Migration{",
+        "ID:    xxxxxxxxxx,",
+        "Table: xxxxx.TABLE,",
+        "ColumnMigrations: []*model.ColumnMigration{",
+          "{",
+            "Type:       model.ADD_COLUMN,",
+            "ColumnName: \"xxxx\",",
+            "Properties: &model.Property{",
+              "Type:    model.TYPE_JSONB,",
+              "Default: \"\",",
+            "},",
+          "},",
+        "},",
+      "})",
+    ],
+    "description": "Add Column Migration",
+  },
+  "Post Migration":{
+    "prefix": "post-migration",
+    "body": [
+      "model.AddMigration(&model.Migration{",
+        "ID:    xxxxxxxxxx,",
+        "Table: xxxxx.TABLE,",
+        "PostMigrationTransform: func() error {",
+          "return nil",
+        "}",
+      "})",
+    ],
+    "description": "Post Migration",
+  }
+  
+}
