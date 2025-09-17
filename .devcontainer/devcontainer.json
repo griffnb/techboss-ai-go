@@ -1,10 +1,11 @@
 {
-  "name": "techboss-ai-go",
+  "name": "TechBoss - Go Backend + Node Frontend",
   "dockerComposeFile": ["./docker-compose.yml"],
   "service": "backend",
-  "runServices": ["backend", "db", "localstack","dynamo"],
+  "runServices": ["backend", "db", "localstack", "dynamodb"],
   "shutdownAction": "stopCompose",
   "workspaceFolder": "/workspaces/backend",
+  
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installZsh": "true",
@@ -13,41 +14,117 @@
     "ghcr.io/devcontainers/features/git:1": {
       "version": "latest",
       "ppa": "false"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "installDirectlyFromGitHubRelease": true,
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "nodeGypDependencies": true,
+      "version": "22"
     }
   },
 
   "containerEnv": {
-    
+    "PNPM_HOME": "/usr/local/bin",
+    "NODE_ENV": "development"
   },
+
   "portsAttributes": {
-    "8085": { "label": "Backend","requireLocalPort": true },
-    "5432": { "label": "Postgres" }
+    "8085": { "label": "Go Backend", "requireLocalPort": false },
+    "3000": { "label": "Frontend Dev Server", "requireLocalPort": false },
+    "4321": { "label": "Astro Dev Server", "requireLocalPort": false },
+    "5173": { "label": "Vite Dev Server", "requireLocalPort": false },
+    "5432": { "label": "PostgreSQL", "requireLocalPort": false },
+    "6379": { "label": "Redis", "requireLocalPort": false },
+    "4467": { "label": "LocalStack", "requireLocalPort": false },
+    "8002": { "label": "DynamoDB Local", "requireLocalPort": false }
   },
-  
+
+  "forwardPorts": [8085, 3000, 4321, 5173, 5432, 6379, 4467, 8002],
+
+  "postCreateCommand": "bash -c 'go mod download && go mod tidy && cd /workspaces/frontend && corepack enable && pnpm install'",
 
   "overrideCommand": false,
   "remoteUser": "root",
+
   "customizations": {
     "vscode": {
       "extensions": [
+        // Go Development
+        "golang.go",
+        
+        // Node/TypeScript/React Development  
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "astro-build.astro-vscode",
+        
+        // General Development
+        "ms-vscode.vscode-json",
+        "ms-vscode.vscode-docker",        
+        "github.vscode-pull-request-github",
+        "GitHub.copilot-chat",
+        "github.copilot",
+        "github.vscode-github-actions",
+        
+        
+        // Productivity & UI
         "formulahendry.auto-rename-tag",
         "usernamehw.errorlens",
-        "astro-build.astro-vscode",
-        "openai.chatgpt",
-        "dbaeumer.vscode-eslint",
-        "github.vscode-github-actions",
-        "GitHub.copilot-chat",
-        "golang.go",
         "bradgashler.htmltagwrap",
         "Gruntfuggly.todo-tree",
-        "bradlc.vscode-tailwindcss",
-        "undefined_publisher.project-link",
-        "esbenp.prettier-vscode",
-        "keyzog.plop-path",
+        "ms-vscode.vscode-git-graph",
+        "eamodio.gitlens",
+        
+        // Project Management
+        "keyzog.plop-path", 
         "jpmartinez.plop-generator-workspace",
-        "satansdeer.plop",
-        "tooltitudeteam.tooltitude"
-      ]
+        "satansdeer.plop"
+      ],
+      "settings": {
+        // Go Settings
+        "go.gopath": "/go",
+        "go.goroot": "/usr/local/go", 
+        "go.toolsManagement.checkForUpdates": "local",
+        "go.useLanguageServer": true,
+        "go.formatTool": "goimports",
+        "go.lintTool": "golangci-lint",
+        
+        // TypeScript/Node Settings
+        "typescript.updateImportsOnFileMove.enabled": "always",
+        "typescript.preferences.includePackageJsonAutoImports": "auto",
+        
+        // Tailwind CSS
+        "tailwindCSS.experimental.classRegex": [
+          ["cn\\(([^)]*)\\)", "'([^']*)'"],
+          ["clsx\\(([^)]*)\\)", "'([^']*)'"]
+        ],
+        
+        // Formatting & Linting
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": "explicit"
+        },
+        "prettier.requireConfig": true,
+        "eslint.workingDirectories": [
+          "/workspaces/frontend",
+          "/workspaces/frontend/apps", 
+          "/workspaces/frontend/packages",
+          "/workspaces/frontend/sites"
+        ],
+        
+        // File Associations
+        "files.associations": {
+          "*.go": "go",
+          "go.mod": "go.mod", 
+          "go.sum": "go.sum",
+          "*.astro": "astro",
+          "*.tsx": "typescriptreact",
+          "*.ts": "typescript"
+        }
+      }
     }
   }
 }

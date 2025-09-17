@@ -3,7 +3,17 @@ services:
   backend:
     image: "mcr.microsoft.com/devcontainers/go:1-1.24-bookworm"
     volumes:
+      # Mount backend code (current directory)
       - ..:/workspaces/backend:cached
+      # Mount frontend code (sibling directory)
+      - ../../techboss-ai:/workspaces/frontend:cached
+    command: sleep infinity
+    depends_on:
+      db:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+
 
   localstack:
     image: localstack/localstack:4.0.0
@@ -45,8 +55,6 @@ services:
       start_period: 10s
     volumes:
       - db-data:/var/lib/postgresql/data
-
-  
 
 volumes:
   db-data:
