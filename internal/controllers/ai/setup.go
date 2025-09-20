@@ -21,8 +21,8 @@ func Setup(coreRouter *router.CoreRouter) {
 			authR.Post("/openai/responses", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_UNAUTHORIZED: helpers.NoTimeoutMiddleware(authRun),
 			}))
-			r.Post("/openai/stream/responses", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_UNAUTHORIZED: helpers.NoTimeoutMiddleware(authStream),
+			authR.Post("/openai/stream/responses", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_UNAUTHORIZED: helpers.NoTimeoutStreamingMiddleware(authStream),
 			}))
 		})
 	})
