@@ -3,9 +3,9 @@ package openai
 import (
 	"context"
 	"io"
-	"log"
 	"net/http"
 
+	"github.com/CrowdShield/go-core/lib/log"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/pkg/errors"
 )
@@ -43,7 +43,7 @@ func (s *Service) ProxyNonStreaming(ctx context.Context, request *http.Request, 
 	}
 	defer func() {
 		if closeErr := request.Body.Close(); closeErr != nil {
-			log.Printf("Warning: failed to close request body: %v", closeErr)
+			log.ErrorContext(closeErr, ctx)
 		}
 	}()
 
@@ -61,7 +61,7 @@ func (s *Service) ProxyStreaming(ctx context.Context, request *http.Request, res
 	}
 	defer func() {
 		if closeErr := request.Body.Close(); closeErr != nil {
-			log.Printf("Warning: failed to close request body: %v", closeErr)
+			log.ErrorContext(closeErr, ctx)
 		}
 	}()
 
