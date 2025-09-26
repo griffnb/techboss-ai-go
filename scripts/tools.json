@@ -54,6 +54,28 @@
         "required": ["package"]
       },
       "command": "make test PKG=\"{{package:=./...}}\" RUN=\"{{test:=\"\"}}\""
+    },
+
+    {
+      "name": "make_object",
+      "description": "Code generates a new model / controller / and migration",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "model_name": {
+            "title": "Model Name",
+            "type": "string",
+            "description": "Name of the model to create in snake case."
+          },
+          "model_plural": {
+            "title": "Model Plural",
+            "type": "string",
+            "description": "Name of the model in plural form using snake case."
+          }
+        },
+        "required": ["model_name", "model_plural"]
+      },
+      "command": "make code-gen-object model_name=\"{{model_name}}\" model_plural=\"{{model_plural}}\""
     }
    
   ]
