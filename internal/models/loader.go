@@ -6,6 +6,7 @@ import (
 	"github.com/CrowdShield/go-core/lib/model"
 	"github.com/griffnb/techboss-ai-go/internal/cron/taskworker/delay_queue"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
+	"github.com/griffnb/techboss-ai-go/internal/models/account"
 	"github.com/griffnb/techboss-ai-go/internal/models/admin"
 	"github.com/griffnb/techboss-ai-go/internal/models/ai_tool"
 	"github.com/griffnb/techboss-ai-go/internal/models/change_log"
@@ -47,6 +48,11 @@ func LoadModels() (err error) {
 	}
 
 	err = defaultClient.AddTableToProperties(ai_tool.TABLE, &ai_tool.Structure{})
+	if err != nil {
+		return err
+	}
+
+	err = defaultClient.AddTableToProperties(account.TABLE, &account.Structure{})
 	if err != nil {
 		return err
 	}

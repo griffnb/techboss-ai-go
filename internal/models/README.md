@@ -39,6 +39,19 @@ type AdminV1 struct {
 }
 ```
 
+## Add To Loader
+After you create the migration, you need to add the model to loader.go
+
+```go
+
+	err = defaultClient.AddTableToProperties(my_new_obj.TABLE, &my_new_obj.Structure{})
+	if err != nil {
+		return err
+	}
+
+```
+
+
 ## Using Models
 
 ### Instantiation and Field Access
@@ -125,6 +138,6 @@ Settings *fields.StructField[*Settings] `column:"settings" type:"jsonb" default:
 - **Method receivers:**
   - All methods use pointer receivers with `this` as the receiver variable
 - **Code generation:**
-	- Always use the `make_object` tool (see `#code-tools`), never hand-write model structs
+	- Always use the `make_object / make_public_object` tool (see `#code-tools`), never hand-write model structs
 - **Thread safety:**
   - All model operations are thread-safe by default
