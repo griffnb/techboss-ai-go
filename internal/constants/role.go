@@ -7,11 +7,12 @@ const (
 	ROLE_ANY_AUTHORIZED Role = 0  // Any Authorized
 	ROLE_USER           Role = 1  // User
 
-	ROLE_ADMIN Role = 100 // System Admin
+	ROLE_READ_ADMIN      = 90
+	ROLE_ADMIN      Role = 100 // System Admin
 
 )
 
-var DescOrderedFamilyRoles = []Role{
+var DescOrderedAccountRoles = []Role{
 	ROLE_USER,
 	ROLE_ANY_AUTHORIZED,
 	ROLE_UNAUTHORIZED,
@@ -19,6 +20,7 @@ var DescOrderedFamilyRoles = []Role{
 
 var DescOrderedAdminRoles = []Role{
 	ROLE_ADMIN,
+	ROLE_READ_ADMIN,
 	ROLE_ANY_AUTHORIZED,
 	ROLE_UNAUTHORIZED,
 }
