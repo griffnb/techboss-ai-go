@@ -2,17 +2,10 @@ package ai_tools
 
 import (
 	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 )
 
 func addSearch(parameters *model.Options, query string) {
-	if tools.IsAnyValidUUID(query) {
-		parameters.WithCondition("%s.id = :id:", TABLE_NAME)
-		parameters.WithParam(":id:", query)
-		return
-	}
-
 	config := &helpers.SearchConfig{
 		TableName: TABLE_NAME,
 		DocumentColumns: []string{

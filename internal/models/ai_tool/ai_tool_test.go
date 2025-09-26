@@ -16,11 +16,9 @@ func init() {
 	system_testing.BuildSystem()
 }
 
-const (
-	UNIT_TEST_FIELD         = "tool_name"
-	UNIT_TEST_VALUE         = "UNIT_TEST_VALUE"
-	UNIT_TEST_CHANGED_VALUE = "UNIT_TEST_CHANGED_VALUE"
-)
+const UNIT_TEST_FIELD = "name"
+const UNIT_TEST_VALUE = "UNIT_TEST_VALUE"
+const UNIT_TEST_CHANGED_VALUE = "UNIT_TEST_CHANGED_VALUE"
 
 func TestNew(t *testing.T) {
 	obj := ai_tool.New()
@@ -28,6 +26,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestSave(t *testing.T) {
+
 	obj := ai_tool.New()
 	obj.Set(UNIT_TEST_FIELD, UNIT_TEST_VALUE)
 
@@ -60,9 +59,11 @@ func TestSave(t *testing.T) {
 	if updatedObjFromDb.GetString(UNIT_TEST_FIELD) != UNIT_TEST_CHANGED_VALUE {
 		t.Fatalf("UNIT_TEST_FIELD Didnt Update")
 	}
+
 }
 
 func TestFindAll(t *testing.T) {
+
 	obj := ai_tool.New()
 	err := obj.Save(nil)
 	if err != nil {
@@ -82,9 +83,11 @@ func TestFindAll(t *testing.T) {
 	if len(objs) <= 0 {
 		t.Errorf("FindAll Err nothing found")
 	}
+
 }
 
 func TestFindFirst(t *testing.T) {
+
 	obj := ai_tool.New()
 	err := obj.Save(nil)
 	if err != nil {
@@ -110,6 +113,7 @@ func TestFindFirst(t *testing.T) {
 }
 
 func TestFindFirstJoined(t *testing.T) {
+
 	obj := ai_tool.New()
 	err := obj.Save(nil)
 	if err != nil {
