@@ -11,14 +11,14 @@ import (
 
 // FindAllRestrictedJoined returns all joined records with restrictions for the session account
 // TODO: Implement specific access restrictions for this model
-func FindAllRestrictedJoined(ctx context.Context, options *model.Options, sessionAccount coremodel.Model) ([]*AiToolJoined, error) {
+func FindAllRestrictedJoined(ctx context.Context, options *model.Options, _ coremodel.Model) ([]*AiToolJoined, error) {
 	// Uncomment and adjust the following lines to implement proper restrictions
 	// options.WithCondition("%s = :account_id:", Columns.AccountID.Column())
 	// options.WithParam(":account_id:", sessionAccount.ID())
 	return FindAllJoined(ctx, options)
 }
 
-func FindAllRestricted(ctx context.Context, options *model.Options, sessionAccount coremodel.Model) ([]*AiTool, error) {
+func FindAllRestricted(ctx context.Context, options *model.Options, _ coremodel.Model) ([]*AiTool, error) {
 	// Uncomment and adjust the following lines to implement proper restrictions
 	// options.WithCondition("%s = :account_id:", Columns.AccountID.Column())
 	// options.WithParam(":account_id:", sessionAccount.ID())
@@ -27,7 +27,7 @@ func FindAllRestricted(ctx context.Context, options *model.Options, sessionAccou
 
 // CountRestricted returns the count of records with restrictions for the session account
 // TODO: Implement specific access restrictions for this model
-func CountRestricted(ctx context.Context, options *model.Options, sessionAccount coremodel.Model) (int64, error) {
+func CountRestricted(ctx context.Context, options *model.Options, _ coremodel.Model) (int64, error) {
 	// Uncomment and adjust the following lines to implement proper restrictions
 	// options.WithCondition("%s = :account_id:", Columns.AccountID.Column())
 	// options.WithParam(":account_id:", sessionAccount.ID())
@@ -36,22 +36,24 @@ func CountRestricted(ctx context.Context, options *model.Options, sessionAccount
 
 // GetRestrictedJoined gets a specific record with joined data and restrictions for the session account
 // TODO: Adjust the restrictions to match your access control requirements
-func GetRestrictedJoined(ctx context.Context, id types.UUID, sessionAccount coremodel.Model) (*AiToolJoined, error) {
+func GetRestrictedJoined(ctx context.Context, id types.UUID, _ coremodel.Model) (*AiToolJoined, error) {
 	options := model.NewOptions().
+		WithCondition("%s = 0", Columns.Disabled.Column()).
 		WithCondition("%s.id = :id:", TABLE).
-		WithParam(":id:", id).
-		WithCondition("%s = :account_id:", Columns.AccountID.Column()).
-		WithParam(":account_id:", sessionAccount.ID())
+		WithParam(":id:", id)
+	//	WithCondition("%s = :account_id:", Columns.AccountID.Column()).
+	//	WithParam(":account_id:", sessionAccount.ID())
 
 	return FindFirstJoined(ctx, options)
 }
 
-func GetRestricted(ctx context.Context, id types.UUID, sessionAccount coremodel.Model) (*AiTool, error) {
+func GetRestricted(ctx context.Context, id types.UUID, _ coremodel.Model) (*AiTool, error) {
 	options := model.NewOptions().
+		WithCondition("%s = 0", Columns.Disabled.Column()).
 		WithCondition("%s.id = :id:", TABLE).
-		WithParam(":id:", id).
-		WithCondition("%s = :account_id:", Columns.AccountID.Column()).
-		WithParam(":account_id:", sessionAccount.ID())
+		WithParam(":id:", id)
+	//	WithCondition("%s = :account_id:", Columns.AccountID.Column()).
+	//	WithParam(":account_id:", sessionAccount.ID())
 
 	return FindFirst(ctx, options)
 }
@@ -62,7 +64,7 @@ func NewPublic(data map[string]any, sessionAccount coremodel.Model) *AiTool {
 	obj := New()
 	data = sanitize.SanitizeModelInput(data, obj, &Structure{})
 	obj.MergeData(data)
-	//obj.AccountID.Set(sessionAccount.ID())
+	// obj.AccountID.Set(sessionAccount.ID())
 	return obj
 }
 

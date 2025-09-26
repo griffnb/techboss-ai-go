@@ -1,4 +1,4 @@
-//go:generate core_generate controller AiTool -modelPackage=ai_tool
+//go:generate core_generate controller AiTool -modelPackage=ai_tool -skip=authCreate,authUpdate
 package ai_tools
 
 import (
@@ -11,8 +11,10 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/models/ai_tool"
 )
 
-const TABLE_NAME string = ai_tool.TABLE
-const ROUTE string = "ai_tool"
+const (
+	TABLE_NAME string = ai_tool.TABLE
+	ROUTE      string = "ai_tool"
+)
 
 // Setup sets up the router
 func Setup(coreRouter *router.CoreRouter) {
@@ -52,14 +54,6 @@ func Setup(coreRouter *router.CoreRouter) {
 			}))
 			authR.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(authGet),
-			}))
-		})
-		r.Group(func(authR chi.Router) {
-			authR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(authCreate),
-			}))
-			authR.Put("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(authUpdate),
 			}))
 		})
 	})
