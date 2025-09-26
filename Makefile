@@ -136,6 +136,17 @@ code-gen-object: ## Create a new object (Usage: make code-gen-object model_name=
 		go generate "./internal/models/$(model_name)/$(model_name).go"; \
 		go generate "./internal/controllers/$(model_plural)/setup.go"; \
 	'
+.PHONY: code-gen-public-object
+code-gen-public-object: ## Create a new public object (Usage: make code-gen-object model_name=object_name model_plural=object_plural)
+	@bash -c '\
+		export GOPRIVATE=github.com/CrowdShield/*; \
+		export GH_TOKEN=$$(gh auth token); \
+		go install github.com/CrowdShield/go-core/core_generate@latest; \
+		PACKAGE_NAME=$$(grep "^module " go.mod | sed "s/module //"); \
+		core_generate object "$(model_name)" "-plural=$(model_plural)" "-modelPackage=$${PACKAGE_NAME}" "-public=true"; \
+		go generate "./internal/models/$(model_name)/$(model_name).go"; \
+		go generate "./internal/controllers/$(model_plural)/setup.go"; \
+	'
 
 .PHONY: generate
 generate: ## Installs latest, then runs code generation

@@ -256,10 +256,9 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 ### Essential Tools
 
 - `make fmt`: Format code
-- `go vet`: Find suspicious constructs
 - `make lint` Additional linting
-- `go test`: Run tests
-- `go mod`: Manage dependencies
+- `make test`: Run tests
+- `make tidy`: Manage dependencies
 
 ### Development Practices
 
