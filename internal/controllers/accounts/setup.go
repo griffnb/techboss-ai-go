@@ -1,4 +1,4 @@
-//go:generate core_generate controller Account -modelPackage=account -options=admin
+//go:generate core_generate controller Account -modelPackage=account
 package accounts
 
 import (
@@ -18,6 +18,7 @@ const (
 
 // Setup sets up the router
 func Setup(coreRouter *router.CoreRouter) {
+	// Admin routes
 	coreRouter.AddMainRoute(tools.BuildString("/admin/", ROUTE), func(r chi.Router) {
 		r.Group(func(adminR chi.Router) {
 			adminR.Get("/", helpers.RoleHandler(helpers.RoleHandlerMap{
@@ -41,6 +42,26 @@ func Setup(coreRouter *router.CoreRouter) {
 		r.Group(func(adminR chi.Router) {
 			adminR.Get("/_ts", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_READ_ADMIN: helpers.TSValidation(TABLE_NAME),
+			}))
+		})
+	})
+
+	// Public authenticated routes
+	coreRouter.AddMainRoute(tools.BuildString("/", ROUTE), func(r chi.Router) {
+		r.Group(func(authR chi.Router) {
+			authR.Get("/", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(authIndex),
+			}))
+			authR.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(authGet),
+			}))
+		})
+		r.Group(func(authR chi.Router) {
+			authR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(authCreate),
+			}))
+			authR.Put("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(authUpdate),
 			}))
 		})
 	})

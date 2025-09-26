@@ -23,6 +23,6 @@ type AccountV1 struct {
 	Name       *fields.StringField `column:"name"        type:"text" default:"" nullable:"false"`
 	Email      *fields.StringField `column:"email"       type:"text" default:"" nullable:"false" unique:"true"`
 	Phone      *fields.StringField `column:"phone"       type:"text" default:"" nullable:"false"`
-	ExternalID *fields.StringField `column:"external_id" type:"text" default:"" nullable:"false" index:"true"`
-	PlanID     *fields.StringField `column:"plan_id"     type:"text" default:"" nullable:"false" index:"true"`
+	ExternalID *fields.StringField `column:"external_id" type:"text" default:"" nullable:"false"               index:"true"`
+	PlanID     *fields.StringField `column:"plan_id"     type:"text" default:"" nullable:"false"               index:"true"`
 }

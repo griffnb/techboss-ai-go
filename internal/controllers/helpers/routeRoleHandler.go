@@ -11,6 +11,7 @@ import (
 	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
+	"github.com/griffnb/techboss-ai-go/internal/models/account"
 	"github.com/griffnb/techboss-ai-go/internal/models/admin"
 	"github.com/pkg/errors"
 )
@@ -120,4 +121,47 @@ func handleAdminRoute(res http.ResponseWriter, req *http.Request, roleHandlers R
 
 func GetReqSession(req *http.Request) *session.Session {
 	return req.Context().Value(router.SessionContextKey("session")).(*session.Session)
+}
+
+func IsSuperUpdate(req *http.Request) bool {
+	if !environment.IsProduction() {
+		return false
+	}
+
+	if !HasAdminSession(req) {
+		return false
+	}
+
+	userSession := req.Context().Value(router.SessionContextKey("session")).(*session.Session)
+	accountObj := userSession.LoadedUser.(*account.Account)
+
+	return !accountObj.IsInternal()
+}
+
+// GetAdminSession Gets the admin session from the request checking header and cookie, priority is cookie
+func HasAdminSession(req *http.Request) bool {
+	key := environment.GetConfig().Server.AdminSessionKey
+
+	cookieSessionKey := ""
+	cookie, _ := req.Cookie(key)
+	if !tools.Empty(cookie) {
+		cookieSessionKey = cookie.Value
+	}
+
+	headerSessionKey := req.Header.Get(key)
+
+	var sessionKey string
+	if !tools.Empty(cookieSessionKey) {
+		sessionKey = cookieSessionKey
+	} else if !tools.Empty(headerSessionKey) {
+		sessionKey = headerSessionKey
+	} else {
+		return false
+	}
+
+	if AdminKeyValid(sessionKey) {
+		return true
+	}
+
+	return false
 }
