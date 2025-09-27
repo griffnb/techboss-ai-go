@@ -126,9 +126,10 @@ Settings *fields.StructField[*Settings] `column:"settings" type:"jsonb" default:
 - `column:"name"` – Database column name (required)
 - `type:"text|jsonb|smallint|integer|uuid|date|datetime|bigint"` – Database column type (required) note that all 'boolean' type things should be a smallint 0/1
 - `default:"value/null"` – Default value for column
-- `nullable:"true"` – Whether column allows NULL
-- `unique:"true"` – Whether column has unique constraint
-- `index:"true"` – Whether to create index on column
+- `nullable:"true"` – Whether column allows NULL, dont add if not nullable
+- `unique:"true"` – Whether column has unique constraint, dont add if not unique
+- `index:"true"` – Whether to create index on column, dont add if not indexed
+- `public:"view|edit"` - For public endpoints, determines whether or not the field is returned (view or edit) or on updates if its editable by the user (edit), dont add if not public facing
 
 ## Standards and Conventions
 

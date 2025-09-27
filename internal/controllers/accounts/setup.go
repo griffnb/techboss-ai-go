@@ -50,18 +50,18 @@ func Setup(coreRouter *router.CoreRouter) {
 	coreRouter.AddMainRoute(tools.BuildString("/", ROUTE), func(r chi.Router) {
 		r.Group(func(authR chi.Router) {
 			authR.Get("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(authIndex),
+				constants.ROLE_ANY_AUTHORIZED: helpers.StandardPublicRequestWrapper(authIndex),
 			}))
 			authR.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(authGet),
+				constants.ROLE_ANY_AUTHORIZED: helpers.StandardPublicRequestWrapper(authGet),
 			}))
 		})
 		r.Group(func(authR chi.Router) {
 			authR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(authCreate),
+				constants.ROLE_ANY_AUTHORIZED: helpers.StandardPublicRequestWrapper(authCreate),
 			}))
 			authR.Put("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(authUpdate),
+				constants.ROLE_ANY_AUTHORIZED: helpers.StandardPublicRequestWrapper(authUpdate),
 			}))
 		})
 	})
