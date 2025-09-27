@@ -9,6 +9,7 @@ import (
 
 	"github.com/CrowdShield/go-core/lib/router"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/global_configs"
+	"github.com/griffnb/techboss-ai-go/internal/controllers/leads"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/login"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/logs"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/utilities"
@@ -27,6 +28,7 @@ func Setup(coreRouter *router.CoreRouter) {
 	ai.Setup(coreRouter)
 	accounts.Setup(coreRouter)
 	ai_tools.Setup(coreRouter)
+	leads.Setup(coreRouter)
 
 	// Print all routes
 	// printRoutes(coreRouter.Router)
