@@ -34,8 +34,10 @@ migrate: ## Run database migrations
 
 # Docker targets
 .PHONY: docker-up
-docker-up: ## Start Docker services
-	docker compose -f infra/docker-compose.yml up
+docker-up: ## Start Docker services, be sure to setup /etc/hosts entry for local-techboss
+	sudo ifconfig lo0 alias 127.10.0.1/8
+	ifconfig lo0 | grep 127.10.0.1
+	docker compose -f infra/docker-compose-local.yml up
 
 # Code quality targets
 .PHONY: lint
