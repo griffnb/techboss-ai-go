@@ -1,11 +1,15 @@
 package controllers
 
 import (
+	"github.com/griffnb/techboss-ai-go/internal/controllers/accounts"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/admins"
+	"github.com/griffnb/techboss-ai-go/internal/controllers/ai"
+	"github.com/griffnb/techboss-ai-go/internal/controllers/ai_tools"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/change_logs"
 
 	"github.com/CrowdShield/go-core/lib/router"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/global_configs"
+	"github.com/griffnb/techboss-ai-go/internal/controllers/leads"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/login"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/logs"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/utilities"
@@ -20,6 +24,11 @@ func Setup(coreRouter *router.CoreRouter) {
 	logs.Setup(coreRouter)
 
 	utilities.Setup(coreRouter)
+
+	ai.Setup(coreRouter)
+	accounts.Setup(coreRouter)
+	ai_tools.Setup(coreRouter)
+	leads.Setup(coreRouter)
 
 	// Print all routes
 	// printRoutes(coreRouter.Router)

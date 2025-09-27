@@ -6,9 +6,12 @@ import (
 	"github.com/CrowdShield/go-core/lib/model"
 	"github.com/griffnb/techboss-ai-go/internal/cron/taskworker/delay_queue"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
+	"github.com/griffnb/techboss-ai-go/internal/models/account"
 	"github.com/griffnb/techboss-ai-go/internal/models/admin"
+	"github.com/griffnb/techboss-ai-go/internal/models/ai_tool"
 	"github.com/griffnb/techboss-ai-go/internal/models/change_log"
 	"github.com/griffnb/techboss-ai-go/internal/models/global_config"
+	"github.com/griffnb/techboss-ai-go/internal/models/lead"
 	"github.com/griffnb/techboss-ai-go/internal/models/migrations"
 
 	"github.com/pkg/errors"
@@ -41,6 +44,21 @@ func LoadModels() (err error) {
 	}
 
 	err = defaultClient.AddTableToProperties(admin.TABLE, &admin.Structure{})
+	if err != nil {
+		return err
+	}
+
+	err = defaultClient.AddTableToProperties(ai_tool.TABLE, &ai_tool.Structure{})
+	if err != nil {
+		return err
+	}
+
+	err = defaultClient.AddTableToProperties(account.TABLE, &account.Structure{})
+	if err != nil {
+		return err
+	}
+
+	err = defaultClient.AddTableToProperties(lead.TABLE, &lead.Structure{})
 	if err != nil {
 		return err
 	}

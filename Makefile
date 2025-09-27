@@ -34,8 +34,10 @@ migrate: ## Run database migrations
 
 # Docker targets
 .PHONY: docker-up
-docker-up: ## Start Docker services
-	docker compose -f infra/docker-compose.yml up
+docker-up: ## Start Docker services, be sure to setup /etc/hosts entry for local-techboss
+	sudo ifconfig lo0 alias 127.10.0.1/8
+	ifconfig lo0 | grep 127.10.0.1
+	docker compose -f infra/docker-compose-local.yml up
 
 # Code quality targets
 .PHONY: lint
@@ -124,7 +126,29 @@ code-gen: ## Create a new object (Usage: make create-object WORD=objectname)
 		go install github.com/CrowdShield/go-core/core_generate@latest; \
 		./scripts/code_gen.sh; \
 	'
-	
+
+.PHONY: code-gen-object
+code-gen-object: ## Create a new object (Usage: make code-gen-object model_name=object_name model_plural=object_plural)
+	@bash -c '\
+		export GOPRIVATE=github.com/CrowdShield/*; \
+		export GH_TOKEN=$$(gh auth token); \
+		go install github.com/CrowdShield/go-core/core_generate@latest; \
+		PACKAGE_NAME=$$(grep "^module " go.mod | sed "s/module //"); \
+		core_generate object "$(model_name)" "-plural=$(model_plural)" "-modelPackage=$${PACKAGE_NAME}"; \
+		go generate "./internal/models/$(model_name)/$(model_name).go"; \
+		go generate "./internal/controllers/$(model_plural)/setup.go"; \
+	'
+.PHONY: code-gen-public-object
+code-gen-public-object: ## Create a new public object (Usage: make code-gen-object model_name=object_name model_plural=object_plural)
+	@bash -c '\
+		export GOPRIVATE=github.com/CrowdShield/*; \
+		export GH_TOKEN=$$(gh auth token); \
+		go install github.com/CrowdShield/go-core/core_generate@latest; \
+		PACKAGE_NAME=$$(grep "^module " go.mod | sed "s/module //"); \
+		core_generate object "$(model_name)" "-plural=$(model_plural)" "-modelPackage=$${PACKAGE_NAME}" "-public=true"; \
+		go generate "./internal/models/$(model_name)/$(model_name).go"; \
+		go generate "./internal/controllers/$(model_plural)/setup.go"; \
+	'
 
 .PHONY: generate
 generate: ## Installs latest, then runs code generation
@@ -135,6 +159,8 @@ generate: ## Installs latest, then runs code generation
 		files=$$(find . -name "*.go" -exec grep -l "//go:generate" {} \;); \
 		echo "$$files" | xargs -n1 -P5 go generate; \
 	'
+
+	
 
 .PHONY: generate-only
 generate-only: ## Run code generation only without installing

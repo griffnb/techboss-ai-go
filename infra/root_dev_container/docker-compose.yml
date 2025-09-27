@@ -8,16 +8,10 @@ services:
     command: sleep infinity
     depends_on:
       db:
-        condition: service_healthy
-      redis:
-        condition: service_started
+        condition: service_healthy      
       localstack:
         condition: service_healthy
         
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
         
   localstack:
     image: localstack/localstack:4.0.0
@@ -35,10 +29,10 @@ services:
     image: amazon/dynamodb-local
     command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
     volumes:
-      - "dynamo-data:/home/dynamodblocal/data"
+      - ../.docker-data/dynamodb:/home/dynamodblocal/data
     working_dir: /home/dynamodblocal
     ports:
-      - "${DYNAMODB_PORT:-8002}:8000"
+      - "${DYNAMODB_PORT:-8000}:8000"
 
   db:
     image: postgres:17.0
@@ -58,10 +52,4 @@ services:
       retries: 12
       start_period: 10s
     volumes:
-      - db-data:/var/lib/postgresql/data
-
-  
-
-volumes:
-  db-data:
-  dynamo-data:
+      - ../.docker-data/postgres:/var/lib/postgresql/data
