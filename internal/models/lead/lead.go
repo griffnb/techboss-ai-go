@@ -26,11 +26,11 @@ type Structure struct {
 
 type DBColumns struct {
 	base.Structure
-	Name       *fields.StringField        `column:"name" type:"text" default:"" public:"view"`
-	Email      *fields.StringField        `column:"email" type:"text" default:"" nullable:"true" unique:"true" index:"true" public:"view"`
-	Phone      *fields.StringField        `column:"phone" type:"text" default:"" public:"view"`
-	ExternalID *fields.StringField        `column:"external_id" type:"text" default:"" index:"true" public:"view"`
-	Utms       *fields.StructField[*Utms] `column:"utms" type:"jsonb" default:"{}" public:"view"`
+	Name       *fields.StringField        `column:"name"        type:"text"  default:""     public:"view"`
+	Email      *fields.StringField        `column:"email"       type:"text"  default:"null" public:"view" null:"true" unique:"true" index:"true"`
+	Phone      *fields.StringField        `column:"phone"       type:"text"  default:""     public:"view"`
+	ExternalID *fields.StringField        `column:"external_id" type:"text"  default:""     public:"view"                           index:"true"`
+	Utms       *fields.StructField[*Utms] `column:"utms"        type:"jsonb" default:"{}"   public:"view"`
 }
 
 type JoinData struct {
@@ -54,7 +54,6 @@ func (this *Lead) beforeSave(ctx context.Context) error {
 	common.GenerateURN(this)
 	common.SetDisabledDeleted(this)
 	return this.ValidateSubStructs()
-
 }
 
 func (this *Lead) afterSave(ctx context.Context) {
