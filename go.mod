@@ -14,11 +14,14 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/shopspring/decimal v1.4.0 // indirect
-	golang.org/x/crypto v0.39.0 // indirect
+	golang.org/x/crypto v0.39.0
 	golang.org/x/oauth2 v0.30.0 // indirect
 )
 
-require github.com/CrowdShield/go-core/lib v0.0.30
+require (
+	github.com/CrowdShield/go-core/lib v0.0.30
+	github.com/clerk/clerk-sdk-go/v2 v2.4.2
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -49,6 +52,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.34.0 // indirect
 	github.com/aws/smithy-go v1.22.4 // indirect
 	github.com/coreos/go-oidc v2.2.1+incompatible // indirect
+	github.com/go-jose/go-jose/v3 v3.0.4 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
@@ -68,6 +72,7 @@ require (
 	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
+	golang.org/x/time v0.12.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 )

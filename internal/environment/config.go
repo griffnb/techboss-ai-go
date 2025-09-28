@@ -14,6 +14,8 @@ type Config struct {
 	Encryption *Encryption `json:"encryption"`
 	AIKeys     *AIKeys     `json:"ai_keys"`
 	Cloudflare *Cloudflare `json:"cloudflare"`
+	Sendpulse  *Sendpulse  `json:"sendpulse"`
+	Clerk      *Clerk      `json:"clerk"`
 }
 
 type Cloudflare struct {
@@ -63,4 +65,14 @@ type SES struct {
 	Region string `json:"region"`
 	Key    string `json:"key"`
 	Skey   string `json:"skey"`
+}
+
+type Sendpulse struct {
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	WebhookKey   string `json:"webhook_key"`
+}
+
+type Clerk struct {
+	APIKey string `json:"api_key"`
 }

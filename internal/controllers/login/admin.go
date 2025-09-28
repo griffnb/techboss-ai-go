@@ -1,17 +1,6 @@
 package login
 
-import (
-	"encoding/json"
-	"net/http"
-
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/session"
-	"github.com/CrowdShield/go-core/lib/tools"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
-	"github.com/griffnb/techboss-ai-go/internal/environment"
-	"github.com/griffnb/techboss-ai-go/internal/models/admin"
-)
-
+/*
 // This is for loging in on the frontend with a token
 func adminTokenLogin(res http.ResponseWriter, req *http.Request) {
 	profile, token, err := helpers.HandleTokenLogin(environment.GetOauth(), res, req)
@@ -69,3 +58,4 @@ func logout(res http.ResponseWriter, req *http.Request) {
 	successResponse := map[string]any{}
 	helpers.JSONDataResponseWrapper(res, req, successResponse)
 }
+*/

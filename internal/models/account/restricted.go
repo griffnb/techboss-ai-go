@@ -11,14 +11,14 @@ import (
 
 // FindAllRestrictedJoined returns all joined records with restrictions for the session account
 // TODO: Implement specific access restrictions for this model
-func FindAllRestrictedJoined(ctx context.Context, options *model.Options, sessionAccount coremodel.Model) ([]*AccountJoined, error) {
+func FindAllRestrictedJoined(ctx context.Context, options *model.Options, _ coremodel.Model) ([]*AccountJoined, error) {
 	// Uncomment and adjust the following lines to implement proper restrictions
 	// options.WithCondition("%s = :account_id:", Columns.AccountID.Column())
 	// options.WithParam(":account_id:", sessionAccount.ID())
 	return FindAllJoined(ctx, options)
 }
 
-func FindAllRestricted(ctx context.Context, options *model.Options, sessionAccount coremodel.Model) ([]*Account, error) {
+func FindAllRestricted(ctx context.Context, options *model.Options, _ coremodel.Model) ([]*Account, error) {
 	// Uncomment and adjust the following lines to implement proper restrictions
 	// options.WithCondition("%s = :account_id:", Columns.AccountID.Column())
 	// options.WithParam(":account_id:", sessionAccount.ID())
@@ -27,7 +27,7 @@ func FindAllRestricted(ctx context.Context, options *model.Options, sessionAccou
 
 // CountRestricted returns the count of records with restrictions for the session account
 // TODO: Implement specific access restrictions for this model
-func CountRestricted(ctx context.Context, options *model.Options, sessionAccount coremodel.Model) (int64, error) {
+func CountRestricted(ctx context.Context, options *model.Options, _ coremodel.Model) (int64, error) {
 	// Uncomment and adjust the following lines to implement proper restrictions
 	// options.WithCondition("%s = :account_id:", Columns.AccountID.Column())
 	// options.WithParam(":account_id:", sessionAccount.ID())

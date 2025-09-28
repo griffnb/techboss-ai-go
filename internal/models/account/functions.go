@@ -12,6 +12,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// GetName Safely gets the name from a join or combined first and last name
+func (this *Account) GetName() string {
+	return fmt.Sprintf("%s %s", this.FirstName.Get(), this.LastName.Get())
+}
+
 func (this *Account) IsInternal() bool {
 	return strings.HasSuffix(strings.ToLower(this.Email.Get()), "@atlas.net") || this.TestUserType.Get() > 0
 }

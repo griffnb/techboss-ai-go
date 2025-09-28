@@ -22,7 +22,7 @@ const (
 	UNIT_TEST_CHANGED_VALUE = "UNIT_TEST_CHANGED_VALUE"
 )
 
-func TestNew(t *testing.T) {
+func TestNew(_ *testing.T) {
 	obj := account.New()
 	obj.Set(UNIT_TEST_FIELD, UNIT_TEST_VALUE)
 }
