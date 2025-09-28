@@ -26,12 +26,13 @@ type Structure struct {
 
 type DBColumns struct {
 	base.Structure
-	Name         *fields.StringField `column:"name"           type:"text"     default:""`
-	Email        *fields.StringField `column:"email"          type:"text"     default:""  unique:"true"`
-	Phone        *fields.StringField `column:"phone"          type:"text"     default:""`
-	ExternalID   *fields.StringField `column:"external_id"    type:"text"     default:""                index:"true"`
-	PlanID       *fields.StringField `column:"plan_id"        type:"text"     default:""                index:"true"`
-	TestUserType *fields.IntField    `column:"test_user_type" type:"smallint" default:"0"                            nullable:"false"`
+	Name           *fields.StringField `column:"name"            type:"text"     default:""`
+	Email          *fields.StringField `column:"email"           type:"text"     default:""     unique:"true"`
+	Phone          *fields.StringField `column:"phone"           type:"text"     default:""`
+	ExternalID     *fields.StringField `column:"external_id"     type:"text"     default:""                   index:"true"`
+	PlanID         *fields.StringField `column:"plan_id"         type:"text"     default:""                   index:"true"`
+	TestUserType   *fields.IntField    `column:"test_user_type"  type:"smallint" default:"0"`
+	OrganizationID *fields.UUIDField   `column:"organization_id" type:"uuid"     default:"null"               index:"true" null:"true"`
 }
 
 type JoinData struct {
