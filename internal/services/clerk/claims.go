@@ -10,10 +10,11 @@ import (
 )
 
 type CustomSessionClaims struct {
-	Email      string         `json:"email"`
-	ClerkID    string         `json:"clerk_id"`
-	ExternalID string         `json:"external_id"`
-	Role       constants.Role `json:"role"`
+	Email           string         `json:"email"`
+	ExternalID      string         `json:"external_id"`
+	Role            constants.Role `json:"role"`
+	AdminRole       constants.Role `json:"admin_role"`
+	AdminExternalID string         `json:"admin_external_id"`
 }
 
 func CustomClaims(claims *clerk.SessionClaims) (*CustomSessionClaims, error) {

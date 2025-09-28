@@ -50,18 +50,27 @@ func GetAdminSession(req *http.Request) *session.Session {
 	if err != nil {
 		return nil
 	}
+	log.Debugf("custom claims: %+v", customClaims)
 
-	if tools.Empty(customClaims.Role) {
+	if tools.Empty(customClaims.AdminRole) {
 		adminObj, err := clerk_service.SyncAdmin(req.Context(), claims)
-		if err != nil || tools.Empty(adminObj) {
+		if err != nil {
+			log.ErrorContext(err, req.Context())
 			return nil
 		}
-		customClaims.Role = adminObj.Role.Get()
+
+		if tools.Empty(adminObj) {
+			log.ErrorContext(errors.New("failed to sync admin, adminObj is nil"), req.Context())
+			return nil
+		}
+
+		log.Debugf("synced admin: %+v", adminObj.GetData())
+		customClaims.AdminRole = adminObj.Role.Get()
 		customClaims.Email = adminObj.Email.Get()
-		customClaims.ExternalID = adminObj.ExternalID.Get()
+		customClaims.AdminExternalID = adminObj.ID().String()
 	}
 
-	if customClaims.Role < constants.ROLE_READ_ADMIN {
+	if customClaims.AdminRole < constants.ROLE_READ_ADMIN {
 		return nil
 	}
 
@@ -80,8 +89,8 @@ func GetAdminSession(req *http.Request) *session.Session {
 		Model: "Session",
 	})
 	coreModel.MergeData(map[string]any{
-		"id":    customClaims.ExternalID,
-		"role":  customClaims.Role,
+		"id":    customClaims.AdminExternalID,
+		"role":  customClaims.AdminRole,
 		"email": customClaims.Email,
 	})
 	clerkSession.WithUser(coreModel)
@@ -93,6 +102,7 @@ func handleAdminRoute(res http.ResponseWriter, req *http.Request, roleHandlers R
 	adminSession := GetAdminSession(req)
 
 	if tools.Empty(adminSession) {
+		log.Debugf("Empty admin session")
 		if handler, ok := roleHandlers[constants.ROLE_UNAUTHORIZED]; ok {
 			handler(res, req)
 			return
