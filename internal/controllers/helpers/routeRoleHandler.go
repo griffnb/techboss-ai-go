@@ -271,6 +271,25 @@ func GetSession(req *http.Request) (*session.Session, error) {
 		return nil, err
 	}
 
+	log.Debugf("custom claims: %+v", customClaims)
+
+	if tools.Empty(customClaims.ExternalID) {
+		accountObj, err := clerk_service.CreateAccount(req.Context(), claims)
+		if err != nil {
+			log.ErrorContext(err, req.Context())
+			return nil, nil
+		}
+
+		if tools.Empty(accountObj) {
+			return nil, errors.Errorf("failed to create account from claims")
+		}
+
+		log.Debugf("synced account: %+v", accountObj.GetData())
+		customClaims.Role = accountObj.Role.Get()
+		customClaims.Email = accountObj.Email.Get()
+		customClaims.ExternalID = accountObj.ID().String()
+	}
+
 	clerkSession := session.New("")
 
 	token := strings.Split(req.Header.Get("Authorization"), "Bearer ")

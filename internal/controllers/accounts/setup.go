@@ -55,6 +55,10 @@ func Setup(coreRouter *router.CoreRouter) {
 			authR.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_ANY_AUTHORIZED: helpers.StandardPublicRequestWrapper(authGet),
 			}))
+
+			authR.Get("/me", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: helpers.StandardPublicRequestWrapper(authMe),
+			}))
 		})
 		r.Group(func(authR chi.Router) {
 			authR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
