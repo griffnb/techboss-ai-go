@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	TABLE         string = "chat.documents"
-	EXTERNAL_TYPE string = "document"
-	IS_VERSIONED         = false
-	CLIENT               = environment.CLIENT_DEFAULT
-	CHANGE_LOGS          = true
+	TABLE string = "documents"
+
+	IS_VERSIONED = false
+	CLIENT       = environment.CLIENT_DEFAULT
+	CHANGE_LOGS  = true
 )
 
 type Structure struct {

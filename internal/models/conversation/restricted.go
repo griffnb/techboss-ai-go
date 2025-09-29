@@ -6,6 +6,7 @@ import (
 	"github.com/CrowdShield/go-core/lib/model"
 	"github.com/CrowdShield/go-core/lib/model/coremodel"
 	"github.com/CrowdShield/go-core/lib/sanitize"
+	"github.com/CrowdShield/go-core/lib/types"
 )
 
 func FindAllRestrictedJoined(ctx context.Context, options *model.Options, sessionUser coremodel.Model) ([]*ConversationJoined, error) {
@@ -13,7 +14,7 @@ func FindAllRestrictedJoined(ctx context.Context, options *model.Options, sessio
 	return FindAllJoined(ctx, options)
 }
 
-func GetRestrictedJoined(ctx context.Context, id int64, sessionUser coremodel.Model) (*ConversationJoined, error) {
+func GetRestrictedJoined(ctx context.Context, id types.UUID, sessionUser coremodel.Model) (*ConversationJoined, error) {
 	options := model.NewOptions().
 		WithCondition("%s = :id: AND %s = :account_id:", Columns.ID_.Column(), Columns.AccountID.Column()).
 		WithParam(":id:", id).

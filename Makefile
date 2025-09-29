@@ -248,3 +248,11 @@ install-deadcode: ## Install deadcode
 .PHONY: deadcode
 deadcode: ## Run deadcode to find unused code
 	deadcode ./cmd/server
+
+
+.PHONY: opencode
+opencode: ## Open the current directory in VSCode
+	@set -a; \
+	. .env; \
+	set +a; \
+	opencode
