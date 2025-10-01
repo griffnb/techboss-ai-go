@@ -22,6 +22,7 @@ type AiToolV1 struct {
 	base.Structure
 	ToolName                *fields.StringField                                   `column:"tool_name"                 type:"text"     default:""`
 	WebsiteURL              *fields.StringField                                   `column:"website_url"               type:"text"     default:""`
+	AffiliateURL            *fields.StringField                                   `column:"affiliate_url"             type:"text"     default:""`
 	HeroSection             *fields.StructField[*ai_tool.HeroSection]             `column:"hero_section"              type:"jsonb"    default:"{}"`
 	Overview                *fields.StructField[*ai_tool.Overview]                `column:"overview"                  type:"jsonb"    default:"{}"`
 	FeaturesAndCapabilities *fields.StructField[*ai_tool.FeaturesAndCapabilities] `column:"features_and_capabilities" type:"jsonb"    default:"{}"`
@@ -33,4 +34,5 @@ type AiToolV1 struct {
 	BusinessFunction        *fields.StringField                                   `column:"business_function"         type:"text"     default:""`
 	Affiliate               *fields.IntField                                      `column:"affiliate"                 type:"smallint" default:"0"`
 	IsFeatured              *fields.IntField                                      `column:"is_featured"               type:"smallint" default:"0"`
+	SearchBlobTSV           *fields.StringField                                   `column:"search_blob_tsv"           type:"tsvector" default:"null" null:"true" index:"true"`
 }

@@ -1,6 +1,7 @@
 // Package sendpulse integration
 // https://sendpulse.com/integrations/api
 // https://sendpulse.com/integrations/api/crm
+// https://login.sendpulse.com/api/crm-service/v1/openapi/en
 package sendpulse
 
 import (

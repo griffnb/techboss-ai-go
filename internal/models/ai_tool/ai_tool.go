@@ -61,6 +61,7 @@ type DBColumns struct {
 	base.Structure
 	ToolName                *fields.StringField                           `column:"tool_name"                 type:"text"     default:""`
 	WebsiteURL              *fields.StringField                           `column:"website_url"               type:"text"     default:""`
+	AffiliateURL            *fields.StringField                           `column:"affiliate_url"             type:"text"     default:""`
 	HeroSection             *fields.StructField[*HeroSection]             `column:"hero_section"              type:"jsonb"    default:"{}"`
 	Overview                *fields.StructField[*Overview]                `column:"overview"                  type:"jsonb"    default:"{}"`
 	FeaturesAndCapabilities *fields.StructField[*FeaturesAndCapabilities] `column:"features_and_capabilities" type:"jsonb"    default:"{}"`
@@ -72,6 +73,7 @@ type DBColumns struct {
 	BusinessFunction        *fields.StringField                           `column:"business_function"         type:"text"     default:""`
 	Affiliate               *fields.IntField                              `column:"affiliate"                 type:"smallint" default:"0"`
 	IsFeatured              *fields.IntField                              `column:"is_featured"               type:"smallint" default:"0"`
+	SearchBlobTSV           *fields.StringField                           `column:"search_blob_tsv"           type:"tsvector" default:"null" null:"true" index:"true"`
 }
 
 type JoinData struct {

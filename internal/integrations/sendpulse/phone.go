@@ -9,16 +9,24 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (this *APIClient) AddContactPhone(ctx context.Context, id int64, phone string) (any, error) {
+type AddContactPhoneRequest struct {
+	Phone string `json:"phone"`
+}
+
+type AddContactPhoneResponse struct {
+	Data *ContactPhone `json:"data,omitempty"`
+}
+
+// AddContactPhone adds a phone number to the contact
+// https://sendpulse.com/integrations/api/crm#/Contact%20phone%20number/post_contacts__contactId__phones
+func (this *APIClient) AddContactPhone(ctx context.Context, id int64, request *AddContactPhoneRequest) (*AddContactPhoneResponse, error) {
 	token, err := this.GetToken()
 	if err != nil {
 		return nil, err
 	}
 
-	result := new(any)                           // todo
-	body, err := json.Marshal(map[string]string{ // todo make struct
-		"phone": phone,
-	})
+	result := &AddContactPhoneResponse{}
+	body, err := json.Marshal(request)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -29,9 +37,7 @@ func (this *APIClient) AddContactPhone(ctx context.Context, id int64, phone stri
 		WithBody(body).
 		WithSuccessResult(result)
 
-	_, err = this.Call(ctx,
-		req,
-	)
+	_, err = this.Call(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -39,29 +45,40 @@ func (this *APIClient) AddContactPhone(ctx context.Context, id int64, phone stri
 	return result, nil
 }
 
-func (this *APIClient) UpdateContactPhone(ctx context.Context, id int64, phoneId int64, phone string) (any, error) {
+type UpdateContactPhoneRequest struct {
+	Phone string `json:"phone"`
+}
+
+type UpdateContactPhoneResponse struct {
+	Data *ContactPhone `json:"data,omitempty"`
+}
+
+// UpdateContactPhone updates the phone number of the contact
+// https://sendpulse.com/integrations/api/crm#/Contact%20phone%20number/put_contacts__contactId__phones__phoneId_
+func (this *APIClient) UpdateContactPhone(
+	ctx context.Context,
+	id int64,
+	phoneID int64,
+	request *UpdateContactPhoneRequest,
+) (*UpdateContactPhoneResponse, error) {
 	token, err := this.GetToken()
 	if err != nil {
 		return nil, err
 	}
 
-	result := new(any)                           // todo
-	body, err := json.Marshal(map[string]string{ // todo make struct
-		"phone": phone,
-	})
+	result := &UpdateContactPhoneResponse{}
+	body, err := json.Marshal(request)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	req := this.NewRequest(http.MethodPut, fmt.Sprintf("/contacts/%d/phones/%d", id, phoneId)).
+	req := this.NewRequest(http.MethodPut, fmt.Sprintf("/contacts/%d/phones/%d", id, phoneID)).
 		WithHeader("Authorization", fmt.Sprintf("Bearer %s", token)).
 		WithHeader("Content-Type", "application/json").
 		WithBody(body).
 		WithSuccessResult(result)
 
-	_, err = this.Call(ctx,
-		req,
-	)
+	_, err = this.Call(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -69,25 +86,25 @@ func (this *APIClient) UpdateContactPhone(ctx context.Context, id int64, phoneId
 	return result, nil
 }
 
-func (this *APIClient) DeleteContactPhone(ctx context.Context, id int64, phoneId int64) (any, error) {
+// DeleteContactPhone removes the phone number from the contact
+// https://sendpulse.com/integrations/api/crm#/Contact%20phone%20number/delete_contacts__contactId__phones__phoneId_
+func (this *APIClient) DeleteContactPhone(ctx context.Context, id int64, phoneID int64) error {
 	token, err := this.GetToken()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	result := new(any) // todo
+	result := new(any) // delete endpoints typically return empty response
 
-	req := this.NewRequest(http.MethodDelete, fmt.Sprintf("/contacts/%d/phones/%d", id, phoneId)).
+	req := this.NewRequest(http.MethodDelete, fmt.Sprintf("/contacts/%d/phones/%d", id, phoneID)).
 		WithHeader("Authorization", fmt.Sprintf("Bearer %s", token)).
 		WithHeader("Content-Type", "application/json").
 		WithSuccessResult(result)
 
-	_, err = this.Call(ctx,
-		req,
-	)
+	_, err = this.Call(ctx, req)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return result, nil
+	return nil
 }
