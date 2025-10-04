@@ -14,7 +14,9 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/models/global_config"
 	"github.com/griffnb/techboss-ai-go/internal/models/lead"
 	"github.com/griffnb/techboss-ai-go/internal/models/migrations"
+	"github.com/griffnb/techboss-ai-go/internal/models/object_tag"
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"
+	"github.com/griffnb/techboss-ai-go/internal/models/tag"
 
 	"github.com/pkg/errors"
 )
@@ -71,6 +73,16 @@ func LoadModels() (err error) {
 	}
 
 	err = defaultClient.AddTableToProperties(category.TABLE, &category.Structure{})
+	if err != nil {
+		return err
+	}
+
+	err = defaultClient.AddTableToProperties(tag.TABLE, &tag.Structure{})
+	if err != nil {
+		return err
+	}
+
+	err = defaultClient.AddTableToProperties(object_tag.TABLE, &object_tag.Structure{})
 	if err != nil {
 		return err
 	}

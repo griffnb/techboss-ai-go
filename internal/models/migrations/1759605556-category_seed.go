@@ -31,7 +31,6 @@ func init() {
     "Chatbots & Virtual Assistants",
     "Coding & Development",
     "Compliance & Regulation",
-    "Compliance Management",
     "Content Creation",
     "Content Generation",
     "Content Marketing",
@@ -124,7 +123,7 @@ func init() {
 			categorizationsParent.Slug.Set("categorizations")
 			categorizationsParent.Description.Set("AI tool categorizations")
 			categorizationsParent.Status.Set(constants.STATUS_ACTIVE)
-			err = categorizationsParent.Save(nil)
+			err = categorizationsParent.SaveIfNotExists(nil)
 			if err != nil {
 				return fmt.Errorf("failed to create categorizations parent: %w", err)
 			}
@@ -134,7 +133,7 @@ func init() {
 			businessFunctionsParent.Slug.Set("business-functions")
 			businessFunctionsParent.Description.Set("Business function categories")
 			businessFunctionsParent.Status.Set(constants.STATUS_ACTIVE)
-			err = businessFunctionsParent.Save(nil)
+			err = businessFunctionsParent.SaveIfNotExists(nil)
 			if err != nil {
 				return fmt.Errorf("failed to create business functions parent: %w", err)
 			}
@@ -147,7 +146,7 @@ func init() {
 				catObj.Description.Set("")
 				catObj.ParentCategoryID.Set(categorizationsParent.ID())
 				catObj.Status.Set(constants.STATUS_ACTIVE)
-				err := catObj.Save(nil)
+				err := catObj.SaveIfNotExists(nil)
 				if err != nil {
 					return fmt.Errorf("failed to create categorization '%s': %w", catName, err)
 				}
@@ -161,7 +160,7 @@ func init() {
 				funcObj.Description.Set("")
 				funcObj.ParentCategoryID.Set(businessFunctionsParent.ID())
 				funcObj.Status.Set(constants.STATUS_ACTIVE)
-				err := funcObj.Save(nil)
+				err := funcObj.SaveIfNotExists(nil)
 				if err != nil {
 					return fmt.Errorf("failed to create business function '%s': %w", funcName, err)
 				}

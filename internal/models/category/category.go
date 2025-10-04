@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/CrowdShield/go-core/lib/model"
+	"github.com/CrowdShield/go-core/lib/model/coremodel"
 	"github.com/CrowdShield/go-core/lib/model/fields"
 	"github.com/griffnb/techboss-ai-go/internal/common"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
@@ -26,10 +27,10 @@ type Structure struct {
 
 type DBColumns struct {
 	base.Structure
-	Name             *fields.StringField `column:"name" type:"text" default:"" public:"view|edit"`
-	Slug             *fields.StringField `column:"slug" type:"text" default:"" unique:"true" public:"view|edit"`
-	Description      *fields.StringField `column:"description" type:"text" default:"" public:"view|edit"`
-	ParentCategoryID *fields.UUIDField   `column:"parent_category_id" type:"uuid" default:"null" null:"true" public:"view|edit"`
+	Name             *fields.StringField `column:"name"               type:"text" default:""     public:"view|edit"`
+	Slug             *fields.StringField `column:"slug"               type:"text" default:""     public:"view|edit" unique:"true"`
+	Description      *fields.StringField `column:"description"        type:"text" default:""     public:"view|edit"`
+	ParentCategoryID *fields.UUIDField   `column:"parent_category_id" type:"uuid" default:"null" public:"view|edit"               null:"true"`
 }
 
 type JoinData struct {
@@ -53,7 +54,6 @@ func (this *Category) beforeSave(ctx context.Context) error {
 	common.GenerateURN(this)
 	common.SetDisabledDeleted(this)
 	return this.ValidateSubStructs()
-
 }
 
 func (this *Category) afterSave(ctx context.Context) {
@@ -66,4 +66,9 @@ func (this *Category) afterSave(ctx context.Context) {
 			}
 		}()
 	*/
+}
+
+func (this *Category) SaveIfNotExists(savingUser coremodel.Model) error {
+	this.SetAnyConflict()
+	return this.SaveWithContext(context.Background(), savingUser)
 }
