@@ -9,6 +9,7 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 	"github.com/griffnb/techboss-ai-go/internal/models/admin"
 	"github.com/griffnb/techboss-ai-go/internal/models/ai_tool"
+	"github.com/griffnb/techboss-ai-go/internal/models/category"
 	"github.com/griffnb/techboss-ai-go/internal/models/change_log"
 	"github.com/griffnb/techboss-ai-go/internal/models/global_config"
 	"github.com/griffnb/techboss-ai-go/internal/models/lead"
@@ -65,6 +66,11 @@ func LoadModels() (err error) {
 	}
 
 	err = defaultClient.AddTableToProperties(organization.TABLE, &organization.Structure{})
+	if err != nil {
+		return err
+	}
+
+	err = defaultClient.AddTableToProperties(category.TABLE, &category.Structure{})
 	if err != nil {
 		return err
 	}
