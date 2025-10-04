@@ -1,10 +1,10 @@
 module github.com/griffnb/techboss-ai-go
 
-go 1.23.0
+go 1.25.1
 
 replace github.com/shopspring/decimal v1.3.1 => github.com/griffnb/decimal v1.0.2
 
-//replace github.com/CrowdShield/go-core/lib v0.0.23 => /Users/griffnb/projects/Crowdshield/go-core/lib
+replace github.com/CrowdShield/go-core/lib v0.0.30 => /Users/griffnb/projects/Crowdshield/go-core/lib
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.36.5

@@ -19,39 +19,6 @@ const (
 	IS_VERSIONED = false
 )
 
-// Struct types for JSONB fields
-type HeroSection struct {
-	Logo        string `json:"logo"`
-	Tagline     string `json:"tagline"`
-	ToolName    string `json:"toolName"`
-	Description string `json:"description"`
-}
-
-type Overview struct {
-	KeyBenefits  []string `json:"keyBenefits"`
-	Introduction string   `json:"introduction"`
-}
-
-type CoreFeature struct {
-	Feature     string `json:"feature"`
-	Description string `json:"description"`
-}
-
-type FeaturesAndCapabilities struct {
-	HowItWorks   string        `json:"howItWorks"`
-	CoreFeatures []CoreFeature `json:"coreFeatures"`
-}
-
-type UseCases struct {
-	Applications []string `json:"applications"`
-}
-
-type PricingAndPlans struct {
-	FreeTier       bool   `json:"freeTier"`
-	PricingRange   string `json:"pricingRange"`
-	PricingOptions string `json:"pricingOptions"`
-}
-
 type Structure struct {
 	DBColumns
 	JoinData
@@ -59,21 +26,13 @@ type Structure struct {
 
 type DBColumns struct {
 	base.Structure
-	ToolName                *fields.StringField                           `column:"tool_name"                 type:"text"     default:""`
-	WebsiteURL              *fields.StringField                           `column:"website_url"               type:"text"     default:""`
-	AffiliateURL            *fields.StringField                           `column:"affiliate_url"             type:"text"     default:""`
-	HeroSection             *fields.StructField[*HeroSection]             `column:"hero_section"              type:"jsonb"    default:"{}"`
-	Overview                *fields.StructField[*Overview]                `column:"overview"                  type:"jsonb"    default:"{}"`
-	FeaturesAndCapabilities *fields.StructField[*FeaturesAndCapabilities] `column:"features_and_capabilities" type:"jsonb"    default:"{}"`
-	UseCases                *fields.StructField[*UseCases]                `column:"use_cases"                 type:"jsonb"    default:"{}"`
-	PricingAndPlans         *fields.StructField[*PricingAndPlans]         `column:"pricing_and_plans"         type:"jsonb"    default:"{}"`
-	TargetAudience          *fields.StringField                           `column:"target_audience"           type:"text"     default:""`
-	Tags                    *fields.StructField[[]string]                 `column:"tags"                      type:"jsonb"    default:"[]"`
-	Categorization          *fields.StringField                           `column:"categorization"            type:"text"     default:""`
-	BusinessFunction        *fields.StringField                           `column:"business_function"         type:"text"     default:""`
-	Affiliate               *fields.IntField                              `column:"affiliate"                 type:"smallint" default:"0"`
-	IsFeatured              *fields.IntField                              `column:"is_featured"               type:"smallint" default:"0"`
-	SearchBlobTSV           *fields.StringField                           `column:"search_blob_tsv"           type:"tsvector" default:"null" null:"true" index:"true"`
+	Name          *fields.StringField            `column:"name"            type:"text"     default:""`
+	Description   *fields.StringField            `column:"description"     type:"text"     default:""`
+	WebsiteURL    *fields.StringField            `column:"website_url"     type:"text"     default:""`
+	AffiliateURL  *fields.StringField            `column:"affiliate_url"   type:"text"     default:""`
+	MetaData      *fields.StructField[*MetaData] `column:"meta_data"       type:"jsonb"    default:"{}"`
+	IsFeatured    *fields.IntField               `column:"is_featured"     type:"smallint" default:"0"`
+	SearchBlobTSV *fields.StringField            `column:"search_blob_tsv" type:"tsvector" default:"null" null:"true" index:"true"`
 }
 
 type JoinData struct {
@@ -96,6 +55,7 @@ func (this *AiTool) beforeSave(ctx context.Context) error {
 	this.BaseBeforeSave(ctx)
 	common.GenerateURN(this)
 	common.SetDisabledDeleted(this)
+	this.UpdateSearchVector()
 	return this.ValidateSubStructs()
 }
 
