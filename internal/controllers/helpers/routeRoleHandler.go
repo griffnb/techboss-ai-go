@@ -122,9 +122,27 @@ func handleAdminRoute(res http.ResponseWriter, req *http.Request, roleHandlers R
 	}
 
 	if tools.Empty(admn) {
-		log.ErrorContext(errors.Errorf("admin not found %s", adminSession.User.ID()), req.Context())
-		ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
-		return
+		emailAdmin, err := admin.GetByEmail(req.Context(), adminSession.User.GetString("email"))
+		if err != nil {
+			log.ErrorContext(err, req.Context())
+			ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// Fixes the case where we've wiped the admins, and clerk sees something diff for ID
+		if !tools.Empty(emailAdmin) {
+			admn = emailAdmin
+			err := admin.RepairID(req.Context(), emailAdmin.ID(), adminSession.User.ID())
+			if err != nil {
+				log.ErrorContext(err, req.Context())
+				ErrorWrapper(res, req, "Internal Error", http.StatusInternalServerError)
+				return
+			}
+		} else {
+			log.ErrorContext(errors.Errorf("admin not found %s", adminSession.User.ID()), req.Context())
+			ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
 	}
 
 	role := admn.Role.Get()

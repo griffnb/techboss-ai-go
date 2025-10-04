@@ -17,7 +17,7 @@ const TABLE string = "object_tags"
 const (
 	CHANGE_LOGS       = true
 	CLIENT            = environment.CLIENT_DEFAULT
-	IS_VERSIONED bool = true
+	IS_VERSIONED bool = false
 )
 
 type Structure struct {
@@ -35,7 +35,6 @@ type DBColumns struct {
 	Status       *fields.IntConstantField[constants.Status] `public:"view" column:"status"         type:"smallint" default:"0"                 index:"true"`
 	UpdatedAt    *fields.TimeField                          `public:"view" column:"updated_at"     type:"tswtz"    default:"CURRENT_TIMESTAMP" index:"true"`
 	CreatedAt    *fields.TimeField                          `public:"view" column:"created_at"     type:"tswtz"    default:"CURRENT_TIMESTAMP" index:"true"`
-	VersionKey   *fields.IntField                           `              column:"version_key"    type:"bigint"   default:"0"                 index:"true"`
 }
 
 type JoinData struct{}

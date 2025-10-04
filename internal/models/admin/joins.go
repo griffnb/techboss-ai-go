@@ -22,7 +22,7 @@ func JoinCreatedUpdatedQuery(targetTable string) string {
 
 func JoinCreatedUpdatedField() []string {
 	return []string{
-		"updated_admin.name as updated_by_name",
-		"created_admin.name as created_by_name",
+		"COALESCE(updated_admin.first_name, '', updated_admin.last_name) as updated_by_name",
+		"COALESCE(created_admin.first_name, '', created_admin.last_name) as created_by_name",
 	}
 }
