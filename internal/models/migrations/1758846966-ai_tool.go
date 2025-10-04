@@ -20,10 +20,13 @@ func init() {
 
 type AiToolV1 struct {
 	base.Structure
-	Name          *fields.StringField      `column:"name"            type:"text"     default:""`
-	WebsiteURL    *fields.StringField      `column:"website_url"     type:"text"     default:""`
-	AffiliateURL  *fields.StringField      `column:"affiliate_url"   type:"text"     default:""`
-	MetaData      *fields.StructField[any] `column:"meta_data"       type:"jsonb"    default:"{}"`
-	IsFeatured    *fields.IntField         `column:"is_featured"     type:"smallint" default:"0"`
-	SearchBlobTSV *fields.StringField      `column:"search_blob_tsv" type:"tsvector" default:"null" null:"true" index:"true"`
+	Name                       *fields.StringField      `column:"name"                          type:"text"     default:""`
+	Description                *fields.StringField      `column:"description"                   type:"text"     default:""`
+	WebsiteURL                 *fields.StringField      `column:"website_url"                   type:"text"     default:""`
+	AffiliateURL               *fields.StringField      `column:"affiliate_url"                 type:"text"     default:""`
+	MetaData                   *fields.StructField[any] `column:"meta_data"                     type:"jsonb"    default:"{}"`
+	IsFeatured                 *fields.IntField         `column:"is_featured"                   type:"smallint" default:"0"`
+	SearchBlobTSV              *fields.StringField      `column:"search_blob_tsv"               type:"tsvector" default:"null" null:"true" index:"true"`
+	CategoryID                 *fields.UUIDField        `column:"category_id"                   type:"uuid"     default:"null" null:"true" index:"true"`
+	BusinessFunctionCategoryID *fields.UUIDField        `column:"business_function_category_id" type:"uuid"     default:"null" null:"true" index:"true"`
 }

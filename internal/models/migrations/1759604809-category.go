@@ -20,8 +20,8 @@ func init() {
 
 type CategoryV1 struct {
 	base.Structure
-	Name             *fields.StringField `column:"name" type:"text" default:""`
-	Slug             *fields.StringField `column:"slug" type:"text" default:"" unique:"true"`
-	Description      *fields.StringField `column:"description" type:"text" default:""`
-	ParentCategoryID *fields.UUIDField   `column:"parent_category_id" type:"uuid" default:"null" null:"true"`
+	Name             *fields.StringField `column:"name"               type:"text" default:""`
+	Slug             *fields.StringField `column:"slug"               type:"text" default:""     unique:"true"`
+	Description      *fields.StringField `column:"description"        type:"text" default:""`
+	ParentCategoryID *fields.UUIDField   `column:"parent_category_id" type:"uuid" default:"null"               null:"true"`
 }
