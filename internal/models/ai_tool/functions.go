@@ -45,12 +45,6 @@ func (this *AiTool) GenerateSearchBlob() string {
 			if metadata.TargetAudience != "" {
 				searchParts = append(searchParts, metadata.TargetAudience)
 			}
-			if metadata.Categorization != "" {
-				searchParts = append(searchParts, metadata.Categorization)
-			}
-			if metadata.BusinessFunction != "" {
-				searchParts = append(searchParts, metadata.BusinessFunction)
-			}
 
 			// Add key benefits
 			if len(metadata.KeyBenefits) > 0 {
@@ -63,8 +57,8 @@ func (this *AiTool) GenerateSearchBlob() string {
 			}
 
 			// Add core features
-			if len(metadata.CoreFeatures) > 0 {
-				for _, feature := range metadata.CoreFeatures {
+			if len(metadata.Features) > 0 {
+				for _, feature := range metadata.Features {
 					if feature != nil {
 						if feature.Feature != "" {
 							searchParts = append(searchParts, feature.Feature)

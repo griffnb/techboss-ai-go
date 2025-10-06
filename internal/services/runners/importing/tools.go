@@ -201,19 +201,17 @@ func importSingleTool(tool ToolData, categoryMap, businessFunctionMap map[string
 
 	// Create MetaData structure
 	metaData := &ai_tool.MetaData{
-		Logo:             getStringValue(tool.HeroSection.Logo),
-		Tagline:          tool.HeroSection.Tagline,
-		KeyBenefits:      tool.Overview.KeyBenefits,
-		Introduction:     tool.Overview.Introduction,
-		HowItWorks:       tool.FeaturesAndCaps.HowItWorks,
-		CoreFeatures:     convertCoreFeatures(tool.FeaturesAndCaps.CoreFeatures),
-		Applications:     tool.UseCases.Applications,
-		FreeTier:         tool.PricingAndPlans.FreeTier,
-		PricingRange:     getStringValue(tool.PricingAndPlans.PricingRange),
-		PricingOptions:   tool.PricingAndPlans.PricingOptions,
-		TargetAudience:   tool.TargetAudience,
-		Categorization:   tool.Categorization,
-		BusinessFunction: tool.BusinessFunction,
+		Logo:           getStringValue(tool.HeroSection.Logo),
+		Tagline:        tool.HeroSection.Tagline,
+		KeyBenefits:    tool.Overview.KeyBenefits,
+		Introduction:   tool.Overview.Introduction,
+		HowItWorks:     tool.FeaturesAndCaps.HowItWorks,
+		Features:       convertCoreFeatures(tool.FeaturesAndCaps.CoreFeatures),
+		Applications:   tool.UseCases.Applications,
+		FreeTier:       tool.PricingAndPlans.FreeTier,
+		PricingRange:   getStringValue(tool.PricingAndPlans.PricingRange),
+		PricingOptions: tool.PricingAndPlans.PricingOptions,
+		TargetAudience: tool.TargetAudience,
 	}
 
 	aiTool.MetaData.Set(metaData)
