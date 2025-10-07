@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/griffnb/techboss-ai-go/internal/controllers/accounts"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/admins"
+	"github.com/griffnb/techboss-ai-go/internal/controllers/agents"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/ai"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/ai_tools"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/categories"
@@ -33,6 +34,8 @@ func Setup(coreRouter *router.CoreRouter) {
 	categories.Setup(coreRouter)
 	leads.Setup(coreRouter)
 	organizations.Setup(coreRouter)
+
+	agents.Setup(coreRouter)
 
 	// Print all routes
 	// printRoutes(coreRouter.Router)

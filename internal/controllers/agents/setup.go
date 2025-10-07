@@ -55,6 +55,10 @@ func Setup(coreRouter *router.CoreRouter) {
 			authR.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(authGet),
 			}))
+
+			authR.Get("/session", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(authSession),
+			}))
 		})
 	})
 }
