@@ -38,8 +38,8 @@ type DBColumns struct {
 }
 
 type JoinData struct {
-	CreatedByName *fields.StringField `json:"created_by_name" type:"text"`
-	UpdatedByName *fields.StringField `json:"updated_by_name" type:"text"`
+	CategoryName                 *fields.StringField `public:"view" json:"category_name"                   type:"text"`
+	BusinessFunctionCategoryName *fields.StringField `public:"view" json:"business_function_category_name" type:"text"`
 }
 
 // AiTool - Database model

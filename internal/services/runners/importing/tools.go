@@ -69,6 +69,7 @@ type PricingAndPlans struct {
 
 type ToolImportRunner struct{}
 
+// make runner ARGS="tools /Users/griffnb/projects/techboss/techboss-ai-go/internal/models/ai_tool/tools.json"
 func (this *ToolImportRunner) Run(_ context.Context, args ...string) error {
 	if len(args) < 1 {
 		return errors.New("please provide the path to tools.json")
