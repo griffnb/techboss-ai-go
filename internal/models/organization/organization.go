@@ -26,10 +26,11 @@ type Structure struct {
 
 type DBColumns struct {
 	base.Structure
-	Name       *fields.StringField                 `column:"name"       type:"text"  default:""   public:"view"`
-	Properties *fields.StructField[map[string]any] `column:"properties" type:"jsonb" default:"{}" public:"view"`
-	MetaData   *fields.StructField[map[string]any] `column:"meta_data"  type:"jsonb" default:"{}" public:"view"`
-	PlanID     *fields.StringField                 `column:"plan_id"    type:"text"  default:""   public:"view" index:"true"`
+	Name       *fields.StringField                 `column:"name"        type:"text"  default:""     public:"view"`
+	ExternalID *fields.StringField                 `column:"external_id" type:"text"  default:"null"               null:"true" index:"true" unique:"true"`
+	Properties *fields.StructField[map[string]any] `column:"properties"  type:"jsonb" default:"{}"   public:"view"`
+	MetaData   *fields.StructField[map[string]any] `column:"meta_data"   type:"jsonb" default:"{}"   public:"view"`
+	PlanID     *fields.StringField                 `column:"plan_id"     type:"text"  default:""     public:"view"             index:"true"`
 }
 
 type JoinData struct {

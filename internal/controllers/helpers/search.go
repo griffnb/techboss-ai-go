@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/CrowdShield/go-core/lib/model"
+	"github.com/shopspring/decimal"
 )
 
 type SearchConfig struct {
@@ -12,6 +13,7 @@ type SearchConfig struct {
 	DocumentColumns []string            // All the columns to text search across using TSVector for matches
 	RankColumns     map[string][]string // Combined columns to rank search results by
 	RankOrder       []string            // Order to rank columns or combined columns by
+	MinSimilarity   decimal.Decimal     // Minimum similarity score to consider a match
 }
 
 func AddGenericSearch(parameters *model.Options, query string, config *SearchConfig) {
@@ -28,7 +30,12 @@ func AddGenericSearch(parameters *model.Options, query string, config *SearchCon
 		)
 	}
 
-	parameters.WithCondition(`( _query @@ _document OR _similarity > 0 )`)
+	similarity := "0"
+	if config.MinSimilarity.GreaterThan(decimal.Zero) {
+		similarity = config.MinSimilarity.String()
+	}
+
+	parameters.WithCondition(`( _query @@ _document OR _similarity > %s )`, similarity)
 
 	orders := []string{}
 	for _, rankColumn := range config.RankOrder {

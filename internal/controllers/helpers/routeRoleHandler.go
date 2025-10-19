@@ -24,7 +24,6 @@ import (
 type RoleHandlerMap map[constants.Role]http.HandlerFunc
 
 // RoleHandler takes a map of roles to handler functions and returns a http.HandlerFunc
-// TODO this is weird with the admin stuff, extract it out to be smarter
 func RoleHandler(roleHandlers RoleHandlerMap) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		clerkhttp.WithHeaderAuthorization(clerk_service.WithCustomClaimsConstructor)(
@@ -67,7 +66,7 @@ func GetAdminSession(req *http.Request) *session.Session {
 		log.Debugf("synced admin: %+v", adminObj.GetData())
 		customClaims.AdminRole = adminObj.Role.Get()
 		customClaims.Email = adminObj.Email.Get()
-		customClaims.AdminExternalID = adminObj.ID().String()
+		customClaims.AdminID = adminObj.ID()
 	}
 
 	if customClaims.AdminRole < constants.ROLE_READ_ADMIN {
@@ -89,7 +88,7 @@ func GetAdminSession(req *http.Request) *session.Session {
 		Model: "Session",
 	})
 	coreModel.MergeData(map[string]any{
-		"id":    customClaims.AdminExternalID,
+		"id":    customClaims.AdminID,
 		"role":  customClaims.AdminRole,
 		"email": customClaims.Email,
 	})
@@ -281,6 +280,7 @@ func handlePublicRoute(res http.ResponseWriter, req *http.Request, roleHandlers 
 func GetSession(req *http.Request) (*session.Session, error) {
 	claims, ok := clerk.SessionClaimsFromContext(req.Context())
 	if !ok {
+		log.Debugf("no claims found")
 		return nil, nil
 	}
 
@@ -291,7 +291,7 @@ func GetSession(req *http.Request) (*session.Session, error) {
 
 	log.Debugf("custom claims: %+v", customClaims)
 
-	if tools.Empty(customClaims.ExternalID) {
+	if tools.Empty(customClaims.AccountID) {
 		accountObj, err := clerk_service.CreateAccount(req.Context(), claims)
 		if err != nil {
 			log.ErrorContext(err, req.Context())
@@ -305,7 +305,7 @@ func GetSession(req *http.Request) (*session.Session, error) {
 		log.Debugf("synced account: %+v", accountObj.GetData())
 		customClaims.Role = accountObj.Role.Get()
 		customClaims.Email = accountObj.Email.Get()
-		customClaims.ExternalID = accountObj.ID().String()
+		customClaims.AccountID = accountObj.ID()
 	}
 
 	clerkSession := session.New("")
@@ -323,7 +323,7 @@ func GetSession(req *http.Request) (*session.Session, error) {
 		Model: "Session",
 	})
 	coreModel.MergeData(map[string]any{
-		"id":    customClaims.ExternalID,
+		"id":    customClaims.AccountID,
 		"role":  customClaims.Role,
 		"email": customClaims.Email,
 	})

@@ -65,14 +65,6 @@ func CreateAccount(ctx context.Context, claims *clerk.SessionClaims) (*account.A
 		return nil, errors.New("invalid custom claims")
 	}
 
-	accountObj, err := account.GetByExternalID(ctx, customClaims.ExternalID)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	if !tools.Empty(accountObj) {
-		return accountObj, nil
-	}
-
 	clerkUser, err := user.Get(ctx, claims.Subject)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -81,8 +73,16 @@ func CreateAccount(ctx context.Context, claims *clerk.SessionClaims) (*account.A
 		return nil, errors.New("could not find user in clerk")
 	}
 
+	accountObj, err := account.GetByExternalID(ctx, clerkUser.ID)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	if !tools.Empty(accountObj) {
+		return accountObj, nil
+	}
+
 	accountObj = account.New()
-	accountObj.ExternalID.Set(customClaims.ExternalID)
+	accountObj.ExternalID.Set(clerkUser.ID)
 	accountObj.Email.Set(customClaims.Email)
 	accountObj.FirstName.Set(*clerkUser.FirstName)
 	accountObj.LastName.Set(*clerkUser.LastName)
@@ -108,9 +108,9 @@ func CreateAccount(ctx context.Context, claims *clerk.SessionClaims) (*account.A
 }
 
 func UpdateClerkAdmin(ctx context.Context, adminObj *admin.Admin) (*clerk.User, error) {
-	metadata := map[string]any{
-		"admin_role":        adminObj.Role.Get(),
-		"admin_external_id": adminObj.ID(),
+	metadata := &CustomSessionClaims{
+		AdminRole: adminObj.Role.Get(),
+		AdminID:   adminObj.ID(),
 	}
 
 	metadataBytes, err := json.Marshal(metadata)
@@ -131,10 +131,10 @@ func UpdateClerkAdmin(ctx context.Context, adminObj *admin.Admin) (*clerk.User, 
 }
 
 func UpdateClerkUser(ctx context.Context, accountObj *account.Account) (*clerk.User, error) {
-	metadata := map[string]any{
-		"role":            accountObj.Role.Get(),
-		"external_id":     accountObj.ID(),
-		"organization_id": accountObj.OrganizationID.Get(),
+	metadata := &CustomSessionClaims{
+		Role:           accountObj.Role.Get(),
+		AccountID:      accountObj.ID(),
+		OrganizationID: accountObj.OrganizationID.Get(),
 	}
 
 	metadataBytes, err := json.Marshal(metadata)

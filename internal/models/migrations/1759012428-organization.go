@@ -20,8 +20,9 @@ func init() {
 
 type OrganizationV1 struct {
 	base.Structure
-	Name       *fields.StringField                 `column:"name"       type:"text"  default:""`
-	Properties *fields.StructField[map[string]any] `column:"properties" type:"jsonb" default:"{}"`
-	MetaData   *fields.StructField[map[string]any] `column:"meta_data"  type:"jsonb" default:"{}"`
-	PlanID     *fields.StringField                 `column:"plan_id"    type:"text"  default:""   index:"true"`
+	Name       *fields.StringField                 `column:"name"        type:"text"  default:""`
+	ExternalID *fields.StringField                 `column:"external_id" type:"text"  default:"null" null:"true" index:"true" unique:"true"`
+	Properties *fields.StructField[map[string]any] `column:"properties"  type:"jsonb" default:"{}"`
+	MetaData   *fields.StructField[map[string]any] `column:"meta_data"   type:"jsonb" default:"{}"`
+	PlanID     *fields.StringField                 `column:"plan_id"     type:"text"  default:""                 index:"true"`
 }

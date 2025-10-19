@@ -42,49 +42,23 @@ func getModelsLoaded() bool {
 func LoadModels() (err error) {
 	defaultClient := environment.GetDBClient(environment.CLIENT_DEFAULT)
 
-	err = defaultClient.AddTableToProperties(global_config.TABLE, &global_config.Structure{})
-	if err != nil {
-		return err
+	models := map[string]any{
+		account.TABLE:       &account.Structure{},
+		admin.TABLE:         &admin.Structure{},
+		ai_tool.TABLE:       &ai_tool.Structure{},
+		category.TABLE:      &category.Structure{},
+		lead.TABLE:          &lead.Structure{},
+		tag.TABLE:           &tag.Structure{},
+		object_tag.TABLE:    &object_tag.Structure{},
+		global_config.TABLE: &global_config.Structure{},
+		organization.TABLE:  &organization.Structure{},
 	}
 
-	err = defaultClient.AddTableToProperties(admin.TABLE, &admin.Structure{})
-	if err != nil {
-		return err
-	}
-
-	err = defaultClient.AddTableToProperties(ai_tool.TABLE, &ai_tool.Structure{})
-	if err != nil {
-		return err
-	}
-
-	err = defaultClient.AddTableToProperties(account.TABLE, &account.Structure{})
-	if err != nil {
-		return err
-	}
-
-	err = defaultClient.AddTableToProperties(lead.TABLE, &lead.Structure{})
-	if err != nil {
-		return err
-	}
-
-	err = defaultClient.AddTableToProperties(organization.TABLE, &organization.Structure{})
-	if err != nil {
-		return err
-	}
-
-	err = defaultClient.AddTableToProperties(category.TABLE, &category.Structure{})
-	if err != nil {
-		return err
-	}
-
-	err = defaultClient.AddTableToProperties(tag.TABLE, &tag.Structure{})
-	if err != nil {
-		return err
-	}
-
-	err = defaultClient.AddTableToProperties(object_tag.TABLE, &object_tag.Structure{})
-	if err != nil {
-		return err
+	for table, structure := range models {
+		err = defaultClient.AddTableToProperties(table, structure)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -11,3 +11,5 @@
 /.github/prompts
 /.vscode
 /.env
+/internal/controllers/README.md
+/internal/models/README.md

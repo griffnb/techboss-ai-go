@@ -218,6 +218,14 @@ stripe-install: ## Install Stripe CLI
 	stripe login
 
 
+.PHONY: pr
+pr:
+	@if [ -z "$(title)" ]; then \
+		echo "Usage: make pr title='Fixes this bug'"; \
+		exit 1; \
+	fi; \
+	current_branch=$$(git rev-parse --abbrev-ref HEAD); \
+	gh pr create --base development --head $$current_branch --title "$(title)" --body "$(title)"
 
 
 .PHONY: hotfix

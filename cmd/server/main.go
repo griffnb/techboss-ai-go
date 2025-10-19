@@ -47,7 +47,6 @@ func main() {
 	port := sysConfigObj.Server.Port
 
 	httpRouter := router.Setup(port, sysConfigObj.Server.SessionKey, sysConfigObj.Server.Cors)
-	httpRouter.Router.Use(middleware.Recoverer)
 	httpRouter.Router.Use(middleware.NoCache)
 
 	httpRouter.SetupBasics()
