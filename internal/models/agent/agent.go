@@ -26,8 +26,9 @@ type Structure struct {
 
 type DBColumns struct {
 	base.Structure
-	Name     *fields.StringField            `column:"name"     type:"text"  default:""`
-	Settings *fields.StructField[*Settings] `column:"settings" type:"jsonb" default:"{}"`
+	Name     *fields.StringField                 `column:"name"     type:"text"  default:""`
+	Type     *fields.IntConstantField[AgentType] `column:"type"     type:"smallint"  default:"0" index:"true"`
+	Settings *fields.StructField[*Settings]      `column:"settings" type:"jsonb" default:"{}"`
 }
 
 type JoinData struct{}
