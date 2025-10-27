@@ -8,6 +8,7 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 	"github.com/griffnb/techboss-ai-go/internal/models/admin"
+	"github.com/griffnb/techboss-ai-go/internal/models/agent"
 	"github.com/griffnb/techboss-ai-go/internal/models/ai_tool"
 	"github.com/griffnb/techboss-ai-go/internal/models/category"
 	"github.com/griffnb/techboss-ai-go/internal/models/change_log"
@@ -45,6 +46,7 @@ func LoadModels() (err error) {
 	models := map[string]any{
 		account.TABLE:       &account.Structure{},
 		admin.TABLE:         &admin.Structure{},
+		agent.TABLE:         &agent.Structure{},
 		ai_tool.TABLE:       &ai_tool.Structure{},
 		category.TABLE:      &category.Structure{},
 		lead.TABLE:          &lead.Structure{},

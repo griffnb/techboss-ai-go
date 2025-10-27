@@ -42,14 +42,16 @@ func RoleHandler(roleHandlers RoleHandlerMap) http.HandlerFunc {
 func GetAdminSession(req *http.Request) *session.Session {
 	claims, ok := clerk.SessionClaimsFromContext(req.Context())
 	if !ok {
+		log.Debugf("No session claims found %s", req.URL.Path)
 		return nil
 	}
 
 	customClaims, err := clerk_service.CustomClaims(claims)
 	if err != nil {
+		log.ErrorContext(err, req.Context())
 		return nil
 	}
-	log.Debugf("custom claims: %+v", customClaims)
+	log.Debugf("PATH:%s custom claims: %+v", req.URL.Path, customClaims)
 
 	if tools.Empty(customClaims.AdminRole) {
 		adminObj, err := clerk_service.SyncAdmin(req.Context(), claims)
@@ -70,6 +72,7 @@ func GetAdminSession(req *http.Request) *session.Session {
 	}
 
 	if customClaims.AdminRole < constants.ROLE_READ_ADMIN {
+		log.Debugf("Admin role is too low: %d", customClaims.AdminRole)
 		return nil
 	}
 
@@ -93,7 +96,7 @@ func GetAdminSession(req *http.Request) *session.Session {
 		"email": customClaims.Email,
 	})
 	clerkSession.WithUser(coreModel)
-
+	log.Debugf("Session loaded")
 	return clerkSession
 }
 
@@ -101,7 +104,7 @@ func handleAdminRoute(res http.ResponseWriter, req *http.Request, roleHandlers R
 	adminSession := GetAdminSession(req)
 
 	if tools.Empty(adminSession) {
-		log.Debugf("Empty admin session")
+		log.Debugf("Empty admin session %s", req.URL.Path)
 		if handler, ok := roleHandlers[constants.ROLE_UNAUTHORIZED]; ok {
 			handler(res, req)
 			return

@@ -30,9 +30,9 @@ func FindAllRestricted(ctx context.Context, options *model.Options, _ coremodel.
 func GetRestrictedJoined(ctx context.Context, id types.UUID, sessionAccount coremodel.Model) (*AgentJoined, error) {
 	options := model.NewOptions().
 		WithCondition("%s.id = :id:", TABLE).
-		WithParam(":id:", id).
-		WithCondition("%s = :account_id:", Columns.ID_.Column()).
-		WithParam(":account_id:", sessionAccount.ID())
+		WithParam(":id:", id)
+		// WithCondition("%s = :account_id:", Columns.ID_.Column()).
+		// WithParam(":account_id:", sessionAccount.ID())
 
 	return FindFirstJoined(ctx, options)
 }

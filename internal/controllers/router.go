@@ -21,6 +21,7 @@ import (
 // Setup Adds the controllers to the router
 func Setup(coreRouter *router.CoreRouter) {
 	admins.Setup(coreRouter)
+
 	change_logs.Setup(coreRouter)
 	global_configs.Setup(coreRouter)
 	login.Setup(coreRouter)
@@ -29,6 +30,7 @@ func Setup(coreRouter *router.CoreRouter) {
 	utilities.Setup(coreRouter)
 
 	ai.Setup(coreRouter)
+	agents.Setup(coreRouter)
 	accounts.Setup(coreRouter)
 	ai_tools.Setup(coreRouter)
 	categories.Setup(coreRouter)
