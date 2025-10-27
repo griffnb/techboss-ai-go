@@ -94,11 +94,11 @@ func ToJSONDataResponseMap(data any) any {
 	return data
 }
 
-// ErrorWrapper wrapper to convert responses to legacy data version
+// ErrorWrapper wrapper to convert responses
 func ErrorWrapper(res http.ResponseWriter, _ *http.Request, message string, code int) {
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(code)
-	jsonResponse := map[string]interface{}{
+	jsonResponse := map[string]any{
 		"success": false,
 		"error":   message,
 	}
@@ -110,28 +110,13 @@ func ErrorWrapper(res http.ResponseWriter, _ *http.Request, message string, code
 	}
 }
 
-// SuccessWrapper wrapper to convert responses
-func SuccessWrapper(res http.ResponseWriter, _ *http.Request) {
-	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(http.StatusOK)
-	jsonResponse := map[string]interface{}{
-		"success": true,
-	}
-	encoder := json.NewEncoder(res)
-	encoder.SetEscapeHTML(false)
-	err := encoder.Encode(jsonResponse)
-	if err != nil {
-		log.Error(errors.WithStack(err))
-	}
-}
-
 // ConvertPost converts raw post data and JSONAPI post data to a common format
-func ConvertPost(data map[string]interface{}) map[string]interface{} {
+func ConvertPost(data map[string]any) map[string]any {
 	if !tools.Empty(data["data"]) {
 		switch typedData := data["data"].(type) {
-		case []interface{}:
+		case []any:
 			return data
-		case map[string]interface{}:
+		case map[string]any:
 			return typedData
 		}
 	}
