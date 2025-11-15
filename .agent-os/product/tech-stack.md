@@ -30,9 +30,9 @@
 
 ## Authentication & Authorization
 
-- **Auth Provider:** Clerk
-- **Session Management:** Clerk-based authentication
-- **Role Management:** Custom role-based access control
+- **Auth Provider:** Custom 
+- **Session Management:** cookies / headers 
+- **Role Management:** Roles on the Account Model
 
 ## AI/ML Integration
 

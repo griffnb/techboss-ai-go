@@ -45,7 +45,7 @@ Businesses struggle with two key challenges in the AI space:
 - Document processing and storage (S3 integration)
 - Lead management system
 - Admin dashboard with full CRUD operations
-- Authentication/authorization with Clerk
+- Authentication/authorization
 - Multi-AI provider support (OpenAI, Gemini, Anthropic, Azure)
 - Background task processing with SQS
 - Database migrations and code generation tools

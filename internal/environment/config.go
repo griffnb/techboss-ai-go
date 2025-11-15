@@ -74,10 +74,6 @@ type Sendpulse struct {
 	WebhookKey   string `json:"webhook_key"`
 }
 
-type Clerk struct {
-	APIKey string `json:"api_key"`
-}
-
 type StripeConfig struct {
 	WebhookKey string `json:"webhook_key"`
 	SecretKey  string `json:"secret_key"`

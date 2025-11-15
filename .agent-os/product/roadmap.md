@@ -14,7 +14,7 @@ The following foundation features have been implemented:
 - ✅ **Document Processing** - S3 integration for document storage and processing
 - ✅ **Lead Management** - Complete lead tracking and management system
 - ✅ **Admin Dashboard** - Full CRUD operations with role-based access
-- ✅ **Authentication** - Clerk integration for user authentication and session management
+- ✅ **Authentication** - Custom integration for user authentication and session management
 - ✅ **Multi-AI Provider Support** - OpenAI, Gemini, Anthropic, and Azure integration
 - ✅ **Background Processing** - SQS-based task queue system with taskmaster/taskworker
 - ✅ **Development Tools** - Database migrations and code generation framework
