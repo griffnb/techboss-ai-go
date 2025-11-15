@@ -10,12 +10,13 @@ const (
 
 type Config struct {
 	config.DefaultConfig
-	InternalAPIKey string      `json:"internal_api_key"`
-	Email          *Email      `json:"email"`
-	Encryption     *Encryption `json:"encryption"`
-	AIKeys         *AIKeys     `json:"ai_keys"`
-	Cloudflare     *Cloudflare `json:"cloudflare"`
-	Sendpulse      *Sendpulse  `json:"sendpulse"`
+	InternalAPIKey string        `json:"internal_api_key"`
+	Email          *Email        `json:"email"`
+	Encryption     *Encryption   `json:"encryption"`
+	AIKeys         *AIKeys       `json:"ai_keys"`
+	Cloudflare     *Cloudflare   `json:"cloudflare"`
+	Sendpulse      *Sendpulse    `json:"sendpulse"`
+	Stripe         *StripeConfig `json:"stripe"`
 }
 
 type Cloudflare struct {
@@ -75,4 +76,10 @@ type Sendpulse struct {
 
 type Clerk struct {
 	APIKey string `json:"api_key"`
+}
+
+type StripeConfig struct {
+	WebhookKey string `json:"webhook_key"`
+	SecretKey  string `json:"secret_key"`
+	PublicKey  string `json:"public_key"`
 }
