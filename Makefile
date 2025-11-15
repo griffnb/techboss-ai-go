@@ -182,6 +182,17 @@ ts-gen: ## Run TypeScript operations on a table (Usage: make ts-gen TABLE=tablen
 	SYS_ENV=$(SYS_ENV) CONFIG_FILE=$(CONFIG_FILE) REGION=$(REGION) go run ./cmd/ts --table="$(TABLE)"
 
 
+.PHONY: config-schema
+config-schema: ## Generate JSON schema for config files
+	go run internal/environment/schema/generate-config-schema.go > internal/environment/schema/config-schema.json
+	@echo "Generated config-schema.json"
+
+.PHONY: rebuild-unit-test-db
+rebuild-unit-test-db: ## Rebuild the unit test database
+	SYS_ENV="unit_test" CONFIG_FILE="$$(pwd)/.configs/unit_test.json" REGION="us-east-1" go run cmd/scripts/rebuild_unit_database.go
+
+
+
 .PHONY: runner
 runner: ## Run matcher wizard with dynamic args
 	SYS_ENV=$(SYS_ENV) CONFIG_FILE=$(CONFIG_FILE) REGION=$(REGION) \
