@@ -4,14 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/griffnb/assettradingdesk-go/internal/environment"
-	"github.com/griffnb/assettradingdesk-go/internal/models/base/caller"
-	"github.com/griffnb/assettradingdesk-go/internal/task_update"
-	"github.com/griffnb/assettradingdesk-go/lib/log"
-	"github.com/griffnb/assettradingdesk-go/lib/model/coremodel"
-	"github.com/griffnb/assettradingdesk-go/lib/tools"
-	"github.com/griffnb/assettradingdesk-go/lib/tools/ptr"
-	"github.com/griffnb/assettradingdesk-go/lib/tools/set"
+	"github.com/CrowdShield/go-core/lib/log"
+	"github.com/CrowdShield/go-core/lib/model/coremodel"
+	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/CrowdShield/go-core/lib/tools/ptr"
+	"github.com/CrowdShield/go-core/lib/tools/set"
+
+	"github.com/griffnb/techboss-ai-go/internal/environment"
+	"github.com/griffnb/techboss-ai-go/internal/models/base/caller"
+	"github.com/griffnb/techboss-ai-go/internal/task_update"
+
 	"github.com/pkg/errors"
 )
 
@@ -141,7 +143,6 @@ func importModel(ctx context.Context, sessionKeyOrEmail, modelPackageName string
 				localObj = registry.New().(coremodel.Model)
 			}
 			localObj.MergeRawData(remoteData)
-			localObj.Set("version_key", remoteRecord.GetInt("version_key"))
 			err = localObj.Save(nil)
 			if err != nil {
 				return errors.Wrapf(err, "failed to save remote record %s", remoteRecord.ID())

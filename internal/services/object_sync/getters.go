@@ -3,12 +3,11 @@ package object_sync
 import (
 	"net/url"
 
-	"github.com/griffnb/assettradingdesk-go/internal/models/base/caller"
-
-	"github.com/griffnb/assettradingdesk-go/internal/services/system_proxy"
-	"github.com/griffnb/assettradingdesk-go/lib/model/coremodel"
-	"github.com/griffnb/assettradingdesk-go/lib/tools"
-	"github.com/griffnb/assettradingdesk-go/lib/tools/slice"
+	"github.com/CrowdShield/go-core/lib/model/coremodel"
+	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/CrowdShield/go-core/lib/tools/slice"
+	"github.com/griffnb/techboss-ai-go/internal/models/base/caller"
+	"github.com/griffnb/techboss-ai-go/internal/services/system_proxy"
 )
 
 func GetAllRemoteRecords(sessionKeyOrEmail, modelType string, factory caller.Caller, limit, offset int64) ([]coremodel.Model, error) {

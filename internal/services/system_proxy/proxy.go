@@ -8,14 +8,14 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/griffnb/assettradingdesk-go/internal/controllers/helpers"
-	"github.com/griffnb/assettradingdesk-go/internal/environment"
+	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
+	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/pkg/errors"
 )
 
 const (
-	PROD        = "https://api.assettradingdesk.com"
-	PROD_UI_URL = "https://assettradingdesk.com"
+	PROD        = "https://api.techboss.ai"
+	PROD_UI_URL = "https://admin.techboss.ai"
 )
 
 type ResultType[T any] struct {
