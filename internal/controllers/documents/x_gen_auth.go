@@ -6,21 +6,20 @@ import (
 	"net/http"
 
 	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
+	"github.com/CrowdShield/go-core/lib/router/request"
+	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/document"
 )
 
 func authIndex(_ http.ResponseWriter, req *http.Request) ([]*document.DocumentJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
 
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -33,75 +32,64 @@ func authIndex(_ http.ResponseWriter, req *http.Request) ([]*document.DocumentJo
 	documentObjs, err := document.FindAllRestrictedJoined(req.Context(), parameters, user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[[]*document.DocumentJoined]()
+		return response.PublicBadRequestError[[]*document.DocumentJoined]()
 
 	}
 
-	return helpers.Success(documentObjs)
+	return response.Success(documentObjs)
 }
 
 func authGet(_ http.ResponseWriter, req *http.Request) (*document.DocumentJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
 
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
 	documentObj, err := document.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*document.DocumentJoined]()
+		return response.PublicBadRequestError[*document.DocumentJoined]()
 
 	}
 
-	return helpers.Success(documentObj)
+	return response.Success(documentObj)
 }
 
 func authCreate(_ http.ResponseWriter, req *http.Request) (*document.Document, int, error) {
-	if helpers.IsSuperUpdate(req) {
-		return helpers.PublicCustomError[*document.Document]("not allowed to update as super user", http.StatusBadRequest)
-	}
 
-	userSession := helpers.GetReqSession(req)
+	user := request.GetReqSession(req).User
 
-	user := userSession.User
-
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	documentObj := document.NewPublic(data, user)
-	err := documentObj.Save(userSession.User)
+	err := documentObj.Save(user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*document.Document]()
+		return response.PublicBadRequestError[*document.Document]()
 
 	}
 
-	return helpers.Success(documentObj)
+	return response.Success(documentObj)
 }
 
 func authUpdate(_ http.ResponseWriter, req *http.Request) (*document.DocumentJoined, int, error) {
-	if helpers.IsSuperUpdate(req) {
-		return helpers.PublicCustomError[*document.DocumentJoined]("not allowed to update as super user", http.StatusBadRequest)
-	}
 
-	userSession := helpers.GetReqSession(req)
-
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	documentObj, err := document.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*document.DocumentJoined]()
+		return response.PublicBadRequestError[*document.DocumentJoined]()
 	}
 
 	document.UpdatePublic(&documentObj.Document, data, user)
-	err = documentObj.Save(userSession.User)
+	err = documentObj.Save(user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*document.DocumentJoined]()
+		return response.PublicBadRequestError[*document.DocumentJoined]()
 	}
 
-	return helpers.Success(documentObj)
+	return response.Success(documentObj)
 }

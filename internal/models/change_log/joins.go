@@ -21,8 +21,8 @@ func AddJoinData(options *model.Options) {
 	}...)
 }
 
-// GetJoinedWithContext gets a record with a specific ID and joins the hierarchy to it
-func GetJoinedWithContext(ctx context.Context, id types.UUID) (*ChangeLog, error) {
+// GetJoined gets a record with a specific ID and joins the hierarchy to it
+func GetJoined(ctx context.Context, id types.UUID) (*ChangeLog, error) {
 	options := &model.Options{
 		Conditions: fmt.Sprintf("%s.id = :id:", TABLE),
 		Params: map[string]interface{}{
@@ -33,14 +33,14 @@ func GetJoinedWithContext(ctx context.Context, id types.UUID) (*ChangeLog, error
 	return FindFirst(ctx, options)
 }
 
-// FindFirstJoinedWithContext Finds first record
-func FindFirstJoinedWithContext(ctx context.Context, options *model.Options) (*ChangeLog, error) {
+// FindFirstJoined finds first record
+func FindFirstJoined(ctx context.Context, options *model.Options) (*ChangeLog, error) {
 	AddJoinData(options)
 	return FindFirst(ctx, options)
 }
 
-// FindAllJoinedWithContext Finds first record
-func FindAllJoinedWithContext(ctx context.Context, options *model.Options) ([]*ChangeLog, error) {
+// FindAllJoined finds first record
+func FindAllJoined(ctx context.Context, options *model.Options) ([]*ChangeLog, error) {
 	AddJoinData(options)
 	return FindAll(ctx, options)
 }

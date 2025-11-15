@@ -6,21 +6,20 @@ import (
 	"net/http"
 
 	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
+	"github.com/CrowdShield/go-core/lib/router/request"
+	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"
 )
 
 func authIndex(_ http.ResponseWriter, req *http.Request) ([]*organization.OrganizationJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
 
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -33,75 +32,64 @@ func authIndex(_ http.ResponseWriter, req *http.Request) ([]*organization.Organi
 	organizationObjs, err := organization.FindAllRestrictedJoined(req.Context(), parameters, user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[[]*organization.OrganizationJoined]()
+		return response.PublicBadRequestError[[]*organization.OrganizationJoined]()
 
 	}
 
-	return helpers.Success(organizationObjs)
+	return response.Success(organizationObjs)
 }
 
 func authGet(_ http.ResponseWriter, req *http.Request) (*organization.OrganizationJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
 
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
 	organizationObj, err := organization.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*organization.OrganizationJoined]()
+		return response.PublicBadRequestError[*organization.OrganizationJoined]()
 
 	}
 
-	return helpers.Success(organizationObj)
+	return response.Success(organizationObj)
 }
 
 func authCreate(_ http.ResponseWriter, req *http.Request) (*organization.Organization, int, error) {
-	if helpers.IsSuperUpdate(req) {
-		return helpers.PublicCustomError[*organization.Organization]("not allowed to update as super user", http.StatusBadRequest)
-	}
 
-	userSession := helpers.GetReqSession(req)
+	user := request.GetReqSession(req).User
 
-	user := userSession.User
-
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	organizationObj := organization.NewPublic(data, user)
-	err := organizationObj.Save(userSession.User)
+	err := organizationObj.Save(user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*organization.Organization]()
+		return response.PublicBadRequestError[*organization.Organization]()
 
 	}
 
-	return helpers.Success(organizationObj)
+	return response.Success(organizationObj)
 }
 
 func authUpdate(_ http.ResponseWriter, req *http.Request) (*organization.OrganizationJoined, int, error) {
-	if helpers.IsSuperUpdate(req) {
-		return helpers.PublicCustomError[*organization.OrganizationJoined]("not allowed to update as super user", http.StatusBadRequest)
-	}
 
-	userSession := helpers.GetReqSession(req)
-
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	organizationObj, err := organization.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*organization.OrganizationJoined]()
+		return response.PublicBadRequestError[*organization.OrganizationJoined]()
 	}
 
 	organization.UpdatePublic(&organizationObj.Organization, data, user)
-	err = organizationObj.Save(userSession.User)
+	err = organizationObj.Save(user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*organization.OrganizationJoined]()
+		return response.PublicBadRequestError[*organization.OrganizationJoined]()
 	}
 
-	return helpers.Success(organizationObj)
+	return response.Success(organizationObj)
 }

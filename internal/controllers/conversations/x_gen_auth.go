@@ -6,21 +6,20 @@ import (
 	"net/http"
 
 	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
+	"github.com/CrowdShield/go-core/lib/router/request"
+	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/conversation"
 )
 
 func authIndex(_ http.ResponseWriter, req *http.Request) ([]*conversation.ConversationJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
 
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -33,75 +32,64 @@ func authIndex(_ http.ResponseWriter, req *http.Request) ([]*conversation.Conver
 	conversationObjs, err := conversation.FindAllRestrictedJoined(req.Context(), parameters, user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[[]*conversation.ConversationJoined]()
+		return response.PublicBadRequestError[[]*conversation.ConversationJoined]()
 
 	}
 
-	return helpers.Success(conversationObjs)
+	return response.Success(conversationObjs)
 }
 
 func authGet(_ http.ResponseWriter, req *http.Request) (*conversation.ConversationJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
 
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
 	conversationObj, err := conversation.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*conversation.ConversationJoined]()
+		return response.PublicBadRequestError[*conversation.ConversationJoined]()
 
 	}
 
-	return helpers.Success(conversationObj)
+	return response.Success(conversationObj)
 }
 
 func authCreate(_ http.ResponseWriter, req *http.Request) (*conversation.Conversation, int, error) {
-	if helpers.IsSuperUpdate(req) {
-		return helpers.PublicCustomError[*conversation.Conversation]("not allowed to update as super user", http.StatusBadRequest)
-	}
 
-	userSession := helpers.GetReqSession(req)
+	user := request.GetReqSession(req).User
 
-	user := userSession.User
-
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	conversationObj := conversation.NewPublic(data, user)
-	err := conversationObj.Save(userSession.User)
+	err := conversationObj.Save(user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*conversation.Conversation]()
+		return response.PublicBadRequestError[*conversation.Conversation]()
 
 	}
 
-	return helpers.Success(conversationObj)
+	return response.Success(conversationObj)
 }
 
 func authUpdate(_ http.ResponseWriter, req *http.Request) (*conversation.ConversationJoined, int, error) {
-	if helpers.IsSuperUpdate(req) {
-		return helpers.PublicCustomError[*conversation.ConversationJoined]("not allowed to update as super user", http.StatusBadRequest)
-	}
 
-	userSession := helpers.GetReqSession(req)
-
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	conversationObj, err := conversation.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*conversation.ConversationJoined]()
+		return response.PublicBadRequestError[*conversation.ConversationJoined]()
 	}
 
 	conversation.UpdatePublic(&conversationObj.Conversation, data, user)
-	err = conversationObj.Save(userSession.User)
+	err = conversationObj.Save(user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*conversation.ConversationJoined]()
+		return response.PublicBadRequestError[*conversation.ConversationJoined]()
 	}
 
-	return helpers.Success(conversationObj)
+	return response.Success(conversationObj)
 }

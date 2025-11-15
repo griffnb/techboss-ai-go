@@ -6,21 +6,20 @@ import (
 	"net/http"
 
 	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
+	"github.com/CrowdShield/go-core/lib/router/request"
+	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/agent"
 )
 
 func authIndex(_ http.ResponseWriter, req *http.Request) ([]*agent.AgentJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
 
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -33,25 +32,24 @@ func authIndex(_ http.ResponseWriter, req *http.Request) ([]*agent.AgentJoined, 
 	agentObjs, err := agent.FindAllRestrictedJoined(req.Context(), parameters, user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[[]*agent.AgentJoined]()
+		return response.PublicBadRequestError[[]*agent.AgentJoined]()
 
 	}
 
-	return helpers.Success(agentObjs)
+	return response.Success(agentObjs)
 }
 
 func authGet(_ http.ResponseWriter, req *http.Request) (*agent.AgentJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
 
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
 	agentObj, err := agent.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*agent.AgentJoined]()
+		return response.PublicBadRequestError[*agent.AgentJoined]()
 
 	}
 
-	return helpers.Success(agentObj)
+	return response.Success(agentObj)
 }

@@ -6,19 +6,19 @@ import (
 	"net/http"
 
 	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
+	"github.com/CrowdShield/go-core/lib/router/request"
+	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/conversation"
 	"github.com/pkg/errors"
 )
 
 func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*conversation.ConversationJoined, int, error) {
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -31,11 +31,11 @@ func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*conversation.Conve
 	conversationObjs, err := conversation.FindAllJoined(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[[]*conversation.ConversationJoined](err)
+		return response.AdminBadRequestError[[]*conversation.ConversationJoined](err)
 
 	}
 
-	return helpers.Success(conversationObjs)
+	return response.Success(conversationObjs)
 
 }
 
@@ -45,61 +45,61 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*conversation.Conversat
 	conversationObj, err := conversation.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*conversation.ConversationJoined](err)
+		return response.AdminBadRequestError[*conversation.ConversationJoined](err)
 	}
 
-	return helpers.Success(conversationObj)
+	return response.Success(conversationObj)
 }
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*conversation.Conversation, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	conversationObj := conversation.New()
 	conversationObj.MergeData(data)
 	err := conversationObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*conversation.Conversation](err)
+		return response.AdminBadRequestError[*conversation.Conversation](err)
 
 	}
 
-	return helpers.Success(conversationObj)
+	return response.Success(conversationObj)
 }
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*conversation.ConversationJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	id := chi.URLParam(req, "id")
 	conversationObj, err := conversation.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*conversation.ConversationJoined](err)
+		return response.AdminBadRequestError[*conversation.ConversationJoined](err)
 	}
 
 	if tools.Empty(conversationObj) {
-		return helpers.AdminBadRequestError[*conversation.ConversationJoined](errors.Errorf("Object not found with ID: %s", id))
+		return response.AdminBadRequestError[*conversation.ConversationJoined](errors.Errorf("Object not found with ID: %s", id))
 	}
 
 	conversationObj.MergeData(data)
 	err = conversationObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*conversation.ConversationJoined](err)
+		return response.AdminBadRequestError[*conversation.ConversationJoined](err)
 	}
 
-	return helpers.Success(conversationObj)
+	return response.Success(conversationObj)
 }
 
 func adminCount(_ http.ResponseWriter, req *http.Request) (int64, int, error) {
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 	conversation.AddJoinData(parameters)
 	count, err := conversation.FindResultsCount(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[int64](err)
+		return response.AdminBadRequestError[int64](err)
 	}
 
-	return helpers.Success(count)
+	return response.Success(count)
 }

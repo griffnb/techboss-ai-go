@@ -6,19 +6,19 @@ import (
 	"net/http"
 
 	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
+	"github.com/CrowdShield/go-core/lib/router/request"
+	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/category"
 	"github.com/pkg/errors"
 )
 
 func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*category.CategoryJoined, int, error) {
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -31,11 +31,11 @@ func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*category.CategoryJ
 	categoryObjs, err := category.FindAllJoined(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[[]*category.CategoryJoined](err)
+		return response.AdminBadRequestError[[]*category.CategoryJoined](err)
 
 	}
 
-	return helpers.Success(categoryObjs)
+	return response.Success(categoryObjs)
 
 }
 
@@ -45,61 +45,61 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*category.CategoryJoine
 	categoryObj, err := category.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*category.CategoryJoined](err)
+		return response.AdminBadRequestError[*category.CategoryJoined](err)
 	}
 
-	return helpers.Success(categoryObj)
+	return response.Success(categoryObj)
 }
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*category.Category, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	categoryObj := category.New()
 	categoryObj.MergeData(data)
 	err := categoryObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*category.Category](err)
+		return response.AdminBadRequestError[*category.Category](err)
 
 	}
 
-	return helpers.Success(categoryObj)
+	return response.Success(categoryObj)
 }
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*category.CategoryJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	id := chi.URLParam(req, "id")
 	categoryObj, err := category.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*category.CategoryJoined](err)
+		return response.AdminBadRequestError[*category.CategoryJoined](err)
 	}
 
 	if tools.Empty(categoryObj) {
-		return helpers.AdminBadRequestError[*category.CategoryJoined](errors.Errorf("Object not found with ID: %s", id))
+		return response.AdminBadRequestError[*category.CategoryJoined](errors.Errorf("Object not found with ID: %s", id))
 	}
 
 	categoryObj.MergeData(data)
 	err = categoryObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*category.CategoryJoined](err)
+		return response.AdminBadRequestError[*category.CategoryJoined](err)
 	}
 
-	return helpers.Success(categoryObj)
+	return response.Success(categoryObj)
 }
 
 func adminCount(_ http.ResponseWriter, req *http.Request) (int64, int, error) {
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 	category.AddJoinData(parameters)
 	count, err := category.FindResultsCount(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[int64](err)
+		return response.AdminBadRequestError[int64](err)
 	}
 
-	return helpers.Success(count)
+	return response.Success(count)
 }

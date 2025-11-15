@@ -6,6 +6,7 @@ import (
 	"github.com/CrowdShield/go-core/lib/model"
 	"github.com/CrowdShield/go-core/lib/model/coremodel"
 	"github.com/CrowdShield/go-core/lib/sanitize"
+	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/CrowdShield/go-core/lib/types"
 )
 
@@ -60,4 +61,18 @@ func NewPublic(data map[string]any, _ coremodel.Model) *Account {
 func UpdatePublic(obj *Account, data map[string]any, _ coremodel.Model) {
 	data = sanitize.SanitizeModelInput(data, obj, &Structure{})
 	obj.MergeData(data)
+}
+
+// MergeSignup Bypasses the filter for signup_properties, we only want to do this on the signup page
+func MergeSignup(obj *Account, data map[string]interface{}, sessionAccount *Account) {
+	signupProperties := data["signup_properties"]
+	password := data["password"]
+	cleanData := sanitize.SanitizeModelInput(data, obj, &Structure{})
+	cleanData["signup_properties"] = signupProperties
+	cleanData["password"] = password
+	obj.MergeData(cleanData)
+
+	if !tools.Empty(sessionAccount) {
+		obj.OrganizationID.Set(sessionAccount.OrganizationID.Get())
+	}
 }

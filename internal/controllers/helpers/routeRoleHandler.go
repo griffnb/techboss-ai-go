@@ -7,13 +7,13 @@ import (
 
 	"github.com/CrowdShield/go-core/lib/log"
 	"github.com/CrowdShield/go-core/lib/router"
+	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/CrowdShield/go-core/lib/session"
 	"github.com/CrowdShield/go-core/lib/tools"
-	clerkhttp "github.com/clerk/clerk-sdk-go/v2/http"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
-	clerk_service "github.com/griffnb/techboss-ai-go/internal/services/clerk"
+
 	"github.com/pkg/errors"
 )
 
@@ -23,38 +23,34 @@ type RoleHandlerMap map[constants.Role]http.HandlerFunc
 // RoleHandler takes a map of roles to handler functions and returns a http.HandlerFunc
 func RoleHandler(roleHandlers RoleHandlerMap) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		clerkhttp.WithHeaderAuthorization(clerk_service.WithCustomClaimsConstructor)(
-			http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-				if strings.HasPrefix(req.URL.Path, "/admin/") || strings.HasPrefix(req.URL.Path, "admin/") {
-					handleAdminRoute(res, req, roleHandlers)
-					return
-				}
-				handlePublicRoute(res, req, roleHandlers)
-			}),
-		).ServeHTTP(res, req)
+		if strings.HasPrefix(req.URL.Path, "/admin/") || strings.HasPrefix(req.URL.Path, "admin/") {
+			handleAdminRoute(res, req, roleHandlers)
+			return
+		}
+		handlePublicRoute(res, req, roleHandlers)
 	}
 }
 
 func handleAdminRoute(res http.ResponseWriter, req *http.Request, roleHandlers RoleHandlerMap) {
-	adminSession := getClerkAdminSession(req)
+	adminSession, err := getAdminSession(req)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		response.ErrorWrapper(res, req, err.Error(), http.StatusUnauthorized)
+		return
+	}
 
 	if tools.Empty(adminSession) {
-		log.Debugf("Empty admin session %s", req.URL.Path)
-		if handler, ok := roleHandlers[constants.ROLE_UNAUTHORIZED]; ok {
-			handler(res, req)
-			return
-		}
-		ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
+		response.ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	// sets to the session context the admin session
 	ctx := context.WithValue(req.Context(), router.SessionContextKey("session"), adminSession)
 
-	admn, err := loadClerkAdmin(req, adminSession)
+	admn, err := loadAdmin(req, adminSession)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
+		response.ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -87,10 +83,10 @@ func handleAdminRoute(res http.ResponseWriter, req *http.Request, roleHandlers R
 }
 
 func handlePublicRoute(res http.ResponseWriter, req *http.Request, roleHandlers RoleHandlerMap) {
-	userSession, err := getClerkSession(req)
+	userSession, err := getAccountSession(req)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		ErrorWrapper(res, req, "internal error", http.StatusBadRequest)
+		response.ErrorWrapper(res, req, "internal error", http.StatusBadRequest)
 		return
 	}
 
@@ -99,7 +95,7 @@ func handlePublicRoute(res http.ResponseWriter, req *http.Request, roleHandlers 
 			handler(res, req)
 			return
 		}
-		ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
+		response.ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -111,7 +107,7 @@ func handlePublicRoute(res http.ResponseWriter, req *http.Request, roleHandlers 
 	accnt, err := loadAccount(req, userSession)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
+		response.ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -120,7 +116,7 @@ func handlePublicRoute(res http.ResponseWriter, req *http.Request, roleHandlers 
 	if recorder, ok := res.(*router.ResponseRecorder); ok {
 
 		if HasAdminSession(req) {
-			adminSession := getClerkAdminSession(req)
+			adminSession := GetAdminSession(req)
 			if !tools.Empty(adminSession) {
 				recorder.Trace.Admin = adminSession.User.GetString("email")
 			}
@@ -148,11 +144,7 @@ func handlePublicRoute(res http.ResponseWriter, req *http.Request, roleHandlers 
 		}
 	}
 	log.ErrorContext(errors.Errorf("user does not have permission"), req.Context())
-	ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
-}
-
-func GetReqSession(req *http.Request) *session.Session {
-	return req.Context().Value(router.SessionContextKey("session")).(*session.Session)
+	response.ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
 }
 
 func IsSuperUpdate(req *http.Request) bool {
@@ -170,7 +162,6 @@ func IsSuperUpdate(req *http.Request) bool {
 	return !accountObj.IsInternal()
 }
 
-// GetAdminSession Gets the admin session from the request checking header and cookie, priority is cookie
 func HasAdminSession(req *http.Request) bool {
-	return HasClerkAdminSession(req)
+	return HasCustomAdminSession(req)
 }

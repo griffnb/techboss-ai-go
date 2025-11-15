@@ -3,6 +3,7 @@ package organizations
 
 import (
 	"github.com/CrowdShield/go-core/lib/router"
+	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/go-chi/chi/v5"
 
 	"github.com/CrowdShield/go-core/lib/tools"
@@ -20,21 +21,21 @@ func Setup(coreRouter *router.CoreRouter) {
 	coreRouter.AddMainRoute(tools.BuildString("/admin/", ROUTE), func(r chi.Router) {
 		r.Group(func(adminR chi.Router) {
 			adminR.Get("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_READ_ADMIN: helpers.StandardRequestWrapper(adminIndex),
+				constants.ROLE_READ_ADMIN: response.StandardRequestWrapper(adminIndex),
 			}))
 			adminR.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_READ_ADMIN: helpers.StandardRequestWrapper(adminGet),
+				constants.ROLE_READ_ADMIN: response.StandardRequestWrapper(adminGet),
 			}))
 			adminR.Get("/count", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_READ_ADMIN: helpers.StandardRequestWrapper(adminCount),
+				constants.ROLE_READ_ADMIN: response.StandardRequestWrapper(adminCount),
 			}))
 		})
 		r.Group(func(adminR chi.Router) {
 			adminR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ADMIN: helpers.StandardRequestWrapper(adminCreate),
+				constants.ROLE_ADMIN: response.StandardRequestWrapper(adminCreate),
 			}))
 			adminR.Put("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ADMIN: helpers.StandardRequestWrapper(adminUpdate),
+				constants.ROLE_ADMIN: response.StandardRequestWrapper(adminUpdate),
 			}))
 		})
 		r.Group(func(adminR chi.Router) {
@@ -48,18 +49,18 @@ func Setup(coreRouter *router.CoreRouter) {
 	coreRouter.AddMainRoute(tools.BuildString("/", ROUTE), func(r chi.Router) {
 		r.Group(func(authR chi.Router) {
 			authR.Get("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: helpers.StandardPublicRequestWrapper(authIndex),
+				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authIndex),
 			}))
 			authR.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: helpers.StandardPublicRequestWrapper(authGet),
+				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authGet),
 			}))
 		})
 		r.Group(func(authR chi.Router) {
 			authR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: helpers.StandardPublicRequestWrapper(authCreate),
+				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authCreate),
 			}))
 			authR.Put("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: helpers.StandardPublicRequestWrapper(authUpdate),
+				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authUpdate),
 			}))
 		})
 	})

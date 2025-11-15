@@ -6,19 +6,19 @@ import (
 	"net/http"
 
 	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
+	"github.com/CrowdShield/go-core/lib/router/request"
+	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/document"
 	"github.com/pkg/errors"
 )
 
 func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*document.DocumentJoined, int, error) {
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -31,11 +31,11 @@ func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*document.DocumentJ
 	documentObjs, err := document.FindAllJoined(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[[]*document.DocumentJoined](err)
+		return response.AdminBadRequestError[[]*document.DocumentJoined](err)
 
 	}
 
-	return helpers.Success(documentObjs)
+	return response.Success(documentObjs)
 
 }
 
@@ -45,61 +45,61 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*document.DocumentJoine
 	documentObj, err := document.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*document.DocumentJoined](err)
+		return response.AdminBadRequestError[*document.DocumentJoined](err)
 	}
 
-	return helpers.Success(documentObj)
+	return response.Success(documentObj)
 }
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*document.Document, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	documentObj := document.New()
 	documentObj.MergeData(data)
 	err := documentObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*document.Document](err)
+		return response.AdminBadRequestError[*document.Document](err)
 
 	}
 
-	return helpers.Success(documentObj)
+	return response.Success(documentObj)
 }
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*document.DocumentJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	id := chi.URLParam(req, "id")
 	documentObj, err := document.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*document.DocumentJoined](err)
+		return response.AdminBadRequestError[*document.DocumentJoined](err)
 	}
 
 	if tools.Empty(documentObj) {
-		return helpers.AdminBadRequestError[*document.DocumentJoined](errors.Errorf("Object not found with ID: %s", id))
+		return response.AdminBadRequestError[*document.DocumentJoined](errors.Errorf("Object not found with ID: %s", id))
 	}
 
 	documentObj.MergeData(data)
 	err = documentObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*document.DocumentJoined](err)
+		return response.AdminBadRequestError[*document.DocumentJoined](err)
 	}
 
-	return helpers.Success(documentObj)
+	return response.Success(documentObj)
 }
 
 func adminCount(_ http.ResponseWriter, req *http.Request) (int64, int, error) {
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 	document.AddJoinData(parameters)
 	count, err := document.FindResultsCount(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[int64](err)
+		return response.AdminBadRequestError[int64](err)
 	}
 
-	return helpers.Success(count)
+	return response.Success(count)
 }

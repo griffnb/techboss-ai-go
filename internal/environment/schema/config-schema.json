@@ -1,0 +1,391 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "description": "Configuration schema for the asset trading desk server",
+  "properties": {
+    "$schema": {
+      "description": "JSON Schema reference",
+      "type": "string"
+    },
+    "ai_keys": {
+      "additionalProperties": false,
+      "properties": {
+        "anthropic": {
+          "additionalProperties": false,
+          "properties": {
+            "api_key": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "azure": {
+          "additionalProperties": false,
+          "properties": {
+            "api_key": {
+              "type": "string"
+            },
+            "endpoint": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "gemini": {
+          "additionalProperties": false,
+          "properties": {
+            "api_key": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "openai": {
+          "additionalProperties": false,
+          "properties": {
+            "api_key": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "clerk": {
+      "additionalProperties": false,
+      "properties": {
+        "api_key": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "cloud_watch": {
+      "additionalProperties": false,
+      "properties": {
+        "error_channel": {
+          "type": "string"
+        },
+        "fatal_path": {
+          "type": "string"
+        },
+        "group_name": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "request_group_name": {
+          "type": "string"
+        },
+        "skey": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "cloudflare": {
+      "additionalProperties": false,
+      "properties": {
+        "account_id": {
+          "type": "string"
+        },
+        "api_key": {
+          "type": "string"
+        },
+        "turnstile_key": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "databases": {
+      "additionalProperties": {
+        "additionalProperties": false,
+        "properties": {
+          "db": {
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "port": {
+            "type": "string"
+          },
+          "print_errors": {
+            "type": "boolean"
+          },
+          "read_hosts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "ssl": {
+            "type": "boolean"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "object"
+    },
+    "dynamo": {
+      "additionalProperties": false,
+      "properties": {
+        "cache_table": {
+          "type": "string"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "session_data": {
+          "type": "string"
+        },
+        "session_expiration_days": {
+          "type": "integer"
+        },
+        "session_key": {
+          "type": "string"
+        },
+        "session_table": {
+          "type": "string"
+        },
+        "skey": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "email": {
+      "additionalProperties": false,
+      "properties": {
+        "dev_email": {
+          "type": "string"
+        },
+        "from": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "ses": {
+          "additionalProperties": false,
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "region": {
+              "type": "string"
+            },
+            "skey": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "smtp": {
+          "additionalProperties": false,
+          "properties": {
+            "host": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            },
+            "port": {
+              "type": "string"
+            },
+            "username": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "encryption": {
+      "additionalProperties": false,
+      "properties": {
+        "ciphers": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "current_cipher": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "internal_api_key": {
+      "type": "string"
+    },
+    "oauth": {
+      "additionalProperties": false,
+      "properties": {
+        "callback_url": {
+          "type": "string"
+        },
+        "client_id": {
+          "type": "string"
+        },
+        "client_secret": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "valid_domains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "s3": {
+      "additionalProperties": false,
+      "properties": {
+        "buckets": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "skey": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "server": {
+      "additionalProperties": false,
+      "properties": {
+        "CORS": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "admin_session_key": {
+          "type": "string"
+        },
+        "admin_url": {
+          "type": "string"
+        },
+        "app_url": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "maintenance": {
+          "type": "boolean"
+        },
+        "migrate": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "response_encrypt_key": {
+          "type": "string"
+        },
+        "secure": {
+          "type": "boolean"
+        },
+        "session_key": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "slack": {
+      "additionalProperties": false,
+      "properties": {
+        "api_url": {
+          "type": "string"
+        },
+        "bots": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "default_bot": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "sqs": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "hold": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "local_endpoint": {
+          "type": "string"
+        },
+        "queues": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "skey": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "stripe": {
+      "additionalProperties": false,
+      "properties": {
+        "public_key": {
+          "type": "string"
+        },
+        "secret_key": {
+          "type": "string"
+        },
+        "webhook_key": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "title": "Server Configuration",
+  "type": "object"
+}

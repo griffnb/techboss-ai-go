@@ -26,5 +26,5 @@ func GetValueByKey(ctx context.Context, key constants.GlobalConfigKey) (string, 
 	if tools.Empty(configObj) {
 		return "", errors.Errorf("no config found for key %s", key)
 	}
-	return configObj.Value.Get(), nil
+	return configObj.Val.Get(), nil
 }

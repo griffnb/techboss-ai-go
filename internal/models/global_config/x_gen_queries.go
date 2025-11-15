@@ -27,6 +27,28 @@ func FindResultsCount(ctx context.Context, options *model.Options) (int64, error
 	return environment.GetDBClient(CLIENT).FindResultsCount(ctx, TABLE, options)
 }
 
+// GetJoined gets a record with a specific ID and joins the hierarchy to it
+func GetJoined(ctx context.Context, id types.UUID) (*GlobalConfigJoined, error) {
+	options := model.NewOptions().
+		WithCondition("%s = :id:", Columns.ID_.Column()).
+		WithParam(":id:", id)
+
+	AddJoinData(options)
+	return first[*GlobalConfigJoined](ctx, options)
+}
+
+// FindFirstJoined Finds first record
+func FindFirstJoined(ctx context.Context, options *model.Options) (*GlobalConfigJoined, error) {
+	AddJoinData(options)
+	return first[*GlobalConfigJoined](ctx, options)
+}
+
+// FindAllJoined Finds all records
+func FindAllJoined(ctx context.Context, options *model.Options) ([]*GlobalConfigJoined, error) {
+	AddJoinData(options)
+	return all[*GlobalConfigJoined](ctx, options)
+}
+
 func all[T initializable](ctx context.Context, options *model.Options) ([]T, error) {
 	results, err := environment.GetDBClient(CLIENT).FindAll(ctx, TABLE, options)
 	if err != nil {

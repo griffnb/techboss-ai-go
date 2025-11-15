@@ -6,19 +6,19 @@ import (
 	"net/http"
 
 	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
+	"github.com/CrowdShield/go-core/lib/router/request"
+	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/lead"
 	"github.com/pkg/errors"
 )
 
 func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*lead.LeadJoined, int, error) {
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -31,11 +31,11 @@ func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*lead.LeadJoined, i
 	leadObjs, err := lead.FindAllJoined(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[[]*lead.LeadJoined](err)
+		return response.AdminBadRequestError[[]*lead.LeadJoined](err)
 
 	}
 
-	return helpers.Success(leadObjs)
+	return response.Success(leadObjs)
 
 }
 
@@ -45,61 +45,61 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*lead.LeadJoined, int, 
 	leadObj, err := lead.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*lead.LeadJoined](err)
+		return response.AdminBadRequestError[*lead.LeadJoined](err)
 	}
 
-	return helpers.Success(leadObj)
+	return response.Success(leadObj)
 }
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*lead.Lead, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	leadObj := lead.New()
 	leadObj.MergeData(data)
 	err := leadObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*lead.Lead](err)
+		return response.AdminBadRequestError[*lead.Lead](err)
 
 	}
 
-	return helpers.Success(leadObj)
+	return response.Success(leadObj)
 }
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*lead.LeadJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	id := chi.URLParam(req, "id")
 	leadObj, err := lead.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*lead.LeadJoined](err)
+		return response.AdminBadRequestError[*lead.LeadJoined](err)
 	}
 
 	if tools.Empty(leadObj) {
-		return helpers.AdminBadRequestError[*lead.LeadJoined](errors.Errorf("Object not found with ID: %s", id))
+		return response.AdminBadRequestError[*lead.LeadJoined](errors.Errorf("Object not found with ID: %s", id))
 	}
 
 	leadObj.MergeData(data)
 	err = leadObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*lead.LeadJoined](err)
+		return response.AdminBadRequestError[*lead.LeadJoined](err)
 	}
 
-	return helpers.Success(leadObj)
+	return response.Success(leadObj)
 }
 
 func adminCount(_ http.ResponseWriter, req *http.Request) (int64, int, error) {
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 	lead.AddJoinData(parameters)
 	count, err := lead.FindResultsCount(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[int64](err)
+		return response.AdminBadRequestError[int64](err)
 	}
 
-	return helpers.Success(count)
+	return response.Success(count)
 }

@@ -1,17 +1,157 @@
-# Agent Guidelines for Techboss AI Go
+---
+description: 'Instructions for writing Go code following idiomatic Go practices and community standards'
+applyTo: '**/*.go,**/go.mod,**/go.sum'
+---
 
-## Build & Test Commands
-    
 
-- **Build**: `go build ./cmd/server`
-- **Run server**: `make server` or `make dev` (with hot reload)
-- **Test all**: `make test`
-- **Test single**: `make test PKG=./internal/services/evidencing RUN='TestName/Subtest'`
-- **Lint**: `make lint` or `make lint PKG=./internal/services/evidencing`
-- **Format**: `make fmt` or `make fmt PKG=./internal/services/evidencing`
-- **Generate code**: `make generate` (runs all `//go:generate` directives)
-- **Tidy deps**: `make tidy`
+## ⚠️ CRITICAL: ALWAYS FOLLOW DOCUMENTATION AND PRD
 
+**MANDATORY REQUIREMENT**: Before making ANY changes to this codebase, you MUST:
+
+
+1. **Read the PRD first**: All requirements and decisions are based on `/docs/PRD.md` - this is the single source of truth
+2. **Follow the documentation**: All implementation details are documented in Instructions for models are in
+`./internal/models/README.md`
+
+Instructions for controllers are in
+`./internal/controllers/README.md`
+
+3. **Maintain consistency**: Any new features, APIs, or changes must align with existing patterns
+4. **Verify against PRD**: Every implementation decision should trace back to a requirement in the PRD
+5. **UPDATE CHECKLISTS**: ALWAYS update `/docs/FEATURE_TODO.md` when completing phases or major features
+
+6. Avoid scanning lots of files, use `#code_tools docs` to look at packages and functions.
+7. If go docs are missing from a function or package, and you learn something important about it, ADD TO YOUR TODO LIST THAT YOU NEED TO UPDATE THAT GO DOC WITH WHAT YOU LEARNED
+
+## 🔄 CHECKLIST UPDATE POLICY
+
+**NEVER FORGET**: When you complete any phase, feature, or major milestone:
+
+1. **IMMEDIATELY** update `/docs/FEATURE_TODO.md` to mark items as completed
+2. **ADD NEW PHASES** to the checklist as they are planned and implemented  
+3. **KEEP DOCUMENTATION CURRENT** - the checklist should always reflect the actual project state
+4. **UPDATE STATUS** for any infrastructure, integrations, or features that are now working
+
+This ensures the checklist remains an accurate reflection of project progress and helps future development sessions.
+
+
+
+**When implementing new features**:
+1. Check if it exists in PRD requirements
+2. Follow established patterns and conventions
+3. Update documentation if adding new patterns
+
+
+
+
+## 🧪 CRITICAL: TEST-DRIVEN DEVELOPMENT (TDD) IS MANDATORY
+
+**⚠️ ABSOLUTE RULE - NO EXCEPTIONS**: This project follows **strict TDD (Test-Driven Development)**.
+
+### TDD Workflow - ALWAYS FOLLOW THIS ORDER:
+
+1. **🔴 RED**: Write the test FIRST (it will fail)
+2. **🟢 GREEN**: Write minimal code to make it pass
+3. **🔵 REFACTOR**: Clean up the code while keeping tests green
+4. **📝 COMMIT**: Commit with passing tests
+
+### Before Writing ANY Code:
+
+```
+❌ WRONG:
+1. Write implementation
+2. Write tests later
+3. Maybe forget tests
+
+✅ CORRECT:
+1. Write test first (see it fail - RED)
+2. Write minimal implementation (make it pass - GREEN)
+3. Refactor if needed (keep it passing - REFACTOR)
+4. Commit with tests passing
+```
+
+### TDD Rules for This Project:
+
+1. **NEVER** write production code without a failing test first
+2. **NEVER** write more of a test than is sufficient to fail
+3. **NEVER** write more production code than is sufficient to pass the test
+4. **ALWAYS** see the test fail before making it pass
+5. **ALWAYS** commit only when all tests are passing
+6. **Test coverage must be ≥90%** for new code
+
+### What to Test:
+
+- **Unit tests**: All business logic, domain models, services
+- **Integration tests**: Database interactions, external APIs
+- **HTTP handler tests**: All endpoints with various scenarios
+- **Edge cases**: Errors, nil values, boundary conditions
+- **Happy paths**: Normal successful flows
+
+### Test Quality Standards:
+
+- Use **table-driven tests** for multiple scenarios
+- Mock external dependencies (APIs, databases)
+- Use `assert` (lib/testtools/assert/assert.go) for assertions
+- Use `testing_service.Builder` to build objects
+- Tests must be **isolated** (no shared state)
+- Tests must be **deterministic** (no flaky tests)
+
+### Example TDD Session:
+
+```go
+// Step 1: Write test FIRST (RED)
+func TestExampleHere(t *testing.T) {
+
+    t.Run("Case 1", func(t *testing.T) {
+        // Arrange
+        client := NewOpenAIClient("test-key", "gpt-4")
+        req := llm.CreateVectorStoreRequest{Name: "test"}
+
+        // Act
+        result, err := client.CreateVectorStore(context.Background(), req)
+
+        // Assert
+        
+        assert.Equal(t, "test", result.Name)
+    })
+
+    t.Run("Case 2", func(t *testing.T) {
+        // Arrange
+        client := NewOpenAIClient("test-key", "gpt-4")
+        req := llm.CreateVectorStoreRequest{Name: "test"}
+
+        // Act
+        result, err := client.CreateVectorStore(context.Background(), req)
+
+        // Assert
+        
+        assert.Equal(t, "test", result.Name)
+    })
+
+     t.Run("Case 3", func(t *testing.T) {
+        // Arrange
+        client := NewOpenAIClient("test-key", "gpt-4")
+        req := llm.CreateVectorStoreRequest{Name: "test"}
+
+        // Act
+        result, err := client.CreateVectorStore(context.Background(), req)
+
+        // Assert
+        
+        assert.Equal(t, "test", result.Name)
+    })
+}
+
+// Step 2: Run test - it FAILS (RED) ✅
+// Step 3: Write implementation to make it pass (GREEN) ✅
+// Step 4: Refactor if needed (REFACTOR) ✅
+// Step 5: Commit with passing tests ✅
+```
+
+### Running Tests:
+
+All tests must be run through `#code_tools` to ensure proper environment setup:
+** DO NOT RUN YOUR OWN COMMANDS, ONLY USE `#code_tools`
 
 
 # Go Development Instructions
@@ -179,8 +319,6 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - If tests seem to be creating alot of new common objects, add it to the builder.go file
 
 
-
-
 ## Security Best Practices
 
 ### Input Validation
@@ -226,8 +364,6 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - using `interface{}` intead of `any`
 
 
-## Framework & Libraries
-- Uses `go-chi` router, `go-core` framework, AWS SDK v2, Clerk for auth
-- Database fields use `github.com/CrowdShield/go-core/lib/model/fields` types
-- Always use context.Context for database operations and HTTP handlers
-- Follow the MVC pattern: models in `internal/models/`, controllers in `internal/controllers/`
+**IMPORTANT**
+
+Whenever you get feedback, always add it to .agents/LEARNINGS.md with "What i learned" and "How you can improve the instructions". Always do this before writing the new code

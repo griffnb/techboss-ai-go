@@ -2,7 +2,6 @@ package account
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/CrowdShield/go-core/lib/log"
 	"github.com/CrowdShield/go-core/lib/tools"
@@ -17,8 +16,9 @@ func (this *Account) GetName() string {
 	return fmt.Sprintf("%s %s", this.FirstName.Get(), this.LastName.Get())
 }
 
+// IsInternal returns true if the account is an internal user (test user).
 func (this *Account) IsInternal() bool {
-	return strings.HasSuffix(strings.ToLower(this.Email.Get()), "@atlas.net") || this.TestUserType.Get() > 0
+	return this.TestUserType.Get() > 0
 }
 
 func (this *Account) GetAdminURL() string {

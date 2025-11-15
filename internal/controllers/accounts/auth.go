@@ -5,8 +5,8 @@ import (
 
 	"github.com/CrowdShield/go-core/lib/log"
 	"github.com/CrowdShield/go-core/lib/router"
+	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/CrowdShield/go-core/lib/session"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 )
 
@@ -15,7 +15,7 @@ func authMe(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined, i
 	accountObj, err := account.GetJoined(req.Context(), userSession.User.ID())
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*account.AccountJoined]()
+		return response.PublicBadRequestError[*account.AccountJoined]()
 	}
 	/*
 		adminSession := helpers.GetAdminSession(req)
@@ -24,5 +24,5 @@ func authMe(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined, i
 		}
 	*/
 
-	return helpers.Success(accountObj)
+	return response.Success(accountObj)
 }

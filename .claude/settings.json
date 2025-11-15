@@ -1,0 +1,24 @@
+{
+  "enabledMcpjsonServers": ["code_tools"],
+  "enableAllProjectMcpServers": true,
+  "permissions": {
+    "allow": [
+      "mcp__code_tools",
+      "mcp__ui_code_tools__plop_form_modal",
+      "mcp__ui_code_tools__plop_simple_modal",
+      "mcp__ui_code_tools__plop_simple_data_modal",
+      "mcp__ui_code_tools__plop_data_component",
+      "mcp__ui_code_tools__plop_service",
+      "mcp__ui_code_tools__plop_row_actions",
+      "mcp__ui_code_tools__plop_vite_pod",
+      "Read(./**)"
+    ],
+    "deny": [
+      "Bash(curl:*)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./.configs/**)"
+    ],
+    "ask": []
+  }
+}

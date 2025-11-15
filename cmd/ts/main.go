@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/griffnb/techboss-ai-go/internal/environment"
@@ -26,11 +27,9 @@ func main() {
 
 	defaultPtrs := environment.GetDBClient(environment.CLIENT_DEFAULT).GetTablePtrs()
 
-	allPtrs := make(map[string]interface{})
+	allPtrs := make(map[string]any)
 
-	for key, ptr := range defaultPtrs {
-		allPtrs[key] = ptr
-	}
+	maps.Copy(allPtrs, defaultPtrs)
 
 	if table != "" {
 		tables := strings.Split(table, ",")
@@ -42,9 +41,10 @@ func main() {
 
 			fmt.Printf("---------------------- %s ----------------------\n", t)
 			model.GenerateSingleTypescript(val, &base.Structure{})
+			model.GeneratePublicTypeScriptModel(val, t)
 			fmt.Printf("\n------------------------------------------------\n")
-		}
 
+		}
 		return
 	}
 	model.GenerateAllTypescript(allPtrs, &base.Structure{})

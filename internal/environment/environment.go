@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/clerk/clerk-sdk-go/v2"
 
 	"github.com/CrowdShield/go-core/lib/email"
 	"github.com/CrowdShield/go-core/lib/model"
@@ -226,10 +225,6 @@ func NewEnvironment(
 	err = withEmail(env, configObj)
 	if err != nil {
 		return nil, err
-	}
-
-	if !tools.Empty(configObj.Clerk) && !tools.Empty(configObj.Clerk.APIKey) {
-		clerk.SetKey(configObj.Clerk.APIKey)
 	}
 
 	baseenv.SetSystemEnvironment(env)

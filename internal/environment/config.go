@@ -10,12 +10,12 @@ const (
 
 type Config struct {
 	config.DefaultConfig
-	Email      *Email      `json:"email"`
-	Encryption *Encryption `json:"encryption"`
-	AIKeys     *AIKeys     `json:"ai_keys"`
-	Cloudflare *Cloudflare `json:"cloudflare"`
-	Sendpulse  *Sendpulse  `json:"sendpulse"`
-	Clerk      *Clerk      `json:"clerk"`
+	InternalAPIKey string      `json:"internal_api_key"`
+	Email          *Email      `json:"email"`
+	Encryption     *Encryption `json:"encryption"`
+	AIKeys         *AIKeys     `json:"ai_keys"`
+	Cloudflare     *Cloudflare `json:"cloudflare"`
+	Sendpulse      *Sendpulse  `json:"sendpulse"`
 }
 
 type Cloudflare struct {

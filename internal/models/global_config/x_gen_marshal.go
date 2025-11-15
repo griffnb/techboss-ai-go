@@ -3,9 +3,13 @@
 package global_config
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+
 	"github.com/CrowdShield/go-core/lib/model"
 	"github.com/CrowdShield/go-core/lib/model/fields"
 	aws_types "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/pkg/errors"
 )
 
 // UnmarshalJSON interface
@@ -40,4 +44,26 @@ func (this *GlobalConfig) UnmarshalDynamoDBAttributeValue(av aws_types.Attribute
 	}
 
 	return this.BaseModel.UnmarshalDynamoDBAttributeValue(av)
+}
+
+func (r *GlobalConfig) Scan(src any) error {
+	switch v := src.(type) {
+	case nil:
+		*r = GlobalConfig{}
+		return nil
+	case []byte:
+		return errors.WithStack(json.Unmarshal(v, r))
+	case string:
+		return errors.WithStack(json.Unmarshal([]byte(v), r))
+	default:
+		return errors.Errorf("GlobalConfig.Scan: unsupported type %T", src)
+	}
+}
+
+func (r *GlobalConfig) Value() (driver.Value, error) {
+	b, err := json.Marshal(r)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return string(b), nil // or b
 }

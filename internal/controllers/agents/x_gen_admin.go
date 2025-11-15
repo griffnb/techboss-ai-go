@@ -6,19 +6,19 @@ import (
 	"net/http"
 
 	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
+	"github.com/CrowdShield/go-core/lib/router/request"
+	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/agent"
 	"github.com/pkg/errors"
 )
 
 func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*agent.AgentJoined, int, error) {
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -31,11 +31,11 @@ func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*agent.AgentJoined,
 	agentObjs, err := agent.FindAllJoined(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[[]*agent.AgentJoined](err)
+		return response.AdminBadRequestError[[]*agent.AgentJoined](err)
 
 	}
 
-	return helpers.Success(agentObjs)
+	return response.Success(agentObjs)
 
 }
 
@@ -45,61 +45,61 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*agent.AgentJoined, int
 	agentObj, err := agent.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*agent.AgentJoined](err)
+		return response.AdminBadRequestError[*agent.AgentJoined](err)
 	}
 
-	return helpers.Success(agentObj)
+	return response.Success(agentObj)
 }
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*agent.Agent, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	agentObj := agent.New()
 	agentObj.MergeData(data)
 	err := agentObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*agent.Agent](err)
+		return response.AdminBadRequestError[*agent.Agent](err)
 
 	}
 
-	return helpers.Success(agentObj)
+	return response.Success(agentObj)
 }
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*agent.AgentJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	id := chi.URLParam(req, "id")
 	agentObj, err := agent.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*agent.AgentJoined](err)
+		return response.AdminBadRequestError[*agent.AgentJoined](err)
 	}
 
 	if tools.Empty(agentObj) {
-		return helpers.AdminBadRequestError[*agent.AgentJoined](errors.Errorf("Object not found with ID: %s", id))
+		return response.AdminBadRequestError[*agent.AgentJoined](errors.Errorf("Object not found with ID: %s", id))
 	}
 
 	agentObj.MergeData(data)
 	err = agentObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*agent.AgentJoined](err)
+		return response.AdminBadRequestError[*agent.AgentJoined](err)
 	}
 
-	return helpers.Success(agentObj)
+	return response.Success(agentObj)
 }
 
 func adminCount(_ http.ResponseWriter, req *http.Request) (int64, int, error) {
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 	agent.AddJoinData(parameters)
 	count, err := agent.FindResultsCount(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[int64](err)
+		return response.AdminBadRequestError[int64](err)
 	}
 
-	return helpers.Success(count)
+	return response.Success(count)
 }

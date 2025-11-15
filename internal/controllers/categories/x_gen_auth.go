@@ -6,21 +6,20 @@ import (
 	"net/http"
 
 	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
+	"github.com/CrowdShield/go-core/lib/router/request"
+	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/category"
 )
 
 func authIndex(_ http.ResponseWriter, req *http.Request) ([]*category.CategoryJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
 
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -33,75 +32,64 @@ func authIndex(_ http.ResponseWriter, req *http.Request) ([]*category.CategoryJo
 	categoryObjs, err := category.FindAllRestrictedJoined(req.Context(), parameters, user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[[]*category.CategoryJoined]()
+		return response.PublicBadRequestError[[]*category.CategoryJoined]()
 
 	}
 
-	return helpers.Success(categoryObjs)
+	return response.Success(categoryObjs)
 }
 
 func authGet(_ http.ResponseWriter, req *http.Request) (*category.CategoryJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
 
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
 	categoryObj, err := category.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*category.CategoryJoined]()
+		return response.PublicBadRequestError[*category.CategoryJoined]()
 
 	}
 
-	return helpers.Success(categoryObj)
+	return response.Success(categoryObj)
 }
 
 func authCreate(_ http.ResponseWriter, req *http.Request) (*category.Category, int, error) {
-	if helpers.IsSuperUpdate(req) {
-		return helpers.PublicCustomError[*category.Category]("not allowed to update as super user", http.StatusBadRequest)
-	}
 
-	userSession := helpers.GetReqSession(req)
+	user := request.GetReqSession(req).User
 
-	user := userSession.User
-
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	categoryObj := category.NewPublic(data, user)
-	err := categoryObj.Save(userSession.User)
+	err := categoryObj.Save(user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*category.Category]()
+		return response.PublicBadRequestError[*category.Category]()
 
 	}
 
-	return helpers.Success(categoryObj)
+	return response.Success(categoryObj)
 }
 
 func authUpdate(_ http.ResponseWriter, req *http.Request) (*category.CategoryJoined, int, error) {
-	if helpers.IsSuperUpdate(req) {
-		return helpers.PublicCustomError[*category.CategoryJoined]("not allowed to update as super user", http.StatusBadRequest)
-	}
 
-	userSession := helpers.GetReqSession(req)
-
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	categoryObj, err := category.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*category.CategoryJoined]()
+		return response.PublicBadRequestError[*category.CategoryJoined]()
 	}
 
 	category.UpdatePublic(&categoryObj.Category, data, user)
-	err = categoryObj.Save(userSession.User)
+	err = categoryObj.Save(user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*category.CategoryJoined]()
+		return response.PublicBadRequestError[*category.CategoryJoined]()
 	}
 
-	return helpers.Success(categoryObj)
+	return response.Success(categoryObj)
 }

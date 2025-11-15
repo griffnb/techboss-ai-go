@@ -25,6 +25,7 @@ import (
 )
 
 func main() {
+	tools.SetMaxMemoryUsage(0.80)
 	env := environment.CreateEnvironment()
 	sysConfigObj := environment.GetConfig()
 

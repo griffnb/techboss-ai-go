@@ -6,21 +6,20 @@ import (
 	"net/http"
 
 	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
+	"github.com/CrowdShield/go-core/lib/router/request"
+	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 )
 
 func authIndex(_ http.ResponseWriter, req *http.Request) ([]*account.AccountJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
 
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -33,75 +32,64 @@ func authIndex(_ http.ResponseWriter, req *http.Request) ([]*account.AccountJoin
 	accountObjs, err := account.FindAllRestrictedJoined(req.Context(), parameters, user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[[]*account.AccountJoined]()
+		return response.PublicBadRequestError[[]*account.AccountJoined]()
 
 	}
 
-	return helpers.Success(accountObjs)
+	return response.Success(accountObjs)
 }
 
 func authGet(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
 
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
 	accountObj, err := account.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*account.AccountJoined]()
+		return response.PublicBadRequestError[*account.AccountJoined]()
 
 	}
 
-	return helpers.Success(accountObj)
+	return response.Success(accountObj)
 }
 
 func authCreate(_ http.ResponseWriter, req *http.Request) (*account.Account, int, error) {
-	if helpers.IsSuperUpdate(req) {
-		return helpers.PublicCustomError[*account.Account]("not allowed to update as super user", http.StatusBadRequest)
-	}
 
-	userSession := helpers.GetReqSession(req)
+	user := request.GetReqSession(req).User
 
-	user := userSession.User
-
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	accountObj := account.NewPublic(data, user)
-	err := accountObj.Save(userSession.User)
+	err := accountObj.Save(user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*account.Account]()
+		return response.PublicBadRequestError[*account.Account]()
 
 	}
 
-	return helpers.Success(accountObj)
+	return response.Success(accountObj)
 }
 
 func authUpdate(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined, int, error) {
-	if helpers.IsSuperUpdate(req) {
-		return helpers.PublicCustomError[*account.AccountJoined]("not allowed to update as super user", http.StatusBadRequest)
-	}
 
-	userSession := helpers.GetReqSession(req)
-
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	rawdata := request.GetJSONPostData(req)
+	data := request.ConvertPost(rawdata)
 	accountObj, err := account.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*account.AccountJoined]()
+		return response.PublicBadRequestError[*account.AccountJoined]()
 	}
 
 	account.UpdatePublic(&accountObj.Account, data, user)
-	err = accountObj.Save(userSession.User)
+	err = accountObj.Save(user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*account.AccountJoined]()
+		return response.PublicBadRequestError[*account.AccountJoined]()
 	}
 
-	return helpers.Success(accountObj)
+	return response.Success(accountObj)
 }

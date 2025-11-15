@@ -4,14 +4,15 @@ import (
 	"net/http"
 
 	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
+	"github.com/CrowdShield/go-core/lib/router/request"
+	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
 )
 
 func authSession(_ http.ResponseWriter, req *http.Request) (string, int, error) {
-	userSession := helpers.GetReqSession(req)
+	userSession := request.GetReqSession(req)
 	client := openai.NewClient(
 		option.WithAPIKey(environment.GetConfig().AIKeys.OpenAI.APIKey),
 	)
@@ -24,8 +25,8 @@ func authSession(_ http.ResponseWriter, req *http.Request) (string, int, error) 
 	})
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[string]()
+		return response.PublicBadRequestError[string]()
 	}
 
-	return helpers.Success(resp.ClientSecret)
+	return response.Success(resp.ClientSecret)
 }

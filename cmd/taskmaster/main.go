@@ -12,10 +12,12 @@ import (
 	"github.com/robfig/cron/v3"
 
 	"github.com/CrowdShield/go-core/lib/log"
+	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/coreos/go-systemd/daemon"
 )
 
 func main() {
+	tools.SetMaxMemoryUsage(0.80)
 	environment.CreateEnvironment()
 
 	var crons *cron.Cron

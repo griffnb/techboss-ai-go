@@ -179,7 +179,6 @@ install-codegen: ## Install latest code generation from go-core
 
 .PHONY: ts-gen
 ts-gen: ## Run TypeScript operations on a table (Usage: make ts-gen TABLE=tablename)
-	@if [ -z "$(TABLE)" ]; then echo "TABLE parameter is required. Usage: make ts TABLE=tablename"; exit 1; fi
 	SYS_ENV=$(SYS_ENV) CONFIG_FILE=$(CONFIG_FILE) REGION=$(REGION) go run ./cmd/ts --table="$(TABLE)"
 
 

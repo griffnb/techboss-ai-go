@@ -2,11 +2,11 @@ package admins
 
 import (
 	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
+	"github.com/CrowdShield/go-core/lib/router/route_helpers"
 )
 
 func addSearch(parameters *model.Options, query string) {
-	config := &helpers.SearchConfig{
+	config := &route_helpers.SearchConfig{
 		TableName: TABLE_NAME,
 		DocumentColumns: []string{
 			"name",
@@ -17,5 +17,5 @@ func addSearch(parameters *model.Options, query string) {
 		RankOrder: []string{"name"},
 	}
 
-	helpers.AddGenericSearch(parameters, query, config)
+	route_helpers.AddGenericSearch(parameters, query, config)
 }
