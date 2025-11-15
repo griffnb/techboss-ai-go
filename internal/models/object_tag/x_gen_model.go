@@ -81,8 +81,8 @@ func (this *ObjectTag) SaveWithContext(ctx context.Context, savingUser coremodel
 	return nil
 }
 
-func ConvertTo[T initializable, V initializable](souce T) V {
+func As[T initializable, V initializable](source T) V {
 	target := NewType[V]()
-	target.SetData(souce.GetDataCopy())
+	target.SetData(source.GetDataCopy())
 	return target
 }

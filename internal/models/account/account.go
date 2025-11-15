@@ -1,10 +1,11 @@
-//go:generate core_generate model Account
+//go:generate core_generate model Account -skip=load
 package account
 
 import (
 	"context"
 
 	"github.com/CrowdShield/go-core/lib/model"
+	"github.com/CrowdShield/go-core/lib/model/coremodel"
 	"github.com/CrowdShield/go-core/lib/model/fields"
 	"github.com/griffnb/techboss-ai-go/internal/common"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
@@ -49,15 +50,43 @@ type JoinData struct {
 	UpdatedByName *fields.StringField `json:"updated_by_name" type:"text"`
 }
 
+type ManualFields struct {
+	IsSuperUserSession *fields.IntField `public:"view" json:"is_super_user_session" type:"smallint"`
+}
+
 // Account - Database model
 type Account struct {
 	model.BaseModel
 	DBColumns
+	ManualFields
+}
+
+type AccountWithFeatures struct {
+	Account
+	PlanJoins
 }
 
 type AccountJoined struct {
 	Account
 	JoinData
+}
+
+type initializable interface {
+	coremodel.Model
+	InitializeWithChangeLogs(*model.InitializeOptions)
+	Load(result map[string]any)
+}
+
+func load[T initializable](result map[string]any) T {
+	obj := NewType[T]()
+	obj.Load(result)
+
+	switch o := any(obj).(type) {
+	case *AccountWithFeatures:
+		o.BuildFeatures()
+	default:
+	}
+	return obj
 }
 
 func (this *Account) beforeSave(ctx context.Context) error {

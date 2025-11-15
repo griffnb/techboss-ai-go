@@ -6,3 +6,9 @@ import "github.com/CrowdShield/go-core/lib/sanitize"
 func (this *Account) ToPublicJSON() any {
 	return sanitize.SanitizeModel(this, &Structure{})
 }
+
+func (this *Account) ToJSONDoc() map[string]interface{} {
+	jsonSafeData := this.GetDataCopy()
+	delete(jsonSafeData, "hashed_password")
+	return jsonSafeData
+}
