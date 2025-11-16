@@ -9,6 +9,7 @@ import (
 	"github.com/CrowdShield/go-core/lib/slack"
 	"github.com/CrowdShield/go-core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
+	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"
 	"github.com/griffnb/techboss-ai-go/internal/models/subscription"
 	"github.com/pkg/errors"
@@ -20,7 +21,7 @@ const (
 )
 
 // SubscriptionStarted sends a Slack notification when a new subscription is started
-func SubscriptionStarted(_ context.Context, org *organization.OrganizationJoined, sub *subscription.Subscription) error {
+func SubscriptionStarted(_ context.Context, org *organization.Organization, sub *subscription.Subscription) error {
 	if tools.Empty(org) {
 		return errors.Errorf("organization is required")
 	}
@@ -89,7 +90,7 @@ func SubscriptionStarted(_ context.Context, org *organization.OrganizationJoined
 }
 
 // SubscriptionCanceled sends a Slack notification when a subscription is canceled
-func SubscriptionCanceled(_ context.Context, org *organization.OrganizationJoined, sub *subscription.Subscription) error {
+func SubscriptionCanceled(_ context.Context, org *organization.Organization, sub *subscription.Subscription) error {
 	if tools.Empty(org) {
 		return errors.Errorf("organization is required")
 	}
@@ -169,7 +170,7 @@ func SubscriptionCanceled(_ context.Context, org *organization.OrganizationJoine
 }
 
 // SubscriptionResumed sends a Slack notification when a subscription is resumed
-func SubscriptionResumed(_ context.Context, org *organization.OrganizationJoined, sub *subscription.Subscription) error {
+func SubscriptionResumed(_ context.Context, org *organization.Organization, sub *subscription.Subscription) error {
 	if tools.Empty(org) {
 		return errors.Errorf("organization is required")
 	}
@@ -238,13 +239,13 @@ func SubscriptionResumed(_ context.Context, org *organization.OrganizationJoined
 }
 
 // formatBillingCycle converts the billing cycle constant to a human-readable string
-func formatBillingCycle(cycle subscription.BillingCycle) string {
+func formatBillingCycle(cycle billing_plan.BillingCycle) string {
 	switch cycle {
-	case subscription.BILLING_CYCLE_MONTHLY:
+	case billing_plan.BILLING_CYCLE_MONTHLY:
 		return "month"
-	case subscription.BILLING_CYCLE_QUARTERLY:
+	case billing_plan.BILLING_CYCLE_QUARTERLY:
 		return "quarter"
-	case subscription.BILLING_CYCLE_ANNUALLY:
+	case billing_plan.BILLING_CYCLE_ANNUALLY:
 		return "year"
 	default:
 		return "unknown"

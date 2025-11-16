@@ -60,13 +60,12 @@ func oauthSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, i
 	// Set random password
 	accountObj.Set("password", tools.GUID())
 	common.GenerateURN(accountObj) // setup IDs
-	turnstileToken := data["cf_token"]
-
-	if tools.Empty(turnstileToken) && !tools.Empty(cloudflare.Client()) && !tools.Empty(cloudflare.Client().TurnstileKey) {
-		return response.PublicBadRequestError[*SignupResponse]()
-	}
 
 	if !tools.Empty(cloudflare.Client()) && !tools.Empty(cloudflare.Client().TurnstileKey) {
+		turnstileToken := data["cf_token"]
+		if tools.Empty(turnstileToken) {
+			return response.PublicBadRequestError[*SignupResponse]()
+		}
 		resp, err := cloudflare.Client().
 			ValidateTurnstileResponse(tools.ParseStringI(turnstileToken), req.RemoteAddr)
 		if err != nil {
@@ -91,9 +90,7 @@ func oauthSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, i
 		return response.PublicCustomError[*SignupResponse]("Email already exists", http.StatusConflict)
 	}
 
-	savingUser := account.New()
-	dataCopy := accountObj.GetDataCopy()
-	savingUser.SetData(dataCopy)
+	savingUser := accountObj.ToSavingUser()
 	err = account_service.Signup(req.Context(), accountObj, savingUser)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
@@ -127,6 +124,7 @@ func oauthSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, i
 }
 
 // @link {models}/src/models/account/services/_signup.ts:23
+// @link {models}/src/models/account/services/_signup.ts:29
 func openSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, int, error) {
 	data := request.GetJSONPostMap(req)
 	var accountObj *account.Account
@@ -227,11 +225,10 @@ func openCheckExisting(_ http.ResponseWriter, req *http.Request) (*ExistingRespo
 		return response.PublicBadRequestError[*ExistingResponse]()
 	}
 
-	if tools.Empty(data.CFToken) && !tools.Empty(cloudflare.Client()) && !tools.Empty(cloudflare.Client().TurnstileKey) {
-		return response.PublicBadRequestError[*ExistingResponse]()
-	}
-
 	if !tools.Empty(cloudflare.Client()) && !tools.Empty(cloudflare.Client().TurnstileKey) {
+		if tools.Empty(data.CFToken) {
+			return response.PublicBadRequestError[*ExistingResponse]()
+		}
 		resp, err := cloudflare.Client().
 			ValidateTurnstileResponse(tools.ParseStringI(data.CFToken), req.RemoteAddr)
 		if err != nil {

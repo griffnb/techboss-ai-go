@@ -1,4 +1,4 @@
-package subscription
+package billing_plan
 
 type BillingCycle int
 
