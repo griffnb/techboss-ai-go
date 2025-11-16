@@ -53,8 +53,7 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*category.CategoryJoine
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*category.Category, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	categoryObj := category.New()
 	categoryObj.MergeData(data)
 	err := categoryObj.Save(userSession.User)
@@ -69,8 +68,7 @@ func adminCreate(_ http.ResponseWriter, req *http.Request) (*category.Category, 
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*category.CategoryJoined, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	id := chi.URLParam(req, "id")
 	categoryObj, err := category.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {

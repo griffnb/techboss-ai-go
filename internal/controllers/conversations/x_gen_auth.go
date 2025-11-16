@@ -58,8 +58,7 @@ func authCreate(_ http.ResponseWriter, req *http.Request) (*conversation.Convers
 
 	user := request.GetReqSession(req).User
 
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	conversationObj := conversation.NewPublic(data, user)
 	err := conversationObj.Save(user)
 	if err != nil {
@@ -76,8 +75,7 @@ func authUpdate(_ http.ResponseWriter, req *http.Request) (*conversation.Convers
 	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	conversationObj, err := conversation.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())

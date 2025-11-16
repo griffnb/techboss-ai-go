@@ -53,8 +53,7 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*billing_plan.BillingPl
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*billing_plan.BillingPlan, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	billingPlanObj := billing_plan.New()
 	billingPlanObj.MergeData(data)
 	err := billingPlanObj.Save(userSession.User)
@@ -69,8 +68,7 @@ func adminCreate(_ http.ResponseWriter, req *http.Request) (*billing_plan.Billin
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*billing_plan.BillingPlanJoined, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	id := chi.URLParam(req, "id")
 	billingPlanObj, err := billing_plan.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {

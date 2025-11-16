@@ -53,8 +53,7 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*agent.AgentJoined, int
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*agent.Agent, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	agentObj := agent.New()
 	agentObj.MergeData(data)
 	err := agentObj.Save(userSession.User)
@@ -69,8 +68,7 @@ func adminCreate(_ http.ResponseWriter, req *http.Request) (*agent.Agent, int, e
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*agent.AgentJoined, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	id := chi.URLParam(req, "id")
 	agentObj, err := agent.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {

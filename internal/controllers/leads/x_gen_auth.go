@@ -32,8 +32,7 @@ func authCreate(_ http.ResponseWriter, req *http.Request) (*lead.Lead, int, erro
 
 	user := request.GetReqSession(req).User
 
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	leadObj := lead.NewPublic(data, user)
 	err := leadObj.Save(user)
 	if err != nil {
@@ -50,8 +49,7 @@ func authUpdate(_ http.ResponseWriter, req *http.Request) (*lead.LeadJoined, int
 	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	leadObj, err := lead.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())

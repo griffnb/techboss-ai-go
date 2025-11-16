@@ -53,8 +53,7 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*global_config.GlobalCo
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*global_config.GlobalConfig, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	globalConfigObj := global_config.New()
 	globalConfigObj.MergeData(data)
 	err := globalConfigObj.Save(userSession.User)
@@ -69,8 +68,7 @@ func adminCreate(_ http.ResponseWriter, req *http.Request) (*global_config.Globa
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*global_config.GlobalConfigJoined, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	id := chi.URLParam(req, "id")
 	globalConfigObj, err := global_config.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {

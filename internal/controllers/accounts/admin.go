@@ -17,8 +17,7 @@ import (
 func adminTestCreate(res http.ResponseWriter, req *http.Request) (*account.Account, int, error) {
 	userSession := request.GetReqSession(req)
 
-	createInput := &account_service.TestUserInput{}
-	err := request.GetJSONPostDataStruct(req, createInput)
+	createInput, err := request.GetJSONPostAs[*account_service.TestUserInput](req)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.AdminBadRequestError[*account.Account](err)

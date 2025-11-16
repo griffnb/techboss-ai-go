@@ -53,8 +53,7 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined,
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*account.Account, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	accountObj := account.New()
 	accountObj.MergeData(data)
 	err := accountObj.Save(userSession.User)
@@ -69,8 +68,7 @@ func adminCreate(_ http.ResponseWriter, req *http.Request) (*account.Account, in
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	id := chi.URLParam(req, "id")
 	accountObj, err := account.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {

@@ -28,8 +28,7 @@ type VerifyResponse struct {
 
 // @link {models}/src/models/account/services/_verify.ts:verifyInvite
 func openVerifyInvite(res http.ResponseWriter, req *http.Request) (*VerifyResponse, int, error) {
-	data := &VerifyInput{}
-	err := request.GetJSONPostDataStruct(req, data)
+	data, err := request.GetJSONPostAs[*VerifyInput](req)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.PublicBadRequestError[*VerifyResponse]()
@@ -127,8 +126,7 @@ func openVerifyInvite(res http.ResponseWriter, req *http.Request) (*VerifyRespon
 
 // @link {models}/src/models/account/services/_verify.ts:verifyAccount
 func openVerifyEmail(res http.ResponseWriter, req *http.Request) (*VerifyResponse, int, error) {
-	data := &VerifyInput{}
-	err := request.GetJSONPostDataStruct(req, data)
+	data, err := request.GetJSONPostAs[*VerifyInput](req)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.PublicBadRequestError[*VerifyResponse]()

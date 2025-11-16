@@ -53,8 +53,7 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*organization.Organizat
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*organization.Organization, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	organizationObj := organization.New()
 	organizationObj.MergeData(data)
 	err := organizationObj.Save(userSession.User)
@@ -69,8 +68,7 @@ func adminCreate(_ http.ResponseWriter, req *http.Request) (*organization.Organi
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*organization.OrganizationJoined, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	id := chi.URLParam(req, "id")
 	organizationObj, err := organization.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {

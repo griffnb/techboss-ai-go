@@ -58,8 +58,7 @@ func authCreate(_ http.ResponseWriter, req *http.Request) (*category.Category, i
 
 	user := request.GetReqSession(req).User
 
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	categoryObj := category.NewPublic(data, user)
 	err := categoryObj.Save(user)
 	if err != nil {
@@ -76,8 +75,7 @@ func authUpdate(_ http.ResponseWriter, req *http.Request) (*category.CategoryJoi
 	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	categoryObj, err := category.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())

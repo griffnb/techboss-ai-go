@@ -34,7 +34,7 @@ func testError(_ http.ResponseWriter, req *http.Request) (any, int, error) {
 }
 
 func hookLog(res http.ResponseWriter, req *http.Request) {
-	rawdata := request.GetJSONPostData(req)
+	rawdata := request.GetModelPostData(req)
 	params := request.FixParams(req.URL.Query())
 
 	logData := map[string]interface{}{

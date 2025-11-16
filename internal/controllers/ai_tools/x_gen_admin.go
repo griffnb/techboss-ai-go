@@ -53,8 +53,7 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*ai_tool.AiToolJoined, 
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*ai_tool.AiTool, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	aiToolObj := ai_tool.New()
 	aiToolObj.MergeData(data)
 	err := aiToolObj.Save(userSession.User)
@@ -69,8 +68,7 @@ func adminCreate(_ http.ResponseWriter, req *http.Request) (*ai_tool.AiTool, int
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*ai_tool.AiToolJoined, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	id := chi.URLParam(req, "id")
 	aiToolObj, err := ai_tool.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {

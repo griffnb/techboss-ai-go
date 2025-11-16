@@ -15,8 +15,7 @@ import (
 // { $.meta.objs[*].url = %a=VNgENE% } // find ad id
 // { $.meta.objs[*].url = %pbk=[\-a-zA-Z_0-9]*-97063a6f970c% } // find postback key
 func search(_ http.ResponseWriter, req *http.Request) (any, int, error) {
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 
 	logGroup := chi.URLParam(req, "logGroup")
 	startDate := tools.ParseStringI(data["start_date"])
@@ -48,8 +47,7 @@ func search(_ http.ResponseWriter, req *http.Request) (any, int, error) {
 }
 
 func searchRecursive(_ http.ResponseWriter, req *http.Request) (any, int, error) {
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 
 	logGroup := chi.URLParam(req, "logGroup")
 	startDate := tools.ParseStringI(data["start_date"])

@@ -42,20 +42,18 @@ func adminLogInAs(res http.ResponseWriter, req *http.Request) {
 }
 
 // This is for loging in on the frontend with a token
-func adminTokenLogin(res http.ResponseWriter, req *http.Request) {
+func adminTokenLogin(res http.ResponseWriter, req *http.Request) (*TokenResponse, int, error) {
 	profile, token, err := route_helpers.HandleTokenLogin(environment.GetOauth(), res, req)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		response.ErrorWrapper(res, req, err.Error(), 400)
-		return
+		return response.AdminBadRequestError[*TokenResponse](err)
 	}
 
 	adminObj, err := admin.GetByEmail(req.Context(), profile.Email)
 	// Query error occured
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		response.ErrorWrapper(res, req, err.Error(), 400)
-		return
+		return response.AdminBadRequestError[*TokenResponse](err)
 	}
 
 	// create a session and set its value as the same as the token
@@ -64,13 +62,12 @@ func adminTokenLogin(res http.ResponseWriter, req *http.Request) {
 	err = userSession.Save()
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		response.ErrorWrapper(res, req, err.Error(), 400)
-		return
+		return response.AdminBadRequestError[*TokenResponse](err)
 	}
 
 	SendSessionCookie(res, environment.GetConfig().Server.AdminSessionKey, userSession.Key)
 
-	response.JSONDataResponseWrapper(res, req, &TokenResponse{
+	return response.Success(&TokenResponse{
 		Token: userSession.Key,
 	})
 }

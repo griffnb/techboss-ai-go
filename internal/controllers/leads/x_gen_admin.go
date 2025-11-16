@@ -53,8 +53,7 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*lead.LeadJoined, int, 
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*lead.Lead, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	leadObj := lead.New()
 	leadObj.MergeData(data)
 	err := leadObj.Save(userSession.User)
@@ -69,8 +68,7 @@ func adminCreate(_ http.ResponseWriter, req *http.Request) (*lead.Lead, int, err
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*lead.LeadJoined, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	id := chi.URLParam(req, "id")
 	leadObj, err := lead.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {

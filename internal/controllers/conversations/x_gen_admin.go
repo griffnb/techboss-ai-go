@@ -53,8 +53,7 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*conversation.Conversat
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*conversation.Conversation, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	conversationObj := conversation.New()
 	conversationObj.MergeData(data)
 	err := conversationObj.Save(userSession.User)
@@ -69,8 +68,7 @@ func adminCreate(_ http.ResponseWriter, req *http.Request) (*conversation.Conver
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*conversation.ConversationJoined, int, error) {
 	userSession := request.GetReqSession(req)
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	id := chi.URLParam(req, "id")
 	conversationObj, err := conversation.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {

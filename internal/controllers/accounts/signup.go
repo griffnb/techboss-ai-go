@@ -19,19 +19,19 @@ import (
 )
 
 type SignupResponse struct {
-	Token             string `json:"token"`
-	RedirectURL       string `json:"redirect_url,omitempty"`
-	VerificationToken string `json:"verification_token,omitempty"`
+	Token             string `public:"view" json:"token"`
+	RedirectURL       string `public:"view" json:"redirect_url,omitempty"`
+	VerificationToken string `public:"view" json:"verification_token,omitempty"`
 }
 
+// @link {models}/src/models/account/services/_signup.ts:23
 func oauthSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, int, error) {
-	body := request.GetJSONPostData(req)
-	token := tools.ParseStringI(body["token"])
+	data := request.GetJSONPostMap(req)
+	token := tools.ParseStringI(data["token"])
 	guestSession := session.Load(token)
 	if tools.Empty(guestSession) {
 		return response.PublicNotFoundError[*SignupResponse]()
 	}
-	data := request.ConvertPost(body)
 
 	profile := guestSession.GetData()
 
@@ -126,12 +126,9 @@ func oauthSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, i
 	return response.Success(successResponse)
 }
 
+// @link {models}/src/models/account/services/_signup.ts:23
 func openSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, int, error) {
-	rawdata := request.GetJSONPostData(req)
-	data := request.ConvertPost(rawdata)
-
-	log.Debugf("in signup")
-
+	data := request.GetJSONPostMap(req)
 	var accountObj *account.Account
 	var err error
 
@@ -140,6 +137,7 @@ func openSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, in
 		accountObj = account.New()
 		account.MergeSignup(accountObj, data, nil)
 		common.GenerateURN(accountObj) // setup IDs
+		accountObj.Status.Set(account.STATUS_PENDING_EMAIL_VERIFICATION)
 	} else {
 		// User is from invite
 		accountObj, err = account.Get(req.Context(), types.UUID(tools.ParseStringI(data["id"])))
@@ -150,20 +148,19 @@ func openSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, in
 		account.MergeSignup(accountObj, data, nil)
 	}
 
-	turnstileToken := data["cf_token"]
-
-	if tools.Empty(turnstileToken) && !tools.Empty(cloudflare.Client()) && !tools.Empty(cloudflare.Client().TurnstileKey) {
-		return response.PublicBadRequestError[*SignupResponse]()
-	}
+	// Cloudflare
 
 	if !tools.Empty(cloudflare.Client()) && !tools.Empty(cloudflare.Client().TurnstileKey) {
+		turnstileToken := data["cf_token"]
+		if tools.Empty(turnstileToken) {
+			return response.PublicBadRequestError[*SignupResponse]()
+		}
 		resp, err := cloudflare.Client().
 			ValidateTurnstileResponse(tools.ParseStringI(turnstileToken), req.RemoteAddr)
 		if err != nil {
 			log.ErrorContext(err, req.Context())
 			return response.PublicBadRequestError[*SignupResponse]()
 		}
-
 		if !resp {
 			return response.PublicBadRequestError[*SignupResponse]()
 		}
@@ -181,11 +178,7 @@ func openSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, in
 		return response.PublicCustomError[*SignupResponse]("Email already exists", http.StatusConflict)
 	}
 
-	savingUser := account.New()
-	dataCopy := accountObj.GetDataCopy()
-	savingUser.SetData(dataCopy)
-
-	err = account_service.Signup(req.Context(), accountObj, savingUser)
+	err = account_service.Signup(req.Context(), accountObj, accountObj.ToSavingUser())
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.PublicBadRequestError[*SignupResponse]()
@@ -205,7 +198,7 @@ func openSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, in
 	}
 
 	// Include verification token in response when in dev mode
-	if environment.IsLocalDev() {
+	if !environment.IsProduction() {
 		props := accountObj.Properties.GetI()
 		if !tools.Empty(props.VerifyEmailKey) {
 			successResponse.VerificationToken = props.VerifyEmailKey
@@ -226,10 +219,9 @@ type ExistingResponse struct {
 	Exists bool `json:"exists"`
 }
 
-// @link {models}/src/models/account/services/_existing.ts:checkExisting
+// @link {models}/src/models/account/services/_signup.ts:checkExisting
 func openCheckExisting(_ http.ResponseWriter, req *http.Request) (*ExistingResponse, int, error) {
-	data := &ExistingCheck{}
-	err := request.GetJSONPostDataStruct(req, data)
+	data, err := request.GetJSONPostAs[*ExistingCheck](req)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.PublicBadRequestError[*ExistingResponse]()

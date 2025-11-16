@@ -12,9 +12,9 @@ import (
 
 // Setup attaches the routes
 func Setup(coreRouter *router.CoreRouter) {
-	coreRouter.Router.Post("/logout", logout)
-	coreRouter.Router.Post("/login", login)
-	coreRouter.Router.Get("/tokenLogin", tokenLogin)
+	coreRouter.Router.Post("/logout", response.StandardPublicRequestWrapper(logout))
+	coreRouter.Router.Post("/login", response.StandardPublicRequestWrapper(login))
+	coreRouter.Router.Get("/tokenLogin", response.StandardPublicRequestWrapper(tokenLogin))
 	// Gets oauth profile
 	coreRouter.Router.Post("/login/getProfile", response.StandardPublicRequestWrapper(getProfile))
 	coreRouter.Router.Post("/login/link/send", response.StandardPublicRequestWrapper(sendMagicLink))
@@ -28,5 +28,5 @@ func Setup(coreRouter *router.CoreRouter) {
 		})
 	})
 
-	coreRouter.Router.Get("/admin/tokenLogin", adminTokenLogin)
+	coreRouter.Router.Get("/admin/tokenLogin", response.StandardRequestWrapper(adminTokenLogin))
 }

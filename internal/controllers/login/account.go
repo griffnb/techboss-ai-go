@@ -1,7 +1,6 @@
 package login
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 	"time"
@@ -28,7 +27,8 @@ type LoginData struct {
 }
 
 type LoginResponse struct {
-	Token string `json:"token" public:"view"`
+	Token    string `json:"token"     public:"view"`
+	IsSignup bool   `json:"is_signup" public:"view"`
 }
 
 type TokenInput struct {
@@ -40,47 +40,40 @@ type TokenResponse struct {
 	Redirect string `json:"redirect" public:"view"`
 }
 
-func login(res http.ResponseWriter, req *http.Request) {
-	loginData := &LoginData{}
-	err := request.GetJSONPostDataStruct(req, loginData)
+func login(res http.ResponseWriter, req *http.Request) (*LoginResponse, int, error) {
+	loginData, err := request.GetJSONPostAs[*LoginData](req)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		response.ErrorWrapper(res, req, err.Error(), 400)
-		return
+		return response.PublicBadRequestError[*LoginResponse]()
 	}
 
 	accountObj, err := account.GetByEmail(req.Context(), loginData.Email)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		response.ErrorWrapper(res, req, "Invalid User/Password", 400)
-		return
+		return response.PublicCustomError[*LoginResponse]("Invalid User/Password", http.StatusBadRequest)
 	}
 
 	// User not found - invalid login detected
 	if tools.Empty(accountObj) {
-		response.ErrorWrapper(res, req, "Invalid User/Password", 400)
-		return
+		return response.PublicCustomError[*LoginResponse]("Invalid User/Password", http.StatusBadRequest)
 	}
 
 	if !account.VerifyPassword(accountObj.HashedPassword.Get(), loginData.Password, accountObj.ID()) {
-		response.ErrorWrapper(res, req, "Invalid User/Password", 400)
-		return
+		return response.PublicCustomError[*LoginResponse]("Invalid User/Password", http.StatusBadRequest)
 	}
 
 	accountObj.LastLoginTS.Set(time.Now().Unix())
 	err = accountObj.Save(nil)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		response.ErrorWrapper(res, req, "internal error", 500)
-		return
+		return response.PublicBadRequestError[*LoginResponse]()
 	}
 
 	userSession := session.New(tools.ParseStringI(req.Context().Value("ip"))).WithUser(accountObj)
 	err = userSession.Save()
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		response.ErrorWrapper(res, req, "internal error", 400)
-		return
+		return response.PublicBadRequestError[*LoginResponse]()
 	}
 
 	/* TODO slack notification
@@ -103,13 +96,12 @@ func login(res http.ResponseWriter, req *http.Request) {
 	}
 	SendSessionCookie(res, environment.GetConfig().Server.SessionKey, userSession.Key)
 	SendOrgCookie(res, accountObj.OrganizationID.Get().String())
-	response.JSONDataResponseWrapper(res, req, successResponse)
+	return response.Success(successResponse)
 }
 
 // Gets oauth profile for signup
 func getProfile(_ http.ResponseWriter, req *http.Request) (any, int, error) {
-	profileData := &TokenInput{}
-	err := request.GetJSONPostDataStruct(req, profileData)
+	profileData, err := request.GetJSONPostAs[*TokenInput](req)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.PublicBadRequestError[*account.AccountJoined]()
@@ -133,20 +125,18 @@ func getProfile(_ http.ResponseWriter, req *http.Request) (any, int, error) {
 }
 
 // This is for loging in on the frontend with an oauth token
-func tokenLogin(res http.ResponseWriter, req *http.Request) {
+func tokenLogin(res http.ResponseWriter, req *http.Request) (*LoginResponse, int, error) {
 	profile, token, err := route_helpers.HandleTokenLogin(environment.GetOauth(), res, req)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		response.ErrorWrapper(res, req, err.Error(), 400)
-		return
+		return response.PublicBadRequestError[*LoginResponse]()
 	}
 
 	accountObj, err := account.GetByEmail(req.Context(), profile.Email)
 	// Query error occured
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		response.ErrorWrapper(res, req, err.Error(), 400)
-		return
+		return response.PublicBadRequestError[*LoginResponse]()
 	}
 
 	if tools.Empty(accountObj) {
@@ -159,28 +149,24 @@ func tokenLogin(res http.ResponseWriter, req *http.Request) {
 		err = guestSession.Save()
 		if err != nil {
 			log.ErrorContext(err, req.Context())
-			response.ErrorWrapper(res, req, err.Error(), 400)
-			return
+			return response.PublicBadRequestError[*LoginResponse]()
 		}
-		successResponse := map[string]any{
-			"token":     guestSession.Key,
-			"is_signup": true,
+		successResponse := &LoginResponse{
+			Token:    guestSession.Key,
+			IsSignup: true,
 		}
-		response.JSONDataResponseWrapper(res, req, successResponse)
-		return
+		return response.Success(successResponse)
 	}
 
 	if accountObj.Disabled.Bool() {
-		response.ErrorWrapper(res, req, "Invalid User/Password", 400)
-		return
+		return response.PublicCustomError[*LoginResponse]("Invalid User/Password", http.StatusBadRequest)
 	}
 
 	accountObj.LastLoginTS.Set(time.Now().Unix())
 	err = accountObj.Save(nil)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		response.ErrorWrapper(res, req, "internal error", 500)
-		return
+		return response.PublicBadRequestError[*LoginResponse]()
 	}
 
 	// create a session and set its value as the same as the token
@@ -189,8 +175,7 @@ func tokenLogin(res http.ResponseWriter, req *http.Request) {
 	err = userSession.Save()
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		response.ErrorWrapper(res, req, err.Error(), 400)
-		return
+		return response.PublicBadRequestError[*LoginResponse]()
 	}
 	/*
 		bgCtx := context.WithoutCancel(req.Context())
@@ -209,24 +194,22 @@ func tokenLogin(res http.ResponseWriter, req *http.Request) {
 
 	SendSessionCookie(res, environment.GetConfig().Server.SessionKey, userSession.Key)
 	SendOrgCookie(res, accountObj.OrganizationID.Get().String())
-	successResponse := map[string]any{
-		"token":     userSession.Key,
-		"is_signup": false,
+	successResponse := &LoginResponse{
+		Token:    userSession.Key,
+		IsSignup: false,
 	}
-	response.JSONDataResponseWrapper(res, req, successResponse)
+	return response.Success(successResponse)
 }
 
-func logout(res http.ResponseWriter, req *http.Request) {
-	data := make(map[string]any)
-	err := json.NewDecoder(req.Body).Decode(&data)
+func logout(res http.ResponseWriter, req *http.Request) (bool, int, error) {
+	data, err := request.GetJSONPostAs[*TokenInput](req)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		response.ErrorWrapper(res, req, err.Error(), 400)
-		return
+		return response.PublicBadRequestError[bool]()
 	}
 
-	if data["token"] != nil {
-		userSession := session.Load(tools.ParseStringI(data["token"]))
+	if !tools.Empty(data.Token) {
+		userSession := session.Load(data.Token)
 
 		if !tools.Empty(userSession) {
 			err := userSession.Invalidate()
@@ -235,7 +218,7 @@ func logout(res http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		if helpers.CustomAdminKeyValid(tools.ParseStringI(data["token"])) {
+		if helpers.CustomAdminKeyValid(tools.ParseStringI(data.Token)) {
 			DeleteSessionCookie(res, environment.GetConfig().Server.AdminSessionKey)
 		} else {
 			DeleteSessionCookie(res, environment.GetConfig().Server.SessionKey)
@@ -243,15 +226,13 @@ func logout(res http.ResponseWriter, req *http.Request) {
 
 	}
 
-	successResponse := map[string]any{}
-	response.JSONDataResponseWrapper(res, req, successResponse)
+	return response.Success(true)
 }
 
 // Logs in with a magic link session
 // @link {models}/src/models/account/services/_link.ts:loginLink
 func loginMagicLink(res http.ResponseWriter, req *http.Request) (*TokenResponse, int, error) {
-	tokenInput := &TokenInput{}
-	err := request.GetJSONPostDataStruct(req, tokenInput)
+	tokenInput, err := request.GetJSONPostAs[*TokenInput](req)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.PublicBadRequestError[*TokenResponse]()
@@ -350,8 +331,7 @@ type SendMagicLinkResponse struct {
 }
 
 func sendMagicLink(_ http.ResponseWriter, req *http.Request) (*SendMagicLinkResponse, int, error) {
-	input := &SendLinkInput{}
-	err := request.GetJSONPostDataStruct(req, input)
+	input, err := request.GetJSONPostAs[*SendLinkInput](req)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.PublicBadRequestError[*SendMagicLinkResponse]()

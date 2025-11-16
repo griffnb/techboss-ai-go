@@ -30,7 +30,7 @@ type MessageID string
 func Send(ctx context.Context, messageID MessageID, to []string, subject, message string) error {
 	// Email isnt Setup
 	if tools.Empty(environment.GetConfig().Email) {
-		if environment.IsUnitTest() {
+		if environment.IsUnitTest() || environment.IsLocalDev() {
 			return nil
 		}
 		return errors.Errorf("email not setup")
