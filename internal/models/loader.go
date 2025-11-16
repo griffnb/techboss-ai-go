@@ -10,6 +10,7 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/models/admin"
 	"github.com/griffnb/techboss-ai-go/internal/models/agent"
 	"github.com/griffnb/techboss-ai-go/internal/models/ai_tool"
+	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
 	"github.com/griffnb/techboss-ai-go/internal/models/category"
 	"github.com/griffnb/techboss-ai-go/internal/models/change_log"
 	"github.com/griffnb/techboss-ai-go/internal/models/global_config"
@@ -17,6 +18,7 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/models/migrations"
 	"github.com/griffnb/techboss-ai-go/internal/models/object_tag"
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"
+	"github.com/griffnb/techboss-ai-go/internal/models/subscription"
 	"github.com/griffnb/techboss-ai-go/internal/models/tag"
 
 	"github.com/pkg/errors"
@@ -48,8 +50,10 @@ func LoadModels() (err error) {
 		admin.TABLE:         &admin.Structure{},
 		agent.TABLE:         &agent.Structure{},
 		ai_tool.TABLE:       &ai_tool.Structure{},
+		billing_plan.TABLE:  &billing_plan.Structure{},
 		category.TABLE:      &category.Structure{},
 		lead.TABLE:          &lead.Structure{},
+		subscription.TABLE:  &subscription.Structure{},
 		tag.TABLE:           &tag.Structure{},
 		object_tag.TABLE:    &object_tag.Structure{},
 		global_config.TABLE: &global_config.Structure{},
