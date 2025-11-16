@@ -3,7 +3,19 @@ package billing
 import (
 	"net/http"
 
+	"github.com/CrowdShield/go-core/lib/log"
+	"github.com/CrowdShield/go-core/lib/router/request"
 	"github.com/CrowdShield/go-core/lib/router/response"
+	"github.com/CrowdShield/go-core/lib/stripe_wrapper"
+	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/CrowdShield/go-core/lib/types"
+	"github.com/go-chi/chi/v5"
+	"github.com/griffnb/techboss-ai-go/internal/constants"
+	"github.com/griffnb/techboss-ai-go/internal/services/billing"
+
+	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
+	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
+	"github.com/griffnb/techboss-ai-go/internal/models/organization"
 )
 
 type CheckoutSuccessPost struct {
@@ -61,46 +73,60 @@ type Checkout struct {
 	PromotionCode string `json:"promotion_code"`
 }
 
-func authStripeCheckout(_ http.ResponseWriter, req *http.Request) (any, int, error) {
-	/*
-		userSession := request.GetReqSession(req)
+func authStripeCheckout(_ http.ResponseWriter, req *http.Request) (*stripe_wrapper.StripeCheckout, int, error) {
+	accountObj := helpers.GetLoadedUser(req)
 
-		accountObj := helpers.GetLoadedUser(req)
+	if accountObj.Role.Get() < constants.ROLE_ORG_ADMIN {
+		return response.Unauthorized[*stripe_wrapper.StripeCheckout]()
+	}
 
-		checkoutData := &Checkout{}
-		err := request.GetJSONPostDataStruct(req, checkoutData)
+	org, err := organization.Get(req.Context(), accountObj.OrganizationID.Get())
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[*stripe_wrapper.StripeCheckout]()
+	}
+
+	checkoutData, err := request.GetJSONPostAs[*Checkout](req)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[*stripe_wrapper.StripeCheckout]()
+	}
+
+	planID := chi.URLParam(req, "id")
+	if tools.Empty(planID) {
+		return response.PublicBadRequestError[*stripe_wrapper.StripeCheckout]()
+	}
+
+	plan, err := billing_plan.Get(req.Context(), types.UUID(planID))
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[*stripe_wrapper.StripeCheckout]()
+	}
+
+	if tools.Empty(plan) {
+		return response.PublicBadRequestError[*stripe_wrapper.StripeCheckout]()
+	}
+
+	var promoCodeID string
+	if !tools.Empty(checkoutData.PromotionCode) {
+		promoCodeID, err = billing.GetPromoCodeID(req.Context(), checkoutData.PromotionCode)
 		if err != nil {
 			log.ErrorContext(err, req.Context())
-			return response.PublicBadRequestError[any]()
+			return response.PublicCustomError[*stripe_wrapper.StripeCheckout]("Invalid Promo Code", http.StatusBadRequest)
 		}
+	}
 
-		planID := chi.URLParam(req, "id")
-		if tools.Empty(planID) {
-			return response.PublicBadRequestError[any]()
-		}
+	checkoutProps, err := billing.StripeCheckout(req.Context(), org, plan, &stripe_wrapper.StripeCodes{
+		PromotionCodeID: promoCodeID,
+	})
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[*stripe_wrapper.StripeCheckout]()
+	}
 
-		var promoCodeID string
-		if !tools.Empty(checkoutData.PromotionCode) {
-			promoCodeID, err = billing.GetPromoCodeID(req.Context(), checkoutData.PromotionCode)
-			if err != nil {
-				log.ErrorContext(err, req.Context())
-				return response.PublicCustomError[any]("Invalid Promo Code", http.StatusBadRequest)
-			}
-		}
+	checkoutProps.PromoCode = checkoutData.PromotionCode
 
-		checkoutProps, err := billing.SetupStripeCheckout(req.Context(), &accountObj.Account, types.UUID(planID), &billing.StripeCodes{
-			PromotionCodeID: promoCodeID,
-		}, userSession.User)
-		if err != nil {
-			log.ErrorContext(err, req.Context())
-			return response.PublicBadRequestError[any]()
-		}
+	log.Debugf("Subscription Created With ID \n\n%s\n\n", checkoutProps.SubscriptionID)
 
-		checkoutProps.PromoCode = checkoutData.PromotionCode
-
-		log.Debugf("Subscription Created With ID \n\n%s\n\n", checkoutProps.SubscriptionID)
-
-		return response.Success(checkoutProps)
-	*/
-	return nil, 0, nil
+	return response.Success(checkoutProps)
 }

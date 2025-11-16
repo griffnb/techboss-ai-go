@@ -15,13 +15,13 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/shopspring/decimal v1.4.0
 	golang.org/x/crypto v0.42.0
-	golang.org/x/oauth2 v0.31.0 // indirect
+	golang.org/x/oauth2 v0.31.0
 )
 
 require (
 	github.com/CrowdShield/go-core/lib v0.0.30
-	github.com/clerk/clerk-sdk-go/v2 v2.4.2
 	github.com/openai/openai-go/v3 v3.2.0
+	github.com/slack-go/slack v0.16.0
 )
 
 require (
@@ -53,7 +53,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.34.0 // indirect
 	github.com/aws/smithy-go v1.22.4 // indirect
 	github.com/coreos/go-oidc v2.2.1+incompatible // indirect
-	github.com/go-jose/go-jose/v3 v3.0.4 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
@@ -69,7 +68,7 @@ require (
 	github.com/pquerna/cachecontrol v0.2.0 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/serialx/hashring v0.0.0-20200727003509-22c0c7ab6b1b // indirect
-	github.com/slack-go/slack v0.16.0 // indirect
+	github.com/stripe/stripe-go/v83 v83.2.1 // indirect
 	github.com/tidwall/gjson v1.14.4 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
