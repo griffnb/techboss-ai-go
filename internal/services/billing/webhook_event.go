@@ -3,20 +3,62 @@ package billing
 import (
 	"context"
 
-	"github.com/CrowdShield/go-core/lib/stripe_wrapper"
 	"github.com/griffnb/techboss-ai-go/internal/models/subscription"
 	"github.com/stripe/stripe-go/v83"
 )
 
 type WebhookEventService struct{}
 
-func (this *WebhookEventService) GetBySubscriptionID(ctx context.Context, subscriptionID string) (stripe_wrapper.SubscriptionObject, error) {
-	return nil, nil
+// This file contains additional helper functions for the Subscription model
+
+func (this *WebhookEventService) ProcessActive(ctx context.Context, stripeSub *stripe.Subscription) error {
+	subObj, err := subscription.GetBySubscriptionID(ctx, stripeSub.ID)
+	if err != nil {
+		return err
+	}
+	subObj.ProcessActive(stripeSub)
+	return subObj.Save(nil)
+}
+
+func (this *WebhookEventService) ProcessCanceled(ctx context.Context, stripeSub *stripe.Subscription) error {
+	subObj, err := subscription.GetBySubscriptionID(ctx, stripeSub.ID)
+	if err != nil {
+		return err
+	}
+	subObj.ProcessCanceled(stripeSub)
+	return subObj.Save(nil)
+}
+
+func (this *WebhookEventService) ProcessPaused(ctx context.Context, stripeSub *stripe.Subscription) error {
+	subObj, err := subscription.GetBySubscriptionID(ctx, stripeSub.ID)
+	if err != nil {
+		return err
+	}
+	subObj.ProcessPaused(stripeSub)
+	return subObj.Save(nil)
+}
+
+func (this *WebhookEventService) ProcessUnpaid(ctx context.Context, stripeSub *stripe.Subscription) error {
+	subObj, err := subscription.GetBySubscriptionID(ctx, stripeSub.ID)
+	if err != nil {
+		return err
+	}
+	subObj.ProcessUnpaid(stripeSub)
+	return subObj.Save(nil)
+}
+
+func (this *WebhookEventService) ProcessTrialStarted(ctx context.Context, stripeSub *stripe.Subscription) error {
+	subObj, err := subscription.GetBySubscriptionID(ctx, stripeSub.ID)
+	if err != nil {
+		return err
+	}
+	subObj.ProcessTrialStarted(stripeSub)
+	return subObj.Save(nil)
 }
 
 func ProcessStripeEvent(ctx context.Context, event stripe.Event) error {
 	service := &WebhookEventService{}
-	sub, stripeSub, err := Client().ProcessStripeEvent(ctx, event, service)
+	stripeSub, err := Client().ProcessStripeEvent(ctx, event, service)
 	if err != nil {
 		return err
 	}
