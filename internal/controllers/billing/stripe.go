@@ -126,7 +126,5 @@ func authStripeCheckout(_ http.ResponseWriter, req *http.Request) (*stripe_wrapp
 
 	checkoutProps.PromoCode = checkoutData.PromotionCode
 
-	log.Debugf("Subscription Created With ID \n\n%s\n\n", checkoutProps.SubscriptionID)
-
 	return response.Success(checkoutProps)
 }

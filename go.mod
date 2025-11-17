@@ -22,6 +22,7 @@ require (
 	github.com/CrowdShield/go-core/lib v0.0.30
 	github.com/openai/openai-go/v3 v3.2.0
 	github.com/slack-go/slack v0.16.0
+	github.com/stripe/stripe-go/v83 v83.2.1
 )
 
 require (
@@ -68,7 +69,6 @@ require (
 	github.com/pquerna/cachecontrol v0.2.0 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/serialx/hashring v0.0.0-20200727003509-22c0c7ab6b1b // indirect
-	github.com/stripe/stripe-go/v83 v83.2.1 // indirect
 	github.com/tidwall/gjson v1.14.4 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect

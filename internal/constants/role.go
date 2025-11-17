@@ -16,6 +16,8 @@ const (
 )
 
 var DescOrderedAccountRoles = []Role{
+	ROLE_ORG_OWNER,
+	ROLE_ORG_ADMIN,
 	ROLE_USER,
 	ROLE_ANY_AUTHORIZED,
 	ROLE_UNAUTHORIZED,

@@ -28,11 +28,12 @@ func CreateTestUser(ctx context.Context, input *TestUserInput, savingUser coremo
 	accountObj.Email.Set(fmt.Sprintf("%s.%s_%s@test.com", randomName.FirstName, randomName.LastName, tools.RandString(6)))
 
 	accountObj.Set("password", fmt.Sprintf("%s_testpassword!", accountObj.FirstName.Get()))
-	accountObj.Role.Set(constants.ROLE_USER)
 
 	if !tools.Empty(input.OrganizationID) {
 		accountObj.OrganizationID.Set(input.OrganizationID)
+		accountObj.Role.Set(constants.ROLE_USER)
 	} else {
+		accountObj.Role.Set(constants.ROLE_ORG_OWNER)
 	}
 
 	err := accountObj.Save(savingUser)

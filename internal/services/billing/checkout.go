@@ -19,7 +19,27 @@ func StripeCheckout(
 	plan *billing_plan.BillingPlan,
 	promoCodeIDs *stripe_wrapper.StripeCodes,
 ) (*stripe_wrapper.StripeCheckout, error) {
-	return Client().SetupStripeCheckoutSession(ctx, plan.Properties.GetI().StripePriceID, org.ID().String(), promoCodeIDs)
+	customer := &stripe_wrapper.Customer{}
+
+	if org.StripeID.IsEmpty() {
+		stripeCustomer, err := Client().CreateCustomer(ctx, org.Properties.GetI().BillingEmail, map[string]string{
+			"organization_id": org.ID().String(),
+		})
+		if err != nil {
+			return nil, err
+		}
+		log.Debugf("Created Stripe customer %s for organization %s", stripeCustomer.ID, org.ID().String())
+		org.StripeID.Set(stripeCustomer.ID)
+		err = org.Save(nil)
+		if err != nil {
+			return nil, err
+		}
+		customer.ID = stripeCustomer.ID
+	} else {
+		customer.ID = org.StripeID.Get()
+	}
+
+	return Client().SetupStripeCheckoutSession(ctx, plan.Properties.GetI().StripePriceID, customer, promoCodeIDs)
 }
 
 type SuccessCheckout struct {
