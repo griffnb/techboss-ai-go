@@ -3,8 +3,7 @@ applyTo: '**/*_test.go'
 ---
 
 USE ONLY `#code_tools` for formatting / linting / testing
-**Before beginning, make sure the docker compose is up, if it is not run it with #code_tools/docker_up_copilot**
-**If tables do not exist, use `#code_tools/rebuild_unit_test_db`**
+**If tables do not exist or you need to rebuild due to migrations, use `#code_tools/rebuild_unit_test_db`**
 
 
 
