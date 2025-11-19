@@ -3,9 +3,9 @@ package agent_attribute
 import (
 	"context"
 
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/model/coremodel"
-	"github.com/CrowdShield/go-core/lib/sanitize"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/model/coremodel"
+	"github.com/griffnb/core/lib/sanitize"
 )
 
 func FindAllRestrictedJoined(ctx context.Context, options *model.Options, sessionUser coremodel.Model) ([]*AgentAttributeJoined, error) {

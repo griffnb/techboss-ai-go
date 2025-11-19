@@ -1,9 +1,9 @@
 package billing_plans
 
 import (
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/router/route_helpers"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/router/route_helpers"
+	"github.com/griffnb/core/lib/tools"
 )
 
 func addSearch(parameters *model.Options, query string) {

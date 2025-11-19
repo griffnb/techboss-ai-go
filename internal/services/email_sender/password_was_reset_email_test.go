@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 	"github.com/griffnb/techboss-ai-go/internal/services/email_sender"

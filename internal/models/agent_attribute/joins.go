@@ -1,7 +1,7 @@
 package agent_attribute
 
 import (
-	"github.com/CrowdShield/go-core/lib/model"
+	"github.com/griffnb/core/lib/model"
 )
 
 // AddJoinData adds in the join data

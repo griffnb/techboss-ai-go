@@ -2,7 +2,7 @@
 package testing_service
 
 import (
-	"github.com/CrowdShield/go-core/lib/model/coremodel"
+	"github.com/griffnb/core/lib/model/coremodel"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"

@@ -3,7 +3,7 @@ package models
 import (
 	"sync"
 
-	"github.com/CrowdShield/go-core/lib/model"
+	"github.com/griffnb/core/lib/model"
 	"github.com/griffnb/techboss-ai-go/internal/cron/taskworker/delay_queue"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"

@@ -3,10 +3,10 @@ package conversation
 import (
 	"context"
 
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/model/coremodel"
-	"github.com/CrowdShield/go-core/lib/sanitize"
-	"github.com/CrowdShield/go-core/lib/types"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/model/coremodel"
+	"github.com/griffnb/core/lib/sanitize"
+	"github.com/griffnb/core/lib/types"
 )
 
 func FindAllRestrictedJoined(ctx context.Context, options *model.Options, sessionUser coremodel.Model) ([]*ConversationJoined, error) {

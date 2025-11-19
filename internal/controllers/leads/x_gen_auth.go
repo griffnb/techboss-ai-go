@@ -5,11 +5,11 @@ package leads
 import (
 	"net/http"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router/request"
-	"github.com/CrowdShield/go-core/lib/router/response"
-	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/router/request"
+	"github.com/griffnb/core/lib/router/response"
+	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/models/lead"
 )
 

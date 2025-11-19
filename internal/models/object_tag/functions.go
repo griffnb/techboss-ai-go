@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/model/coremodel"
-	"github.com/CrowdShield/go-core/lib/types"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/model/coremodel"
+	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 )

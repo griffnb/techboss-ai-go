@@ -3,8 +3,8 @@ package subscription
 import (
 	"context"
 
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/types"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/types"
 )
 
 type mocker interface {

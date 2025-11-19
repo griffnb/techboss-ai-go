@@ -5,8 +5,8 @@ import (
 	"embed"
 	"strings"
 
-	"github.com/CrowdShield/go-core/lib/email"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/email"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 
 	"github.com/pkg/errors"

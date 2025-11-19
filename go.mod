@@ -4,7 +4,7 @@ go 1.25.1
 
 replace github.com/shopspring/decimal v1.3.1 => github.com/griffnb/decimal v1.0.2
 
-replace github.com/CrowdShield/go-core/lib v0.0.30 => /Users/griffnb/projects/Crowdshield/go-core/lib
+//replace github.com/griffnb/core/lib v0.0.1 => /Users/griffnb/projects/core/lib
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.36.5
@@ -19,7 +19,7 @@ require (
 )
 
 require (
-	github.com/CrowdShield/go-core/lib v0.0.30
+	github.com/griffnb/core/lib v0.0.1
 	github.com/openai/openai-go/v3 v3.2.0
 	github.com/slack-go/slack v0.16.0
 	github.com/stripe/stripe-go/v83 v83.2.1

@@ -2,11 +2,11 @@
 package leads
 
 import (
-	"github.com/CrowdShield/go-core/lib/router"
-	"github.com/CrowdShield/go-core/lib/router/response"
 	"github.com/go-chi/chi/v5"
+	"github.com/griffnb/core/lib/router"
+	"github.com/griffnb/core/lib/router/response"
 
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/lead"

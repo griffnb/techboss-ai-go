@@ -4,9 +4,9 @@ package object_tag
 import (
 	"context"
 
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/model/coremodel"
-	"github.com/CrowdShield/go-core/lib/model/fields"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/model/coremodel"
+	"github.com/griffnb/core/lib/model/fields"
 	"github.com/griffnb/techboss-ai-go/internal/common"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/griffnb/techboss-ai-go/internal/environment"

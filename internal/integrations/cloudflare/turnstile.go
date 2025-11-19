@@ -7,8 +7,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/pkg/errors"
 )
 

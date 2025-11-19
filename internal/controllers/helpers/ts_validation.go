@@ -3,8 +3,8 @@ package helpers
 import (
 	"net/http"
 
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/router/response"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/router/response"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 )
 

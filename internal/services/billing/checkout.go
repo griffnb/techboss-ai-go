@@ -3,10 +3,10 @@ package billing
 import (
 	"context"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/model/coremodel"
-	"github.com/CrowdShield/go-core/lib/stripe_wrapper"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/model/coremodel"
+	"github.com/griffnb/core/lib/stripe_wrapper"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"
 	"github.com/griffnb/techboss-ai-go/internal/models/subscription"

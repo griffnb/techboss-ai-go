@@ -3,7 +3,7 @@ package admin
 import (
 	"context"
 
-	"github.com/CrowdShield/go-core/lib/model"
+	"github.com/griffnb/core/lib/model"
 )
 
 func GetByExternalID(ctx context.Context, externalID string) (*Admin, error) {

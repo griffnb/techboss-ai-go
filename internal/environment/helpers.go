@@ -3,16 +3,16 @@ package environment
 import (
 	"os"
 
-	"github.com/CrowdShield/go-core/lib/cache"
-	"github.com/CrowdShield/go-core/lib/dynamo"
-	"github.com/CrowdShield/go-core/lib/email"
-	env "github.com/CrowdShield/go-core/lib/environment"
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/oauth"
-	"github.com/CrowdShield/go-core/lib/queue"
-	"github.com/CrowdShield/go-core/lib/s3"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/cache"
+	"github.com/griffnb/core/lib/dynamo"
+	"github.com/griffnb/core/lib/email"
+	env "github.com/griffnb/core/lib/environment"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/oauth"
+	"github.com/griffnb/core/lib/queue"
+	"github.com/griffnb/core/lib/s3"
+	"github.com/griffnb/core/lib/tools"
 )
 
 const (

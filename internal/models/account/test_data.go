@@ -3,7 +3,7 @@ package account
 import (
 	"fmt"
 
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/common"
 )
 

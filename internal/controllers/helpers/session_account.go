@@ -3,9 +3,9 @@ package helpers
 import (
 	"net/http"
 
-	"github.com/CrowdShield/go-core/lib/router/request"
-	"github.com/CrowdShield/go-core/lib/session"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/router/request"
+	"github.com/griffnb/core/lib/session"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 )
 

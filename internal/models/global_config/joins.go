@@ -1,6 +1,6 @@
 package global_config
 
-import "github.com/CrowdShield/go-core/lib/model"
+import "github.com/griffnb/core/lib/model"
 
 // AddJoinData adds in the join data
 func AddJoinData(options *model.Options) {

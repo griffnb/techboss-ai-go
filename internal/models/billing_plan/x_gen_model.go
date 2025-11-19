@@ -6,11 +6,11 @@ import (
 	"context"
 	"sync"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/model/coremodel"
-	"github.com/CrowdShield/go-core/lib/model/fields"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/model/coremodel"
+	"github.com/griffnb/core/lib/model/fields"
+	"github.com/griffnb/core/lib/tools"
 )
 
 var registerOnce sync.Once

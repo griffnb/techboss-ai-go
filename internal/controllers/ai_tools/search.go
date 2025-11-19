@@ -1,8 +1,8 @@
 package ai_tools
 
 import (
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/router/route_helpers"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/router/route_helpers"
 )
 
 func addSearch(parameters *model.Options, query string) {

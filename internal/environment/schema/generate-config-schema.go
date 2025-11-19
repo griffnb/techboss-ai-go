@@ -6,7 +6,7 @@ import (
 	"os"
 	"reflect"
 
-	_ "github.com/CrowdShield/go-core/lib/config"
+	_ "github.com/griffnb/core/lib/config"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 )
 

@@ -11,7 +11,7 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/controllers/categories"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/change_logs"
 
-	"github.com/CrowdShield/go-core/lib/router"
+	"github.com/griffnb/core/lib/router"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/global_configs"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/leads"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/login"

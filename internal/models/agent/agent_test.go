@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/testtools"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/testtools"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/common/system_testing"
 	testmodel "github.com/griffnb/techboss-ai-go/internal/models/agent"
 )

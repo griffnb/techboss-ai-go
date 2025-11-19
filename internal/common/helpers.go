@@ -3,7 +3,7 @@ package common
 import (
 	"regexp"
 
-	"github.com/CrowdShield/go-core/lib/model/coremodel"
+	"github.com/griffnb/core/lib/model/coremodel"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 )
 

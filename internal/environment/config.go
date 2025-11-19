@@ -1,7 +1,7 @@
 package environment
 
 import (
-	"github.com/CrowdShield/go-core/lib/config"
+	"github.com/griffnb/core/lib/config"
 )
 
 const (

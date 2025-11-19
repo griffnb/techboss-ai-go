@@ -9,8 +9,8 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/base"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/model"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/model"
 	"github.com/griffnb/techboss-ai-go/internal/models"
 )
 

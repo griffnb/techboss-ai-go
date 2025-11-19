@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/slack"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/slack"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"

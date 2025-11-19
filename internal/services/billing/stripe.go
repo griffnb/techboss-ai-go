@@ -3,8 +3,8 @@ package billing
 import (
 	"sync"
 
-	"github.com/CrowdShield/go-core/lib/stripe_wrapper"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/stripe_wrapper"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/CrowdShield/go-core/lib/dynamo"
+	"github.com/griffnb/core/lib/dynamo"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/pkg/errors"
 )

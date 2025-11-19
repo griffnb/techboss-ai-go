@@ -3,7 +3,7 @@ package organization
 import (
 	"context"
 
-	"github.com/CrowdShield/go-core/lib/model"
+	"github.com/griffnb/core/lib/model"
 )
 
 type mocker interface {

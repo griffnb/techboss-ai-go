@@ -3,7 +3,7 @@ package constants
 import (
 	"time"
 
-	"github.com/CrowdShield/go-core/lib/log"
+	"github.com/griffnb/core/lib/log"
 )
 
 const (

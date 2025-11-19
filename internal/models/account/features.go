@@ -1,8 +1,8 @@
 package account
 
 import (
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/tools"
 )
 
 func (this *AccountWithFeatures) BuildFeatures() {

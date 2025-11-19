@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/common/system_testing"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	email_sender "github.com/griffnb/techboss-ai-go/internal/services/email_sender"

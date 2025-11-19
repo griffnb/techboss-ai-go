@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/CrowdShield/go-core/lib/session"
-	"github.com/CrowdShield/go-core/lib/tools"
-	"github.com/CrowdShield/go-core/lib/types"
+	"github.com/griffnb/core/lib/session"
+	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 )

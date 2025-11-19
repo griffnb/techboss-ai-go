@@ -4,10 +4,10 @@ import (
 	"context"
 	"sync"
 
-	"github.com/CrowdShield/go-core/lib/cache"
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/types"
+	"github.com/griffnb/core/lib/cache"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/types"
 )
 
 var (

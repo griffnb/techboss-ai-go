@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/types"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/models/ai_tool"
 	"github.com/griffnb/techboss-ai-go/internal/models/category"
 	"github.com/pkg/errors"

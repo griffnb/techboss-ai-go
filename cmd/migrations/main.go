@@ -7,7 +7,7 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models"
 
-	"github.com/CrowdShield/go-core/lib/log"
+	"github.com/griffnb/core/lib/log"
 )
 
 func main() {

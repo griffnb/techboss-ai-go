@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/CrowdShield/go-core/lib/testtools"
-	"github.com/CrowdShield/go-core/lib/testtools/assert"
+	"github.com/griffnb/core/lib/testtools"
+	"github.com/griffnb/core/lib/testtools/assert"
 	"github.com/griffnb/techboss-ai-go/internal/common/system_testing"
 	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
 	"github.com/griffnb/techboss-ai-go/internal/models/subscription"

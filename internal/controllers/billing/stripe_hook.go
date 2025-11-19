@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router/response"
-	"github.com/CrowdShield/go-core/lib/stripe_wrapper"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/router/response"
+	"github.com/griffnb/core/lib/stripe_wrapper"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/services/billing"
 )

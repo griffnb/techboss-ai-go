@@ -3,9 +3,9 @@ package account
 import (
 	"fmt"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/tools"
-	"github.com/CrowdShield/go-core/lib/types"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"

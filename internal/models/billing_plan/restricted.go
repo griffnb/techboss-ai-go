@@ -3,9 +3,9 @@ package billing_plan
 import (
 	"context"
 
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/model/coremodel"
-	"github.com/CrowdShield/go-core/lib/types"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/model/coremodel"
+	"github.com/griffnb/core/lib/types"
 )
 
 // FindAllRestrictedJoined returns all joined records with restrictions for the session account

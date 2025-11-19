@@ -1,7 +1,7 @@
 package base
 
 import (
-	"github.com/CrowdShield/go-core/lib/model/fields"
+	"github.com/griffnb/core/lib/model/fields"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 )
 

@@ -6,9 +6,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/model/fields"
 	aws_types "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/model/fields"
 	"github.com/pkg/errors"
 )
 

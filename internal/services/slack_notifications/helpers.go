@@ -6,8 +6,8 @@ import (
 
 	"strings"
 
-	"github.com/CrowdShield/go-core/lib/log/trace"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/log/trace"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 )

@@ -3,7 +3,7 @@ package admin
 import (
 	"fmt"
 
-	"github.com/CrowdShield/go-core/lib/model"
+	"github.com/griffnb/core/lib/model"
 )
 
 // AddJoinData adds in the join data

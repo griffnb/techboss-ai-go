@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"strings"
 
-	"github.com/CrowdShield/go-core/lib/log"
+	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 	"github.com/griffnb/techboss-ai-go/internal/services/magic_link"
 

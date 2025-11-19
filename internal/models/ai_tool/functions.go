@@ -3,7 +3,7 @@ package ai_tool
 import (
 	"strings"
 
-	"github.com/CrowdShield/go-core/lib/model/fields"
+	"github.com/griffnb/core/lib/model/fields"
 )
 
 // This file contains additional helper functions for the AiTool model

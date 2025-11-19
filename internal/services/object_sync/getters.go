@@ -3,9 +3,9 @@ package object_sync
 import (
 	"net/url"
 
-	"github.com/CrowdShield/go-core/lib/model/coremodel"
-	"github.com/CrowdShield/go-core/lib/tools"
-	"github.com/CrowdShield/go-core/lib/tools/slice"
+	"github.com/griffnb/core/lib/model/coremodel"
+	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/tools/slice"
 	"github.com/griffnb/techboss-ai-go/internal/models/base/caller"
 	"github.com/griffnb/techboss-ai-go/internal/services/system_proxy"
 )

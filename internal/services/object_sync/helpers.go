@@ -1,9 +1,9 @@
 package object_sync
 
 import (
-	"github.com/CrowdShield/go-core/lib/model/coremodel"
-	"github.com/CrowdShield/go-core/lib/tools"
-	"github.com/CrowdShield/go-core/lib/types"
+	"github.com/griffnb/core/lib/model/coremodel"
+	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/types"
 )
 
 // getIDsFromMap returns the IDs from a map of models
