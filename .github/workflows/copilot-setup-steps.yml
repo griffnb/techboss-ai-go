@@ -61,3 +61,4 @@ jobs:
         run: |
           mkdir -p ./.configs
           cp ./infra/unit_test.json ./.configs/unit_test.json          
+          make install-lint & make install-codegen & make install-deadcode & wait
