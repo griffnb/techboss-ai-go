@@ -38,10 +38,11 @@ jobs:
           mkdir -p ./.configs
           cp ./infra/unit_test.json ./.configs/unit_test.json          
           make docker-up-copilot
+          AWS_ACCESS_KEY_ID=fake \
+          AWS_SECRET_ACCESS_KEY=fake \
           aws dynamodb list-tables \
             --endpoint-url http://localhost:8000 \
-            --region us-east-1 \
-            --no-sign-request
+            --region us-east-1
           make rebuild-unit-test-db
           make docker-down-copilot
       
