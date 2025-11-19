@@ -39,14 +39,6 @@ docker-up: ## Start Docker services, be sure to setup /etc/hosts entry for local
 	ifconfig lo0 | grep 127.10.0.1
 	docker compose -f infra/docker-compose-local.yml up
 
-.PHONY: docker-up-copilot
-docker-up-copilot: ## Start Docker services, be sure to setup /etc/hosts entry for local-techboss
-	docker compose -f infra/docker-compose.yml up -d --wait
-
-.PHONY: docker-down-copilot
-docker-down-copilot: ## Stop Docker services
-	docker compose -f infra/docker-compose.yml down
-
 # Code quality targets
 .PHONY: lint
 PKG ?= ./...
