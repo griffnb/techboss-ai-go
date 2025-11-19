@@ -1,0 +1,61 @@
+{
+  "$schema": "../internal/environment/schema/config-schema.json",
+  "server": {
+    "port": 8080,
+    "app_url": "http://localhost:5173",
+    "domain": "localhost",
+    "session_key": "techboss_dev_session_id",
+    "admin_session_key": "techboss_admin_dev_session_id",
+    "secure": false,
+    "CORS": ["*"]
+  },
+
+  "sqs": {
+    "enabled": false,
+    "key": "somekeyhere",
+    "skey": "someskeyhere",
+    "queues": {
+      "priority1":"",
+      "priority2":""
+    }
+  },
+
+  "databases": {
+    "default": {
+      "host": "host.docker.internal",
+      "port": "5432",
+      "user": "postgres",
+      "password": "postgres",
+      "db": "unit_test",
+      "print_errors": true
+    }
+  },
+
+  "dynamo": {
+    "cache_table": "dev_cache",
+    "region": "us-east-1",
+    "key": "fake",
+    "skey": "fake",
+    "endpoint": "http://host.docker.internal:8000",
+    "session_table": "Sessions",
+    "session_key": "key",
+    "session_data": "data"
+  },
+
+  "cloud_watch": {
+    "key": "",
+    "skey": "",
+    "error_channel": "dev",
+    "fatal_path": "",
+    "group_name": "UnitTest",
+    "request_group_name": "Request-Log"
+  },
+
+  "slack": {
+    "api_url": "https://slack.com/api/",
+    "default_bot": "notification",
+    "bots": {
+      "notification": ""
+    }
+  }
+}

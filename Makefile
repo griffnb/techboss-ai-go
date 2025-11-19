@@ -98,6 +98,14 @@ tidy: ## Tidy up Go modules
 		go mod tidy; \
 	'
 
+.PHONY: install-core
+install-core: ## Install private Go modules
+	@bash -c '\
+		export GOPRIVATE=github.com/griffnb/core/*; \
+		export GH_TOKEN=$$(gh auth token); \
+		go get github.com/griffnb/core/lib@latest \
+	'
+
 .PHONY: test
 PKG ?= ./...
 RUN ?=

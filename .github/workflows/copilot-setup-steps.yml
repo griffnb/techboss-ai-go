@@ -43,6 +43,6 @@ jobs:
       - name: Setup Config
         run: |
           mkdir -p ./.configs
-          cp ./infra/unit_test.json ./.configs/unit_test.json          
+          cp ./infra/unit_test_copilot.json ./.configs/unit_test.json          
           ls -la
       
