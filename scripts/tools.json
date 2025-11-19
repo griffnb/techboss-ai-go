@@ -54,7 +54,7 @@
       },
       "command": "make lint PKG=\"{{package:=./...}}\""
     },
-   
+
     {
       "name": "run_tests",
       "description": "Run the test suite for the project.\n\nArgs:\n    package: Optional package path to test (default: all packages)\n\nReturns:\n    Test results and coverage information",
@@ -127,6 +127,5 @@
       },
       "command": "make code-gen-public-object model_name=\"{{model_name}}\" model_plural=\"{{model_plural}}\""
     }
-   
   ]
 }

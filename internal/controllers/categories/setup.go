@@ -12,8 +12,10 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/models/category"
 )
 
-const TABLE_NAME string = category.TABLE
-const ROUTE string = "category"
+const (
+	TABLE_NAME string = category.TABLE
+	ROUTE      string = "category"
+)
 
 // Setup sets up the router
 func Setup(coreRouter *router.CoreRouter) {

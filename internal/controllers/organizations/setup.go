@@ -12,8 +12,10 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"
 )
 
-const TABLE_NAME string = organization.TABLE
-const ROUTE string = "organization"
+const (
+	TABLE_NAME string = organization.TABLE
+	ROUTE      string = "organization"
+)
 
 // Setup sets up the router
 func Setup(coreRouter *router.CoreRouter) {

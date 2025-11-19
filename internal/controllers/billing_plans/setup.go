@@ -12,8 +12,10 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
 )
 
-const TABLE_NAME string = billing_plan.TABLE
-const ROUTE string = "billing_plan"
+const (
+	TABLE_NAME string = billing_plan.TABLE
+	ROUTE      string = "billing_plan"
+)
 
 // Setup sets up the router
 func Setup(coreRouter *router.CoreRouter) {
@@ -55,6 +57,5 @@ func Setup(coreRouter *router.CoreRouter) {
 				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authGet),
 			}))
 		})
-
 	})
 }

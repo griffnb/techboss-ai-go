@@ -4,10 +4,15 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TOOLS_JSON="$SCRIPT_DIR/tools.json"
 
+# Get the project root directory (parent of scripts directory)
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 # Log file for debugging
 LOG_FILE="/tmp/mcp-server-bash.log"
 
 echo "Starting Backend JSON-Driven MCP Server $(date)" >> "$LOG_FILE"
+echo "Script directory: $SCRIPT_DIR" >> "$LOG_FILE"
+echo "Project root: $PROJECT_ROOT" >> "$LOG_FILE"
 
 # Function to substitute parameters in command template
 substitute_parameters() {
@@ -61,12 +66,14 @@ execute_tool_command() {
     local tool_name="$2"
     
     echo "Executing tool '$tool_name': $command" >> "$LOG_FILE"
+    echo "Working directory: $PROJECT_ROOT" >> "$LOG_FILE"
     
     # Execute the command and capture both stdout and stderr
+    # Change to project root before executing to ensure make commands work correctly
     local output
     local exit_code
     
-    output=$(eval "$command" 2>&1)
+    output=$(cd "$PROJECT_ROOT" && eval "$command" 2>&1)
     exit_code=$?
     
     echo "Exit code: $exit_code" >> "$LOG_FILE"
