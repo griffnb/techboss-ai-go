@@ -40,4 +40,8 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           git config --global url."git@github.com:".insteadOf "https://github.com/"
           go mod download
+      - name: Setup Config
+        run: |
+          mkdir -p ./.configs
+          cp ./infra/unit_test.json ./.configs/unit_test.json
       
