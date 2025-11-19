@@ -38,8 +38,8 @@ jobs:
           mkdir -p ./.configs
           cp ./infra/unit_test_copilot.json ./.configs/unit_test.json          
           make docker-up-copilot
-          psql -h localhost    -p 5432 -U postgres -d unit_test -c 'select 1'
-          psql -h host.docker.internal -p 5432 -U postgres -d unit_test -c 'select 1'
+          PGPASSWORD=postgres psql -h localhost -p 5432 -U postgres -d unit_test -c 'select 1'
+          PGPASSWORD=postgres psql -h host.docker.internal -p 5432 -U postgres -d unit_test -c 'select 1'
           make rebuild-unit-test-db
           make docker-down-copilot
       
