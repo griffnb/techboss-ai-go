@@ -11,14 +11,14 @@ applyTo: '**/*.go,**/go.mod,**/go.sum'
 
 1. **Read the PRD first**: All requirements and decisions are based on `/docs/PRD.md` - this is the single source of truth
 2. **Follow the documentation**: All implementation details are documented in Instructions for models are in
-`./internal/models/README.md`
+`./docs/MODELS.md`
 
 Instructions for controllers are in
-`./internal/controllers/README.md`
+`./docs/CONTROLLERS.md`
 
 3. **Maintain consistency**: Any new features, APIs, or changes must align with existing patterns
 4. **Verify against PRD**: Every implementation decision should trace back to a requirement in the PRD
-5. **UPDATE CHECKLISTS**: ALWAYS update `/docs/FEATURE_TODO.md` when completing phases or major features
+5. **UPDATE CHECKLISTS**: ALWAYS update `/docs/{FEATURE}_TODO.md` when completing phases or major features
 
 6. Avoid scanning lots of files, use `#code_tools docs` to look at packages and functions.
 7. If go docs are missing from a function or package, and you learn something important about it, ADD TO YOUR TODO LIST THAT YOU NEED TO UPDATE THAT GO DOC WITH WHAT YOU LEARNED
@@ -27,7 +27,7 @@ Instructions for controllers are in
 
 **NEVER FORGET**: When you complete any phase, feature, or major milestone:
 
-1. **IMMEDIATELY** update `/docs/FEATURE_TODO.md` to mark items as completed
+1. **IMMEDIATELY** update `/docs/{FEATURE}_TODO.md` to mark items as completed
 2. **ADD NEW PHASES** to the checklist as they are planned and implemented  
 3. **KEEP DOCUMENTATION CURRENT** - the checklist should always reflect the actual project state
 4. **UPDATE STATUS** for any infrastructure, integrations, or features that are now working

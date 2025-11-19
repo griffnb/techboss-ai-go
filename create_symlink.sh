@@ -27,7 +27,7 @@ echo "Go source path: $GO_CORE_PATH"
 echo "Go absolute path: $GO_ABS_PATH"
 
 # List of Go folders to symlink
-GO_ITEMS=("docs/CONTROLLERS.md" "docs/MODELS.md" "CLAUDE.md" "AGENTS.md" ".mcp.json" ".github/instructions" ".github/prompts" ".vscode" "scripts/code_gen.sh" "scripts/make_mcp.sh" "scripts/tools.json")
+GO_ITEMS=(".claude" "docs/CONTROLLERS.md" "docs/MODELS.md" "CLAUDE.md" "AGENTS.md" ".mcp.json" ".github/instructions" ".github/prompts" ".vscode" "scripts/code_gen.sh" "scripts/make_mcp.sh" "scripts/tools.json")
 
 for item in "${GO_ITEMS[@]}"; do
     echo "Processing $item..."
