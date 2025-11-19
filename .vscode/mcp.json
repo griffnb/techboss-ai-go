@@ -1,0 +1,14 @@
+{
+  "servers": {
+    "code_tools": {
+      "type": "stdio",
+      "command": "./scripts/make_mcp.sh",
+      "args": []
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    }
+  }
+}

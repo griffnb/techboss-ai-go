@@ -4,12 +4,5 @@
 /bin
 /.test_files
 .qodo
-/.matcher
-/scripts
-/.github/chatmodes
-/.github/instructions
-/.github/prompts
-/.vscode
 /.env
-/internal/controllers/README.md
-/internal/models/README.md
+

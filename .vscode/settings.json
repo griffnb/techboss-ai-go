@@ -1,0 +1,28 @@
+{
+  "go.testEnvVars": {
+    "SYS_ENV": "unit_test",
+    "CONFIG_FILE": "${workspaceFolder}/.configs/unit_test.json",
+    "REGION": "us-east-1"
+  },
+  "go.testFlags": ["-v", "-count=1", "-timeout=30s", "-race"],
+  "go.lintTool": "golangci-lint",
+  "go.lintFlags": [
+    "--path-mode=abs"
+    //"--fast-only"
+  ],
+  "go.formatTool": "custom",
+  "go.alternateTools": {
+    "customFormatter": "golangci-lint"
+  },
+  "go.formatFlags": ["fmt", "--stdin"],
+  "search.exclude": {
+    "**/*.csv": true, // Exclude CSV files
+    "**/*.yml": true, // Exclude CSV files
+    "**/*.json": true, // Exclude CSV files
+    "**/.configs": true, // Exclude json files
+    "**/*.sh": true, // Exclude CSV files
+    "**/Makefile": true, // Exclude CSV files    
+    "**/go.sum": true,
+    "**/go.mod": true
+  }
+}

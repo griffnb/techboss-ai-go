@@ -3,11 +3,15 @@ package billing
 import (
 	"context"
 
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/models/subscription"
+	"github.com/pkg/errors"
 	"github.com/stripe/stripe-go/v83"
 )
 
-type WebhookEventService struct{}
+type WebhookEventService struct {
+	Subscription *subscription.Subscription
+}
 
 // This file contains additional helper functions for the Subscription model
 
@@ -16,8 +20,12 @@ func (this *WebhookEventService) ProcessActive(ctx context.Context, stripeSub *s
 	if err != nil {
 		return err
 	}
-	subObj.ProcessActive(stripeSub)
-	return subObj.Save(nil)
+	if tools.Empty(subObj) {
+		return errors.Errorf("subscription not found for id %s", stripeSub.ID)
+	}
+
+	this.Subscription = subObj
+	return this.Subscription.ProcessActive(stripeSub)
 }
 
 func (this *WebhookEventService) ProcessCanceled(ctx context.Context, stripeSub *stripe.Subscription) error {
@@ -25,8 +33,12 @@ func (this *WebhookEventService) ProcessCanceled(ctx context.Context, stripeSub 
 	if err != nil {
 		return err
 	}
-	subObj.ProcessCanceled(stripeSub)
-	return subObj.Save(nil)
+	if tools.Empty(subObj) {
+		return errors.Errorf("subscription not found for id %s", stripeSub.ID)
+	}
+
+	this.Subscription = subObj
+	return this.Subscription.ProcessCanceled(stripeSub)
 }
 
 func (this *WebhookEventService) ProcessPaused(ctx context.Context, stripeSub *stripe.Subscription) error {
@@ -34,8 +46,12 @@ func (this *WebhookEventService) ProcessPaused(ctx context.Context, stripeSub *s
 	if err != nil {
 		return err
 	}
-	subObj.ProcessPaused(stripeSub)
-	return subObj.Save(nil)
+	if tools.Empty(subObj) {
+		return errors.Errorf("subscription not found for id %s", stripeSub.ID)
+	}
+
+	this.Subscription = subObj
+	return this.Subscription.ProcessPaused(stripeSub)
 }
 
 func (this *WebhookEventService) ProcessUnpaid(ctx context.Context, stripeSub *stripe.Subscription) error {
@@ -43,8 +59,13 @@ func (this *WebhookEventService) ProcessUnpaid(ctx context.Context, stripeSub *s
 	if err != nil {
 		return err
 	}
-	subObj.ProcessUnpaid(stripeSub)
-	return subObj.Save(nil)
+	if tools.Empty(subObj) {
+		return errors.Errorf("subscription not found for id %s", stripeSub.ID)
+	}
+
+	this.Subscription = subObj
+	this.Subscription.ProcessUnpaid(stripeSub)
+	return this.Subscription.Save(nil)
 }
 
 func (this *WebhookEventService) ProcessTrialStarted(ctx context.Context, stripeSub *stripe.Subscription) error {
@@ -52,8 +73,12 @@ func (this *WebhookEventService) ProcessTrialStarted(ctx context.Context, stripe
 	if err != nil {
 		return err
 	}
-	subObj.ProcessTrialStarted(stripeSub)
-	return subObj.Save(nil)
+	if tools.Empty(subObj) {
+		return errors.Errorf("subscription not found for id %s", stripeSub.ID)
+	}
+
+	this.Subscription = subObj
+	return this.Subscription.ProcessTrialStarted(stripeSub)
 }
 
 func ProcessStripeEvent(ctx context.Context, event stripe.Event) error {
@@ -62,8 +87,7 @@ func ProcessStripeEvent(ctx context.Context, event stripe.Event) error {
 	if err != nil {
 		return err
 	}
-
-	subObj := sub.(*subscription.Subscription)
+	subObj := service.Subscription
 
 	if subObj.IsNew() {
 		err := mergeBillingInfo(subObj, stripeSub)
