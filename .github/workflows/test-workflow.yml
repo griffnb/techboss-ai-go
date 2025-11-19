@@ -38,7 +38,10 @@ jobs:
           mkdir -p ./.configs
           cp ./infra/unit_test.json ./.configs/unit_test.json          
           make docker-up-copilot
-          PGPASSWORD=postgres psql -h localhost -p 5432 -U postgres -d unit_test -c 'select 1'
+          aws dynamodb list-tables \
+            --endpoint-url http://localhost:8000 \
+            --region us-east-1 \
+            --no-sign-request
           make rebuild-unit-test-db
           make docker-down-copilot
       
