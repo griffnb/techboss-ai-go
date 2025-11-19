@@ -191,43 +191,57 @@ func NewEnvironment(
 	}
 
 	// Load Slack
-
+	log.Debugf("Loading Slack Bot")
 	slack.BOT_CLIENT.Load(configObj.Slack)
 
+	// Setup Logging
+	log.Debugf("Setting up logging")
 	err = withLogs(env, configObj, region)
 	if err != nil {
 		return nil, err
 	}
+
+	log.Debugf("Setting up databases")
 	err = withDatabases(env, configObj)
 	if err != nil {
 		return nil, err
 	}
+	log.Debugf("Setting up S3")
 	err = withS3(env, configObj)
 	if err != nil {
 		return nil, err
 	}
 
 	// Setup Local Store
+	log.Debugf("Setting up local store")
 	env.LocalStore = localstore.NewLocalStore()
+
+	// Setup Oauth
+	log.Debugf("Setting up Oauth")
 	err = withOauth(env, configObj)
 	if err != nil {
 		return nil, err
 	}
+	log.Debugf("Setting up queues")
 	err = withQueues(env, configObj, region)
 	if err != nil {
 		return nil, err
 	}
+	log.Debugf("Setting up Dynamo")
 	err = withDynamo(env, configObj, region)
 	if err != nil {
 		return nil, err
 	}
 
+	log.Debugf("Setting up email")
 	err = withEmail(env, configObj)
 	if err != nil {
 		return nil, err
 	}
 
 	baseenv.SetSystemEnvironment(env)
+
+	log.Debugf("Environment fully Loaded")
 
 	return env, nil
 }
