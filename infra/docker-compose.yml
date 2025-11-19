@@ -52,9 +52,3 @@ services:
     working_dir: /home/dynamodblocal
     ports:
       - "${DYNAMODB_PORT:-8000}:8000"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:8000/shell/ > /dev/null || exit 1"]
-      interval: 2s
-      timeout: 5s
-      retries: 10
-      start_period: 5s

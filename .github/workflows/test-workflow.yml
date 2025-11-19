@@ -38,6 +38,16 @@ jobs:
           mkdir -p ./.configs
           cp ./infra/unit_test.json ./.configs/unit_test.json          
           make docker-up-copilot
+          echo "Waiting for DynamoDB to be fully ready..."
+          sleep 5
+          for i in {1..30}; do
+            if AWS_ACCESS_KEY_ID=fake AWS_SECRET_ACCESS_KEY=fake aws dynamodb list-tables --endpoint-url http://localhost:8000 --region us-east-1 2>/dev/null; then
+              echo "DynamoDB is ready!"
+              break
+            fi
+            echo "Waiting for DynamoDB... attempt $i/30"
+            sleep 2
+          done
           make rebuild-unit-test-db
           make docker-down-copilot
       
