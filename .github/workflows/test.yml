@@ -5,7 +5,15 @@ on:
     branches:
       - main
       - development
+    paths:
+      - 'internal/**'
+      - 'cmd/**'
+      - 'go.mod'
   pull_request:
+    paths:
+      - 'internal/**'
+      - 'cmd/**'
+      - 'go.mod'
 
 concurrency:
   group: test-${{ github.event.pull_request.number || github.ref }}

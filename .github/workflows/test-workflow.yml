@@ -41,7 +41,7 @@ jobs:
           AWS_ACCESS_KEY_ID=fake \
           AWS_SECRET_ACCESS_KEY=fake \
           aws dynamodb list-tables \
-            --endpoint-url http://localhost:8000 \
+            --endpoint-url http://127.0.0.1:8000 \
             --region us-east-1
           make rebuild-unit-test-db
           make docker-down-copilot
