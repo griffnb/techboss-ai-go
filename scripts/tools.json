@@ -80,14 +80,14 @@
     {
       "name": "rebuild_unit_test_db",
       "description": "Initializes Or Rebuilds the unit test database.  Use when starting a new project or if there is a schema mismatch in the unit tests.\n\nThis command drops and recreates the unit test database to ensure it matches the current schema.",
-      "inputSchema": {},
+      "inputSchema": { "type": "object", "properties": {}, "required": [] },
       "command": "make rebuild-unit-test-db"
     },
 
     {
       "name": "docker_up_copilot",
       "description": "Starts Docker services using the Copilot configuration.",
-      "inputSchema": {},
+      "inputSchema": { "type": "object", "properties": {}, "required": [] },
       "command": "make docker-up-copilot"
     },
 
