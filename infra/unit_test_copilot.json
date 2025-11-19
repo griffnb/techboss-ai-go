@@ -36,7 +36,7 @@
     "region": "us-east-1",
     "key": "fake",
     "skey": "fake",
-    "endpoint": "http://host.docker.internal:8000",
+    "endpoint": "http://localhost:8000",
     "session_table": "Sessions",
     "session_key": "key",
     "session_data": "data"
