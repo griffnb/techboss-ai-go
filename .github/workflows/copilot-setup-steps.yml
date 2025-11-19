@@ -57,8 +57,9 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           git config --global url."ssh://git@github.com/griffnb/core/".insteadOf "https://github.com/griffnb/core/"
           go mod download
+          go install github.com/griffnb/core/core_gen@latest
       - name: Setup Config
         run: |
           mkdir -p ./.configs
           cp ./infra/unit_test.json ./.configs/unit_test.json          
-          make install-lint & make install-codegen & make install-deadcode & wait
+          make install-lint & make install-deadcode & wait
