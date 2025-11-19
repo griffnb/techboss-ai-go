@@ -90,6 +90,12 @@
       "inputSchema": { "type": "object", "properties": {}, "required": [] },
       "command": "make docker-up-copilot"
     },
+    {
+      "name": "docker_down_copilot",
+      "description": "Stops Docker services using the Copilot configuration.",
+      "inputSchema": { "type": "object", "properties": {}, "required": [] },
+      "command": "make docker-down-copilot"
+    },
 
     {
       "name": "make_object",
