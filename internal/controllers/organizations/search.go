@@ -1,9 +1,9 @@
 package organizations
 
 import (
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/tools"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/router/route_helpers"
+	"github.com/griffnb/core/lib/tools"
 )
 
 func addSearch(parameters *model.Options, query string) {
@@ -13,7 +13,7 @@ func addSearch(parameters *model.Options, query string) {
 		return
 	}
 
-	config := &helpers.SearchConfig{
+	config := &route_helpers.SearchConfig{
 		TableName: TABLE_NAME,
 		DocumentColumns: []string{
 			"name",
@@ -24,5 +24,5 @@ func addSearch(parameters *model.Options, query string) {
 		RankOrder: []string{"name"},
 	}
 
-	helpers.AddGenericSearch(parameters, query, config)
+	route_helpers.AddGenericSearch(parameters, query, config)
 }

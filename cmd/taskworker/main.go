@@ -11,14 +11,15 @@ import (
 
 	"github.com/griffnb/techboss-ai-go/internal/models"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/tools"
-	"github.com/CrowdShield/go-core/lib/workers/puller"
-	"github.com/CrowdShield/go-core/lib/workers/worker"
 	"github.com/coreos/go-systemd/daemon"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/workers/puller"
+	"github.com/griffnb/core/lib/workers/worker"
 )
 
 func main() {
+	tools.SetMaxMemoryUsage(0.80)
 	env := environment.CreateEnvironment()
 	sysConfigObj := environment.GetConfig()
 

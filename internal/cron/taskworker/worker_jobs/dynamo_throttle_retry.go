@@ -1,8 +1,8 @@
 package worker_jobs
 
 import (
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/queue"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/queue"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 )
 

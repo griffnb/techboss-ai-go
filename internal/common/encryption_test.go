@@ -3,7 +3,7 @@ package common_test
 import (
 	"testing"
 
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/common"
 	"github.com/griffnb/techboss-ai-go/internal/common/system_testing"
 	"github.com/griffnb/techboss-ai-go/internal/environment"

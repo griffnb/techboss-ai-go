@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
-	"github.com/CrowdShield/go-core/lib/tools"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/router/request"
+	"github.com/griffnb/core/lib/router/response"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/pkg/errors"
 )
@@ -22,9 +22,9 @@ func uploadURL(_ http.ResponseWriter, req *http.Request) (any, int, error) {
 	url, err := environment.GetS3().GetPreSignedPutURL(environment.GetConfig().S3Config.Buckets["assets"], uploadName, fileType)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[any](err)
+		return response.AdminBadRequestError[any](err)
 	}
-	return helpers.Success(map[string]string{"url": url})
+	return response.Success(map[string]string{"url": url})
 }
 
 func testError(_ http.ResponseWriter, req *http.Request) (any, int, error) {
@@ -34,8 +34,8 @@ func testError(_ http.ResponseWriter, req *http.Request) (any, int, error) {
 }
 
 func hookLog(res http.ResponseWriter, req *http.Request) {
-	rawdata := router.GetJSONPostData(req)
-	params := router.FixParams(req.URL.Query())
+	rawdata := request.GetModelPostData(req)
+	params := request.FixParams(req.URL.Query())
 
 	logData := map[string]interface{}{
 		"post_data": rawdata,

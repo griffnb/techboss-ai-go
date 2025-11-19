@@ -3,8 +3,8 @@ package global_config
 import (
 	"context"
 
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/pkg/errors"
 )
@@ -26,5 +26,5 @@ func GetValueByKey(ctx context.Context, key constants.GlobalConfigKey) (string, 
 	if tools.Empty(configObj) {
 		return "", errors.Errorf("no config found for key %s", key)
 	}
-	return configObj.Value.Get(), nil
+	return configObj.Val.Get(), nil
 }

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/tools"
 )
 
 type Relationship struct {

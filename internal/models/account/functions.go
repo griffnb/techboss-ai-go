@@ -2,18 +2,23 @@ package account
 
 import (
 	"fmt"
-	"strings"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/tools"
-	"github.com/CrowdShield/go-core/lib/types"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
+// GetName Safely gets the name from a join or combined first and last name
+func (this *Account) GetName() string {
+	return fmt.Sprintf("%s %s", this.FirstName.Get(), this.LastName.Get())
+}
+
+// IsInternal returns true if the account is an internal user (test user).
 func (this *Account) IsInternal() bool {
-	return strings.HasSuffix(strings.ToLower(this.Email.Get()), "@atlas.net") || this.TestUserType.Get() > 0
+	return this.TestUserType.Get() > 0
 }
 
 func (this *Account) GetAdminURL() string {

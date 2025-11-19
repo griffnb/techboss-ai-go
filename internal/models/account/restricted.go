@@ -3,35 +3,27 @@ package account
 import (
 	"context"
 
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/model/coremodel"
-	"github.com/CrowdShield/go-core/lib/sanitize"
-	"github.com/CrowdShield/go-core/lib/types"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/model/coremodel"
+	"github.com/griffnb/core/lib/sanitize"
+	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/types"
 )
 
 // FindAllRestrictedJoined returns all joined records with restrictions for the session account
 // TODO: Implement specific access restrictions for this model
-func FindAllRestrictedJoined(ctx context.Context, options *model.Options, sessionAccount coremodel.Model) ([]*AccountJoined, error) {
+func FindAllRestrictedJoined(ctx context.Context, options *model.Options, _ coremodel.Model) ([]*AccountJoined, error) {
 	// Uncomment and adjust the following lines to implement proper restrictions
 	// options.WithCondition("%s = :account_id:", Columns.AccountID.Column())
 	// options.WithParam(":account_id:", sessionAccount.ID())
 	return FindAllJoined(ctx, options)
 }
 
-func FindAllRestricted(ctx context.Context, options *model.Options, sessionAccount coremodel.Model) ([]*Account, error) {
+func FindAllRestricted(ctx context.Context, options *model.Options, _ coremodel.Model) ([]*Account, error) {
 	// Uncomment and adjust the following lines to implement proper restrictions
 	// options.WithCondition("%s = :account_id:", Columns.AccountID.Column())
 	// options.WithParam(":account_id:", sessionAccount.ID())
 	return FindAll(ctx, options)
-}
-
-// CountRestricted returns the count of records with restrictions for the session account
-// TODO: Implement specific access restrictions for this model
-func CountRestricted(ctx context.Context, options *model.Options, sessionAccount coremodel.Model) (int64, error) {
-	// Uncomment and adjust the following lines to implement proper restrictions
-	// options.WithCondition("%s = :account_id:", Columns.AccountID.Column())
-	// options.WithParam(":account_id:", sessionAccount.ID())
-	return FindResultsCount(ctx, options)
 }
 
 // GetRestrictedJoined gets a specific record with joined data and restrictions for the session account
@@ -69,4 +61,18 @@ func NewPublic(data map[string]any, _ coremodel.Model) *Account {
 func UpdatePublic(obj *Account, data map[string]any, _ coremodel.Model) {
 	data = sanitize.SanitizeModelInput(data, obj, &Structure{})
 	obj.MergeData(data)
+}
+
+// MergeSignup Bypasses the filter for signup_properties, we only want to do this on the signup page
+func MergeSignup(obj *Account, data map[string]interface{}, sessionAccount *Account) {
+	signupProperties := data["signup_properties"]
+	password := data["password"]
+	cleanData := sanitize.SanitizeModelInput(data, obj, &Structure{})
+	cleanData["signup_properties"] = signupProperties
+	cleanData["password"] = password
+	obj.MergeData(cleanData)
+
+	if !tools.Empty(sessionAccount) {
+		obj.OrganizationID.Set(sessionAccount.OrganizationID.Get())
+	}
 }

@@ -1,7 +1,7 @@
 package environment
 
 import (
-	"github.com/CrowdShield/go-core/lib/config"
+	"github.com/griffnb/core/lib/config"
 )
 
 const (
@@ -10,10 +10,13 @@ const (
 
 type Config struct {
 	config.DefaultConfig
-	Email      *Email      `json:"email"`
-	Encryption *Encryption `json:"encryption"`
-	AIKeys     *AIKeys     `json:"ai_keys"`
-	Cloudflare *Cloudflare `json:"cloudflare"`
+	InternalAPIKey string        `json:"internal_api_key"`
+	Email          *Email        `json:"email"`
+	Encryption     *Encryption   `json:"encryption"`
+	AIKeys         *AIKeys       `json:"ai_keys"`
+	Cloudflare     *Cloudflare   `json:"cloudflare"`
+	Sendpulse      *Sendpulse    `json:"sendpulse"`
+	Stripe         *StripeConfig `json:"stripe"`
 }
 
 type Cloudflare struct {
@@ -63,4 +66,16 @@ type SES struct {
 	Region string `json:"region"`
 	Key    string `json:"key"`
 	Skey   string `json:"skey"`
+}
+
+type Sendpulse struct {
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	WebhookKey   string `json:"webhook_key"`
+}
+
+type StripeConfig struct {
+	WebhookKey string `json:"webhook_key"`
+	SecretKey  string `json:"secret_key"`
+	PublicKey  string `json:"public_key"`
 }

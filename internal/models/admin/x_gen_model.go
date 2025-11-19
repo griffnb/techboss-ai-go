@@ -6,11 +6,11 @@ import (
 	"context"
 	"sync"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/model/coremodel"
-	"github.com/CrowdShield/go-core/lib/model/fields"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/model/coremodel"
+	"github.com/griffnb/core/lib/model/fields"
+	"github.com/griffnb/core/lib/tools"
 )
 
 var registerOnce sync.Once
@@ -53,6 +53,7 @@ func NewType[T initializable]() T {
 }
 
 type initializable interface {
+	coremodel.Model
 	InitializeWithChangeLogs(*model.InitializeOptions)
 	Load(result map[string]any)
 }
@@ -78,4 +79,10 @@ func (this *Admin) SaveWithContext(ctx context.Context, savingUser coremodel.Mod
 	}
 	this.afterSave(ctx)
 	return nil
+}
+
+func As[T initializable, V initializable](source T) V {
+	target := NewType[V]()
+	target.SetData(source.GetDataCopy())
+	return target
 }

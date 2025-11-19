@@ -5,20 +5,20 @@ package ai_tools
 import (
 	"net/http"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
-	"github.com/CrowdShield/go-core/lib/tools"
-	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/router/request"
+	"github.com/griffnb/core/lib/router/response"
+	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/ai_tool"
 	"github.com/pkg/errors"
 )
 
 func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*ai_tool.AiToolJoined, int, error) {
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -31,11 +31,11 @@ func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*ai_tool.AiToolJoin
 	aiToolObjs, err := ai_tool.FindAllJoined(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[[]*ai_tool.AiToolJoined](err)
+		return response.AdminBadRequestError[[]*ai_tool.AiToolJoined](err)
 
 	}
 
-	return helpers.Success(aiToolObjs)
+	return response.Success(aiToolObjs)
 
 }
 
@@ -45,61 +45,59 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*ai_tool.AiToolJoined, 
 	aiToolObj, err := ai_tool.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*ai_tool.AiToolJoined](err)
+		return response.AdminBadRequestError[*ai_tool.AiToolJoined](err)
 	}
 
-	return helpers.Success(aiToolObj)
+	return response.Success(aiToolObj)
 }
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*ai_tool.AiTool, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	data := request.GetModelPostData(req)
 	aiToolObj := ai_tool.New()
 	aiToolObj.MergeData(data)
 	err := aiToolObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*ai_tool.AiTool](err)
+		return response.AdminBadRequestError[*ai_tool.AiTool](err)
 
 	}
 
-	return helpers.Success(aiToolObj)
+	return response.Success(aiToolObj)
 }
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*ai_tool.AiToolJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	data := request.GetModelPostData(req)
 	id := chi.URLParam(req, "id")
 	aiToolObj, err := ai_tool.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*ai_tool.AiToolJoined](err)
+		return response.AdminBadRequestError[*ai_tool.AiToolJoined](err)
 	}
 
 	if tools.Empty(aiToolObj) {
-		return helpers.AdminBadRequestError[*ai_tool.AiToolJoined](errors.Errorf("Object not found with ID: %s", id))
+		return response.AdminBadRequestError[*ai_tool.AiToolJoined](errors.Errorf("Object not found with ID: %s", id))
 	}
 
 	aiToolObj.MergeData(data)
 	err = aiToolObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*ai_tool.AiToolJoined](err)
+		return response.AdminBadRequestError[*ai_tool.AiToolJoined](err)
 	}
 
-	return helpers.Success(aiToolObj)
+	return response.Success(aiToolObj)
 }
 
 func adminCount(_ http.ResponseWriter, req *http.Request) (int64, int, error) {
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 	ai_tool.AddJoinData(parameters)
 	count, err := ai_tool.FindResultsCount(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[int64](err)
+		return response.AdminBadRequestError[int64](err)
 	}
 
-	return helpers.Success(count)
+	return response.Success(count)
 }

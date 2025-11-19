@@ -9,19 +9,27 @@ import (
 	"strings"
 	"time"
 
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/tools"
 	senv "github.com/griffnb/techboss-ai-go/internal/environment"
 )
 
 func SendSessionCookie(res http.ResponseWriter, cookieKey string, sessionID string) {
-	SendCookies(res, cookieKey, sessionID)
+	SendCookies(res, cookieKey, sessionID, true)
+}
+
+func DeleteSessionCookie(res http.ResponseWriter, cookieKey string) {
+	SendCookies(res, cookieKey, "", true, true)
 }
 
 func SendOrgCookie(res http.ResponseWriter, orgID string) {
-	SendCookies(res, "organization_id", orgID)
+	SendCookies(res, "organization_id", orgID, false)
 }
 
-func SendCookies(res http.ResponseWriter, key, value string) {
+func DeleteOrgCookie(res http.ResponseWriter) {
+	SendCookies(res, "organization_id", "", false, true)
+}
+
+func SendCookies(res http.ResponseWriter, key, value string, httpOnly bool, deleteCookie ...bool) {
 	cookieDomain := senv.GetConfig().Server.Domain
 	secure := senv.GetConfig().Server.Secure
 	var cookieDomainWithDot string
@@ -32,12 +40,19 @@ func SendCookies(res http.ResponseWriter, key, value string) {
 		cookieDomainWithDot = cookieDomain
 	}
 
+	expires := time.Now().Add(30 * 24 * time.Hour)
+	maxAge := 60 * 60 * 24 * 30
+	if len(deleteCookie) > 0 && deleteCookie[0] {
+		expires = time.Now().Add(-time.Hour)
+		maxAge = -1
+	}
+
 	sessionCookie := http.Cookie{
 		Name:     key,
 		Value:    value,
-		MaxAge:   60 * 60 * 24 * 30,
-		HttpOnly: false, // if set to true, the javascript cant access it
-		Expires:  time.Now().Add(30 * 24 * time.Hour),
+		MaxAge:   maxAge,
+		HttpOnly: httpOnly,
+		Expires:  expires,
 		Secure:   secure,
 		Domain:   cookieDomainWithDot,
 		Path:     "/",
@@ -61,7 +76,7 @@ var VALID_COOKIE_CHARS = regexp.MustCompile(`[^a-zA-Z0-9]+`)
 
 func SignCookie(value, secret string) string {
 	sig := hmac.New(sha256.New, []byte(secret))
-	sig.Write([]byte(value))
+	_, _ = sig.Write([]byte(value))
 
 	encoded := b64.StdEncoding.EncodeToString(sig.Sum(nil))
 

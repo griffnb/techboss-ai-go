@@ -1,0 +1,10 @@
+package agent
+
+type AgentType int
+
+const (
+	AGENT_TYPE_DEFAULT AgentType = iota
+	AGENT_TYPE_CHATKIT
+	AGENT_TYPE_OPENAI_ASSISTANT
+	AGENT_TYPE_SINGLE_SHOT_FORM
+)

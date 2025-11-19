@@ -1,10 +1,10 @@
 module github.com/griffnb/techboss-ai-go
 
-go 1.23.0
+go 1.25.1
 
 replace github.com/shopspring/decimal v1.3.1 => github.com/griffnb/decimal v1.0.2
 
-//replace github.com/CrowdShield/go-core/lib v0.0.23 => /Users/griffnb/projects/Crowdshield/go-core/lib
+//replace github.com/griffnb/core/lib v0.0.1 => /Users/griffnb/projects/core/lib
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.36.5
@@ -13,12 +13,17 @@ require (
 	github.com/go-chi/chi/v5 v5.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/shopspring/decimal v1.4.0 // indirect
-	golang.org/x/crypto v0.39.0 // indirect
-	golang.org/x/oauth2 v0.30.0 // indirect
+	github.com/shopspring/decimal v1.4.0
+	golang.org/x/crypto v0.42.0
+	golang.org/x/oauth2 v0.31.0
 )
 
-require github.com/CrowdShield/go-core/lib v0.0.30
+require (
+	github.com/griffnb/core/lib v0.0.1
+	github.com/openai/openai-go/v3 v3.2.0
+	github.com/slack-go/slack v0.16.0
+	github.com/stripe/stripe-go/v83 v83.2.1
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -64,10 +69,14 @@ require (
 	github.com/pquerna/cachecontrol v0.2.0 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/serialx/hashring v0.0.0-20200727003509-22c0c7ab6b1b // indirect
-	github.com/slack-go/slack v0.16.0 // indirect
-	golang.org/x/sync v0.15.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.26.0 // indirect
+	github.com/tidwall/gjson v1.14.4 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/sjson v1.2.5 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/sys v0.36.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
+	golang.org/x/time v0.13.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 )

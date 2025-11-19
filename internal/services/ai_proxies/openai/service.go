@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/CrowdShield/go-core/lib/log"
+	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/pkg/errors"
 )

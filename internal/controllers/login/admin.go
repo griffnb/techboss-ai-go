@@ -1,71 +1,73 @@
 package login
 
 import (
-	"encoding/json"
 	"net/http"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/session"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/go-chi/chi/v5"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/router/response"
+	"github.com/griffnb/core/lib/router/route_helpers"
+	"github.com/griffnb/core/lib/session"
+	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
+	"github.com/griffnb/techboss-ai-go/internal/models/account"
 	"github.com/griffnb/techboss-ai-go/internal/models/admin"
 )
 
-// This is for loging in on the frontend with a token
-func adminTokenLogin(res http.ResponseWriter, req *http.Request) {
-	profile, token, err := helpers.HandleTokenLogin(environment.GetOauth(), res, req)
+func adminLogInAs(res http.ResponseWriter, req *http.Request) {
+	id := chi.URLParam(req, "id")
+
+	accountObj, err := account.Get(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		helpers.ErrorWrapper(res, req, err.Error(), 400)
+		response.ErrorWrapper(res, req, err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	userSession := session.New(tools.ParseStringI(req.Context().Value("ip"))).WithUser(accountObj)
+	err = userSession.Save()
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		response.ErrorWrapper(res, req, err.Error(), http.StatusBadRequest)
+	}
+
+	SendSessionCookie(res, environment.GetConfig().Server.SessionKey, userSession.Key)
+	SendOrgCookie(res, accountObj.OrganizationID.Get().String())
+
+	response.JSONDataResponseWrapper(res, req, &TokenResponse{
+		Token: userSession.Key,
+	})
+}
+
+// This is for loging in on the frontend with a token
+func adminTokenLogin(res http.ResponseWriter, req *http.Request) (*TokenResponse, int, error) {
+	profile, token, err := route_helpers.HandleTokenLogin(environment.GetOauth(), res, req)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.AdminBadRequestError[*TokenResponse](err)
 	}
 
 	adminObj, err := admin.GetByEmail(req.Context(), profile.Email)
 	// Query error occured
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		helpers.ErrorWrapper(res, req, err.Error(), 400)
-		return
+		return response.AdminBadRequestError[*TokenResponse](err)
 	}
 
 	// create a session and set its value as the same as the token
 	userSession := session.New(tools.ParseStringI(req.Context().Value("ip"))).WithUser(adminObj)
-	userSession.Key = helpers.CreateAdminKey(token)
+	userSession.Key = helpers.CreateCustomAdminKey(token)
 	err = userSession.Save()
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		helpers.ErrorWrapper(res, req, err.Error(), 400)
-		return
+		return response.AdminBadRequestError[*TokenResponse](err)
 	}
 
 	SendSessionCookie(res, environment.GetConfig().Server.AdminSessionKey, userSession.Key)
-	successResponse := map[string]interface{}{
-		"token": userSession.Key,
-	}
-	helpers.JSONDataResponseWrapper(res, req, successResponse)
-}
 
-func logout(res http.ResponseWriter, req *http.Request) {
-	data := make(map[string]any)
-	err := json.NewDecoder(req.Body).Decode(&data)
-	if err != nil {
-		log.ErrorContext(err, req.Context())
-		helpers.ErrorWrapper(res, req, err.Error(), 400)
-		return
-	}
-
-	if data["token"] != nil {
-		userSession := session.Load(tools.ParseStringI(data["token"]))
-
-		if !tools.Empty(userSession) {
-			err := userSession.Invalidate()
-			if err != nil {
-				log.ErrorContext(err, req.Context())
-			}
-		}
-	}
-
-	successResponse := map[string]any{}
-	helpers.JSONDataResponseWrapper(res, req, successResponse)
+	return response.Success(&TokenResponse{
+		Token: userSession.Key,
+	})
 }

@@ -1,6 +1,6 @@
 package migrations
 
-import "github.com/CrowdShield/go-core/lib/model"
+import "github.com/griffnb/core/lib/model"
 
 func init() {
 	model.AddMigration(&model.Migration{

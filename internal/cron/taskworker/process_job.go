@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/CrowdShield/go-core/lib/queue"
+	"github.com/griffnb/core/lib/queue"
 	"github.com/griffnb/techboss-ai-go/internal/cron/taskworker/worker_jobs"
 	dynamoqueue "github.com/griffnb/techboss-ai-go/internal/services/dynamo_queue"
 )

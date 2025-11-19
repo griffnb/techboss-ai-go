@@ -4,13 +4,13 @@ import (
 	"context"
 	"strings"
 
-	env "github.com/CrowdShield/go-core/lib/environment"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	env "github.com/griffnb/core/lib/environment"
 	senv "github.com/griffnb/techboss-ai-go/internal/environment"
 
-	"github.com/CrowdShield/go-core/lib/log"
+	"github.com/griffnb/core/lib/log"
 	"github.com/pkg/errors"
 )
 

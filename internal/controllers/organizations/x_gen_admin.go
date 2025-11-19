@@ -5,20 +5,20 @@ package organizations
 import (
 	"net/http"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
-	"github.com/CrowdShield/go-core/lib/tools"
-	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/router/request"
+	"github.com/griffnb/core/lib/router/response"
+	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"
 	"github.com/pkg/errors"
 )
 
 func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*organization.OrganizationJoined, int, error) {
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -31,11 +31,11 @@ func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*organization.Organ
 	organizationObjs, err := organization.FindAllJoined(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[[]*organization.OrganizationJoined](err)
+		return response.AdminBadRequestError[[]*organization.OrganizationJoined](err)
 
 	}
 
-	return helpers.Success(organizationObjs)
+	return response.Success(organizationObjs)
 
 }
 
@@ -45,61 +45,59 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*organization.Organizat
 	organizationObj, err := organization.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*organization.OrganizationJoined](err)
+		return response.AdminBadRequestError[*organization.OrganizationJoined](err)
 	}
 
-	return helpers.Success(organizationObj)
+	return response.Success(organizationObj)
 }
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*organization.Organization, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	data := request.GetModelPostData(req)
 	organizationObj := organization.New()
 	organizationObj.MergeData(data)
 	err := organizationObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*organization.Organization](err)
+		return response.AdminBadRequestError[*organization.Organization](err)
 
 	}
 
-	return helpers.Success(organizationObj)
+	return response.Success(organizationObj)
 }
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*organization.OrganizationJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	data := request.GetModelPostData(req)
 	id := chi.URLParam(req, "id")
 	organizationObj, err := organization.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*organization.OrganizationJoined](err)
+		return response.AdminBadRequestError[*organization.OrganizationJoined](err)
 	}
 
 	if tools.Empty(organizationObj) {
-		return helpers.AdminBadRequestError[*organization.OrganizationJoined](errors.Errorf("Object not found with ID: %s", id))
+		return response.AdminBadRequestError[*organization.OrganizationJoined](errors.Errorf("Object not found with ID: %s", id))
 	}
 
 	organizationObj.MergeData(data)
 	err = organizationObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*organization.OrganizationJoined](err)
+		return response.AdminBadRequestError[*organization.OrganizationJoined](err)
 	}
 
-	return helpers.Success(organizationObj)
+	return response.Success(organizationObj)
 }
 
 func adminCount(_ http.ResponseWriter, req *http.Request) (int64, int, error) {
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 	organization.AddJoinData(parameters)
 	count, err := organization.FindResultsCount(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[int64](err)
+		return response.AdminBadRequestError[int64](err)
 	}
 
-	return helpers.Success(count)
+	return response.Success(count)
 }

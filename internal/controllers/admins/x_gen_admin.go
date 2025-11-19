@@ -5,20 +5,20 @@ package admins
 import (
 	"net/http"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
-	"github.com/CrowdShield/go-core/lib/tools"
-	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/router/request"
+	"github.com/griffnb/core/lib/router/response"
+	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/admin"
 	"github.com/pkg/errors"
 )
 
 func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*admin.AdminJoined, int, error) {
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -31,11 +31,11 @@ func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*admin.AdminJoined,
 	adminObjs, err := admin.FindAllJoined(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[[]*admin.AdminJoined](err)
+		return response.AdminBadRequestError[[]*admin.AdminJoined](err)
 
 	}
 
-	return helpers.Success(adminObjs)
+	return response.Success(adminObjs)
 
 }
 
@@ -45,61 +45,59 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*admin.AdminJoined, int
 	adminObj, err := admin.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*admin.AdminJoined](err)
+		return response.AdminBadRequestError[*admin.AdminJoined](err)
 	}
 
-	return helpers.Success(adminObj)
+	return response.Success(adminObj)
 }
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*admin.Admin, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	data := request.GetModelPostData(req)
 	adminObj := admin.New()
 	adminObj.MergeData(data)
 	err := adminObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*admin.Admin](err)
+		return response.AdminBadRequestError[*admin.Admin](err)
 
 	}
 
-	return helpers.Success(adminObj)
+	return response.Success(adminObj)
 }
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*admin.AdminJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	data := request.GetModelPostData(req)
 	id := chi.URLParam(req, "id")
 	adminObj, err := admin.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*admin.AdminJoined](err)
+		return response.AdminBadRequestError[*admin.AdminJoined](err)
 	}
 
 	if tools.Empty(adminObj) {
-		return helpers.AdminBadRequestError[*admin.AdminJoined](errors.Errorf("Object not found with ID: %s", id))
+		return response.AdminBadRequestError[*admin.AdminJoined](errors.Errorf("Object not found with ID: %s", id))
 	}
 
 	adminObj.MergeData(data)
 	err = adminObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*admin.AdminJoined](err)
+		return response.AdminBadRequestError[*admin.AdminJoined](err)
 	}
 
-	return helpers.Success(adminObj)
+	return response.Success(adminObj)
 }
 
 func adminCount(_ http.ResponseWriter, req *http.Request) (int64, int, error) {
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 	admin.AddJoinData(parameters)
 	count, err := admin.FindResultsCount(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[int64](err)
+		return response.AdminBadRequestError[int64](err)
 	}
 
-	return helpers.Success(count)
+	return response.Success(count)
 }

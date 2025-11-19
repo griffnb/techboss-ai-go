@@ -11,11 +11,11 @@ import (
 	"github.com/coreos/go-systemd/daemon"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
-	"github.com/CrowdShield/go-core/lib/tools"
-	"github.com/CrowdShield/go-core/lib/workers/puller"
-	"github.com/CrowdShield/go-core/lib/workers/worker"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/router"
+	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/workers/puller"
+	"github.com/griffnb/core/lib/workers/worker"
 	"github.com/griffnb/techboss-ai-go/internal/controllers"
 	"github.com/griffnb/techboss-ai-go/internal/cron/taskmaster"
 	"github.com/griffnb/techboss-ai-go/internal/cron/taskworker"
@@ -25,6 +25,7 @@ import (
 )
 
 func main() {
+	tools.SetMaxMemoryUsage(0.80)
 	env := environment.CreateEnvironment()
 	sysConfigObj := environment.GetConfig()
 
@@ -47,7 +48,6 @@ func main() {
 	port := sysConfigObj.Server.Port
 
 	httpRouter := router.Setup(port, sysConfigObj.Server.SessionKey, sysConfigObj.Server.Cors)
-	httpRouter.Router.Use(middleware.Recoverer)
 	httpRouter.Router.Use(middleware.NoCache)
 
 	httpRouter.SetupBasics()

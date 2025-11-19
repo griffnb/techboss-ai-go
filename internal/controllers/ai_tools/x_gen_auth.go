@@ -5,22 +5,21 @@ package ai_tools
 import (
 	"net/http"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
-	"github.com/CrowdShield/go-core/lib/tools"
-	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/router/request"
+	"github.com/griffnb/core/lib/router/response"
+	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/ai_tool"
 )
 
 func authIndex(_ http.ResponseWriter, req *http.Request) ([]*ai_tool.AiToolJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
 
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -33,25 +32,24 @@ func authIndex(_ http.ResponseWriter, req *http.Request) ([]*ai_tool.AiToolJoine
 	aiToolObjs, err := ai_tool.FindAllRestrictedJoined(req.Context(), parameters, user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[[]*ai_tool.AiToolJoined]()
+		return response.PublicBadRequestError[[]*ai_tool.AiToolJoined]()
 
 	}
 
-	return helpers.Success(aiToolObjs)
+	return response.Success(aiToolObjs)
 }
 
 func authGet(_ http.ResponseWriter, req *http.Request) (*ai_tool.AiToolJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
 
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
 	aiToolObj, err := ai_tool.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*ai_tool.AiToolJoined]()
+		return response.PublicBadRequestError[*ai_tool.AiToolJoined]()
 
 	}
 
-	return helpers.Success(aiToolObj)
+	return response.Success(aiToolObj)
 }

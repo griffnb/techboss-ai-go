@@ -5,20 +5,20 @@ package accounts
 import (
 	"net/http"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
-	"github.com/CrowdShield/go-core/lib/tools"
-	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/router/request"
+	"github.com/griffnb/core/lib/router/response"
+	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 	"github.com/pkg/errors"
 )
 
 func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*account.AccountJoined, int, error) {
 
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 
 	if tools.Empty(parameters.Limit) {
 		parameters.Limit = constants.SYSTEM_LIMIT
@@ -31,11 +31,11 @@ func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*account.AccountJoi
 	accountObjs, err := account.FindAllJoined(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[[]*account.AccountJoined](err)
+		return response.AdminBadRequestError[[]*account.AccountJoined](err)
 
 	}
 
-	return helpers.Success(accountObjs)
+	return response.Success(accountObjs)
 
 }
 
@@ -45,61 +45,59 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined,
 	accountObj, err := account.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*account.AccountJoined](err)
+		return response.AdminBadRequestError[*account.AccountJoined](err)
 	}
 
-	return helpers.Success(accountObj)
+	return response.Success(accountObj)
 }
 
 func adminCreate(_ http.ResponseWriter, req *http.Request) (*account.Account, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	data := request.GetModelPostData(req)
 	accountObj := account.New()
 	accountObj.MergeData(data)
 	err := accountObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*account.Account](err)
+		return response.AdminBadRequestError[*account.Account](err)
 
 	}
 
-	return helpers.Success(accountObj)
+	return response.Success(accountObj)
 }
 
 func adminUpdate(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	userSession := request.GetReqSession(req)
+	data := request.GetModelPostData(req)
 	id := chi.URLParam(req, "id")
 	accountObj, err := account.GetJoined(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*account.AccountJoined](err)
+		return response.AdminBadRequestError[*account.AccountJoined](err)
 	}
 
 	if tools.Empty(accountObj) {
-		return helpers.AdminBadRequestError[*account.AccountJoined](errors.Errorf("Object not found with ID: %s", id))
+		return response.AdminBadRequestError[*account.AccountJoined](errors.Errorf("Object not found with ID: %s", id))
 	}
 
 	accountObj.MergeData(data)
 	err = accountObj.Save(userSession.User)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[*account.AccountJoined](err)
+		return response.AdminBadRequestError[*account.AccountJoined](err)
 	}
 
-	return helpers.Success(accountObj)
+	return response.Success(accountObj)
 }
 
 func adminCount(_ http.ResponseWriter, req *http.Request) (int64, int, error) {
-	parameters := router.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
+	parameters := request.BuildIndexParams(req.Context(), req.URL.Query(), TABLE_NAME)
 	account.AddJoinData(parameters)
 	count, err := account.FindResultsCount(req.Context(), parameters)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.AdminBadRequestError[int64](err)
+		return response.AdminBadRequestError[int64](err)
 	}
 
-	return helpers.Success(count)
+	return response.Success(count)
 }

@@ -3,9 +3,13 @@
 package admin
 
 import (
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/model/fields"
+	"database/sql/driver"
+	"encoding/json"
+
 	aws_types "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/model/fields"
+	"github.com/pkg/errors"
 )
 
 // UnmarshalJSON interface
@@ -40,4 +44,26 @@ func (this *Admin) UnmarshalDynamoDBAttributeValue(av aws_types.AttributeValue) 
 	}
 
 	return this.BaseModel.UnmarshalDynamoDBAttributeValue(av)
+}
+
+func (r *Admin) Scan(src any) error {
+	switch v := src.(type) {
+	case nil:
+		*r = Admin{}
+		return nil
+	case []byte:
+		return errors.WithStack(json.Unmarshal(v, r))
+	case string:
+		return errors.WithStack(json.Unmarshal([]byte(v), r))
+	default:
+		return errors.Errorf("Admin.Scan: unsupported type %T", src)
+	}
+}
+
+func (r *Admin) Value() (driver.Value, error) {
+	b, err := json.Marshal(r)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return string(b), nil // or b
 }

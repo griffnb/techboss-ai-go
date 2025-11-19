@@ -11,11 +11,13 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/models"
 	"github.com/robfig/cron/v3"
 
-	"github.com/CrowdShield/go-core/lib/log"
 	"github.com/coreos/go-systemd/daemon"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/tools"
 )
 
 func main() {
+	tools.SetMaxMemoryUsage(0.80)
 	environment.CreateEnvironment()
 
 	var crons *cron.Cron

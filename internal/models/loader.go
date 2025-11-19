@@ -3,17 +3,23 @@ package models
 import (
 	"sync"
 
-	"github.com/CrowdShield/go-core/lib/model"
+	"github.com/griffnb/core/lib/model"
 	"github.com/griffnb/techboss-ai-go/internal/cron/taskworker/delay_queue"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 	"github.com/griffnb/techboss-ai-go/internal/models/admin"
+	"github.com/griffnb/techboss-ai-go/internal/models/agent"
 	"github.com/griffnb/techboss-ai-go/internal/models/ai_tool"
+	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
+	"github.com/griffnb/techboss-ai-go/internal/models/category"
 	"github.com/griffnb/techboss-ai-go/internal/models/change_log"
 	"github.com/griffnb/techboss-ai-go/internal/models/global_config"
 	"github.com/griffnb/techboss-ai-go/internal/models/lead"
 	"github.com/griffnb/techboss-ai-go/internal/models/migrations"
+	"github.com/griffnb/techboss-ai-go/internal/models/object_tag"
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"
+	"github.com/griffnb/techboss-ai-go/internal/models/subscription"
+	"github.com/griffnb/techboss-ai-go/internal/models/tag"
 
 	"github.com/pkg/errors"
 )
@@ -39,34 +45,26 @@ func getModelsLoaded() bool {
 func LoadModels() (err error) {
 	defaultClient := environment.GetDBClient(environment.CLIENT_DEFAULT)
 
-	err = defaultClient.AddTableToProperties(global_config.TABLE, &global_config.Structure{})
-	if err != nil {
-		return err
+	models := map[string]any{
+		account.TABLE:       &account.Structure{},
+		admin.TABLE:         &admin.Structure{},
+		agent.TABLE:         &agent.Structure{},
+		ai_tool.TABLE:       &ai_tool.Structure{},
+		billing_plan.TABLE:  &billing_plan.Structure{},
+		category.TABLE:      &category.Structure{},
+		lead.TABLE:          &lead.Structure{},
+		subscription.TABLE:  &subscription.Structure{},
+		tag.TABLE:           &tag.Structure{},
+		object_tag.TABLE:    &object_tag.Structure{},
+		global_config.TABLE: &global_config.Structure{},
+		organization.TABLE:  &organization.Structure{},
 	}
 
-	err = defaultClient.AddTableToProperties(admin.TABLE, &admin.Structure{})
-	if err != nil {
-		return err
-	}
-
-	err = defaultClient.AddTableToProperties(ai_tool.TABLE, &ai_tool.Structure{})
-	if err != nil {
-		return err
-	}
-
-	err = defaultClient.AddTableToProperties(account.TABLE, &account.Structure{})
-	if err != nil {
-		return err
-	}
-
-	err = defaultClient.AddTableToProperties(lead.TABLE, &lead.Structure{})
-	if err != nil {
-		return err
-	}
-
-	err = defaultClient.AddTableToProperties(organization.TABLE, &organization.Structure{})
-	if err != nil {
-		return err
+	for table, structure := range models {
+		err = defaultClient.AddTableToProperties(table, structure)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -84,7 +84,7 @@ update-deps: ## Update all Go modules
 .PHONY: tidy
 tidy: ## Tidy up Go modules
 	@bash -c '\
-		export GOPRIVATE=github.com/CrowdShield/*; \
+		export GOPRIVATE=github.com/griffnb/core/*; \
 		export GH_TOKEN=$$(gh auth token); \
 		git config --global url."https://$${GH_TOKEN}@github.com/".insteadOf "https://github.com/"; \
 		go mod tidy; \
@@ -109,7 +109,7 @@ test: ## Run tests make test PKG=./internal/services/evidencing RUN='TestName/Su
 .PHONY: install-private
 install-private: ## Install private Go modules
 	@bash -c '\
-		export GOPRIVATE=github.com/CrowdShield/*; \
+		export GOPRIVATE=github.com/griffnb/core/*; \
 		export GH_TOKEN=$$(gh auth token); \
 		go get $(filter-out $@,$(MAKECMDGOALS)); \
 	'
@@ -121,31 +121,31 @@ install-private: ## Install private Go modules
 .PHONY: code-gen
 code-gen: ## Create a new object (Usage: make create-object WORD=objectname)
 	@bash -c '\
-		export GOPRIVATE=github.com/CrowdShield/*; \
+		export GOPRIVATE=github.com/griffnb/core/*; \
 		export GH_TOKEN=$$(gh auth token); \
-		go install github.com/CrowdShield/go-core/core_generate@latest; \
+		go install github.com/griffnb/core/core_gen@latest; \
 		./scripts/code_gen.sh; \
 	'
 
 .PHONY: code-gen-object
 code-gen-object: ## Create a new object (Usage: make code-gen-object model_name=object_name model_plural=object_plural)
 	@bash -c '\
-		export GOPRIVATE=github.com/CrowdShield/*; \
+		export GOPRIVATE=github.com/griffnb/core/*; \
 		export GH_TOKEN=$$(gh auth token); \
-		go install github.com/CrowdShield/go-core/core_generate@latest; \
+		go install github.com/griffnb/core/core_gen@latest; \
 		PACKAGE_NAME=$$(grep "^module " go.mod | sed "s/module //"); \
-		core_generate object "$(model_name)" "-plural=$(model_plural)" "-modelPackage=$${PACKAGE_NAME}"; \
+		core_gen object "$(model_name)" "-plural=$(model_plural)" "-modelPackage=$${PACKAGE_NAME}"; \
 		go generate "./internal/models/$(model_name)/$(model_name).go"; \
 		go generate "./internal/controllers/$(model_plural)/setup.go"; \
 	'
 .PHONY: code-gen-public-object
 code-gen-public-object: ## Create a new public object (Usage: make code-gen-object model_name=object_name model_plural=object_plural)
 	@bash -c '\
-		export GOPRIVATE=github.com/CrowdShield/*; \
+		export GOPRIVATE=github.com/griffnb/core/*; \
 		export GH_TOKEN=$$(gh auth token); \
-		go install github.com/CrowdShield/go-core/core_generate@latest; \
+		go install github.com/griffnb/core/core_gen@latest; \
 		PACKAGE_NAME=$$(grep "^module " go.mod | sed "s/module //"); \
-		core_generate object "$(model_name)" "-plural=$(model_plural)" "-modelPackage=$${PACKAGE_NAME}" "-public=true"; \
+		core_gen object "$(model_name)" "-plural=$(model_plural)" "-modelPackage=$${PACKAGE_NAME}" "-public=true"; \
 		go generate "./internal/models/$(model_name)/$(model_name).go"; \
 		go generate "./internal/controllers/$(model_plural)/setup.go"; \
 	'
@@ -153,9 +153,9 @@ code-gen-public-object: ## Create a new public object (Usage: make code-gen-obje
 .PHONY: generate
 generate: ## Installs latest, then runs code generation
 	@bash -c '\
-		export GOPRIVATE=github.com/CrowdShield/*; \
+		export GOPRIVATE=github.com/griffnb/core/*; \
 		export GH_TOKEN=$$(gh auth token); \
-		go install github.com/CrowdShield/go-core/core_generate@latest; \
+		go install github.com/griffnb/core/core_gen@latest; \
 		files=$$(find . -name "*.go" -exec grep -l "//go:generate" {} \;); \
 		echo "$$files" | xargs -n1 -P5 go generate; \
 	'
@@ -172,15 +172,25 @@ generate-only: ## Run code generation only without installing
 .PHONY: install-codegen
 install-codegen: ## Install latest code generation from go-core
 	@bash -c '\
-		export GOPRIVATE=github.com/CrowdShield/*; \
+		export GOPRIVATE=github.com/griffnb/core/*; \
 		export GH_TOKEN=$$(gh auth token); \
-		go install github.com/CrowdShield/go-core/core_generate@latest; \
+		go install github.com/griffnb/core/core_gen@latest; \
 	'
 
 .PHONY: ts-gen
 ts-gen: ## Run TypeScript operations on a table (Usage: make ts-gen TABLE=tablename)
-	@if [ -z "$(TABLE)" ]; then echo "TABLE parameter is required. Usage: make ts TABLE=tablename"; exit 1; fi
 	SYS_ENV=$(SYS_ENV) CONFIG_FILE=$(CONFIG_FILE) REGION=$(REGION) go run ./cmd/ts --table="$(TABLE)"
+
+
+.PHONY: config-schema
+config-schema: ## Generate JSON schema for config files
+	go run internal/environment/schema/generate-config-schema.go > internal/environment/schema/config-schema.json
+	@echo "Generated config-schema.json"
+
+.PHONY: rebuild-unit-test-db
+rebuild-unit-test-db: ## Rebuild the unit test database
+	SYS_ENV="unit_test" CONFIG_FILE="$$(pwd)/.configs/unit_test.json" REGION="us-east-1" go run cmd/scripts/rebuild_unit_database.go
+
 
 
 .PHONY: runner
@@ -218,6 +228,14 @@ stripe-install: ## Install Stripe CLI
 	stripe login
 
 
+.PHONY: pr
+pr:
+	@if [ -z "$(title)" ]; then \
+		echo "Usage: make pr title='Fixes this bug'"; \
+		exit 1; \
+	fi; \
+	current_branch=$$(git rev-parse --abbrev-ref HEAD); \
+	gh pr create --base development --head $$current_branch --title "$(title)" --body "$(title)"
 
 
 .PHONY: hotfix
@@ -248,3 +266,11 @@ install-deadcode: ## Install deadcode
 .PHONY: deadcode
 deadcode: ## Run deadcode to find unused code
 	deadcode ./cmd/server
+
+
+.PHONY: opencode
+opencode: ## Open the current directory in VSCode
+	@set -a; \
+	. .env; \
+	set +a; \
+	opencode

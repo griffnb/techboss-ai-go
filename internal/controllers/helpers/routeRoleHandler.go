@@ -5,14 +5,15 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
-	"github.com/CrowdShield/go-core/lib/session"
-	"github.com/CrowdShield/go-core/lib/tools"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/router"
+	"github.com/griffnb/core/lib/router/response"
+	"github.com/griffnb/core/lib/session"
+	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
-	"github.com/griffnb/techboss-ai-go/internal/models/admin"
+
 	"github.com/pkg/errors"
 )
 
@@ -20,74 +21,36 @@ import (
 type RoleHandlerMap map[constants.Role]http.HandlerFunc
 
 // RoleHandler takes a map of roles to handler functions and returns a http.HandlerFunc
-// TODO this is weird with the admin stuff, extract it out to be smarter
 func RoleHandler(roleHandlers RoleHandlerMap) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		handleAdminRoute(res, req, roleHandlers)
+		if strings.HasPrefix(req.URL.Path, "/admin/") || strings.HasPrefix(req.URL.Path, "admin/") {
+			handleAdminRoute(res, req, roleHandlers)
+			return
+		}
+		handlePublicRoute(res, req, roleHandlers)
 	}
-}
-
-// GetAdminSession Gets the admin session from the request checking header and cookie, priority is cookie
-func GetAdminSession(req *http.Request) *session.Session {
-	key := environment.GetConfig().Server.AdminSessionKey
-
-	cookieSessionKey := ""
-	cookie, _ := req.Cookie(key)
-	if !tools.Empty(cookie) {
-		cookieSessionKey = cookie.Value
-	}
-
-	headerSessionKey := req.Header.Get(key)
-
-	var sessionKey string
-	if !tools.Empty(cookieSessionKey) {
-		sessionKey = cookieSessionKey
-	} else if !tools.Empty(headerSessionKey) {
-		sessionKey = headerSessionKey
-	} else {
-		return nil
-	}
-
-	if !AdminKeyValid(sessionKey) {
-		return nil
-	}
-
-	return session.Load(sessionKey)
-}
-
-func AdminKeyValid(sessionKey string) bool {
-	return strings.HasPrefix(sessionKey, "admn:")
-}
-
-func CreateAdminKey(sessionKey string) string {
-	return "admn:" + sessionKey
 }
 
 func handleAdminRoute(res http.ResponseWriter, req *http.Request, roleHandlers RoleHandlerMap) {
-	adminSession := GetAdminSession(req)
+	adminSession, err := getAdminSession(req)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		response.ErrorWrapper(res, req, err.Error(), http.StatusUnauthorized)
+		return
+	}
 
 	if tools.Empty(adminSession) {
-		if handler, ok := roleHandlers[constants.ROLE_UNAUTHORIZED]; ok {
-			handler(res, req)
-			return
-		}
-		ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
+		response.ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	// sets to the session context the admin session
 	ctx := context.WithValue(req.Context(), router.SessionContextKey("session"), adminSession)
 
-	admn, err := admin.Get(req.Context(), adminSession.User.ID())
+	admn, err := loadAdmin(req, adminSession)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	if tools.Empty(admn) {
-		log.ErrorContext(errors.Errorf("admin not found %s", adminSession.User.ID()), req.Context())
-		ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
+		response.ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -119,8 +82,69 @@ func handleAdminRoute(res http.ResponseWriter, req *http.Request, roleHandlers R
 	}
 }
 
-func GetReqSession(req *http.Request) *session.Session {
-	return req.Context().Value(router.SessionContextKey("session")).(*session.Session)
+func handlePublicRoute(res http.ResponseWriter, req *http.Request, roleHandlers RoleHandlerMap) {
+	userSession, err := getAccountSession(req)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		response.ErrorWrapper(res, req, "internal error", http.StatusBadRequest)
+		return
+	}
+
+	if tools.Empty(userSession) {
+		if handler, ok := roleHandlers[constants.ROLE_UNAUTHORIZED]; ok {
+			handler(res, req)
+			return
+		}
+		response.ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// sets to the session context the user session
+	ctx := context.WithValue(req.Context(), router.SessionContextKey("session"), userSession)
+	req = req.WithContext(ctx)
+
+	// TODO might need to cache this
+	accnt, err := loadAccount(req, userSession)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		response.ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	role := accnt.Role.Get()
+	userSession.LoadedUser = accnt
+	if recorder, ok := res.(*router.ResponseRecorder); ok {
+
+		if HasAdminSession(req) {
+			adminSession := GetAdminSession(req)
+			if !tools.Empty(adminSession) {
+				recorder.Trace.Admin = adminSession.User.GetString("email")
+			}
+		}
+
+		recorder.Trace.AccountID = accnt.ID().String()
+		recorder.Trace.User = accnt
+		recorder.Trace.SessionID = userSession.Key
+
+	}
+
+	// Is there a specific endpoint for my role
+	if handler, ok := roleHandlers[role]; ok {
+		handler(res, req)
+		return
+	}
+
+	// If i dont have a specific one, iterate through the roles to find one im allowed to do
+	for _, possibleRole := range constants.DescOrderedAccountRoles {
+		if possibleRole <= role {
+			if handler, ok := roleHandlers[possibleRole]; ok {
+				handler(res, req)
+				return
+			}
+		}
+	}
+	log.ErrorContext(errors.Errorf("user does not have permission"), req.Context())
+	response.ErrorWrapper(res, req, "Unauthorized", http.StatusUnauthorized)
 }
 
 func IsSuperUpdate(req *http.Request) bool {
@@ -138,30 +162,6 @@ func IsSuperUpdate(req *http.Request) bool {
 	return !accountObj.IsInternal()
 }
 
-// GetAdminSession Gets the admin session from the request checking header and cookie, priority is cookie
 func HasAdminSession(req *http.Request) bool {
-	key := environment.GetConfig().Server.AdminSessionKey
-
-	cookieSessionKey := ""
-	cookie, _ := req.Cookie(key)
-	if !tools.Empty(cookie) {
-		cookieSessionKey = cookie.Value
-	}
-
-	headerSessionKey := req.Header.Get(key)
-
-	var sessionKey string
-	if !tools.Empty(cookieSessionKey) {
-		sessionKey = cookieSessionKey
-	} else if !tools.Empty(headerSessionKey) {
-		sessionKey = headerSessionKey
-	} else {
-		return false
-	}
-
-	if AdminKeyValid(sessionKey) {
-		return true
-	}
-
-	return false
+	return HasCustomAdminSession(req)
 }

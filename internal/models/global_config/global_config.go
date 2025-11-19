@@ -1,11 +1,11 @@
-//go:generate core_generate model GlobalConfig -skip=GetJoined,FindFirstJoined,FindAllJoined -options=base,queries,marshaler
+//go:generate core_generate model GlobalConfig -options=base,queries,marshaler
 package global_config
 
 import (
 	"context"
 
-	"github.com/CrowdShield/go-core/lib/model"
-	"github.com/CrowdShield/go-core/lib/model/fields"
+	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/model/fields"
 	"github.com/griffnb/techboss-ai-go/internal/common"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
@@ -25,13 +25,17 @@ type Structure struct {
 }
 type DBColumns struct {
 	base.Structure
-	Key   *fields.StringConstantField[constants.GlobalConfigKey] `column:"key"   type:"text" default:"" index:"true"`
-	Value *fields.StringField                                    `column:"value" type:"text" default:""`
+	Key *fields.StringConstantField[constants.GlobalConfigKey] `column:"key"   type:"text" default:"" index:"true"`
+	Val *fields.StringField                                    `column:"value" type:"text" default:""`
 }
 
 type GlobalConfig struct {
 	model.BaseModel
 	DBColumns
+}
+
+type GlobalConfigJoined struct {
+	GlobalConfig
 }
 
 func (this *GlobalConfig) beforeSave(ctx context.Context) error {

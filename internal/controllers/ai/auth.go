@@ -3,7 +3,7 @@ package ai
 import (
 	"net/http"
 
-	"github.com/CrowdShield/go-core/lib/log"
+	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/techboss-ai-go/internal/services/ai_proxies/openai"
 )
 

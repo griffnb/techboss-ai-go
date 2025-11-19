@@ -5,76 +5,63 @@ package leads
 import (
 	"net/http"
 
-	"github.com/CrowdShield/go-core/lib/log"
-	"github.com/CrowdShield/go-core/lib/router"
-	"github.com/CrowdShield/go-core/lib/types"
 	"github.com/go-chi/chi/v5"
-	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/router/request"
+	"github.com/griffnb/core/lib/router/response"
+	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/models/lead"
 )
 
 func authGet(_ http.ResponseWriter, req *http.Request) (*lead.LeadJoined, int, error) {
-	userSession := helpers.GetReqSession(req)
 
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
 	leadObj, err := lead.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*lead.LeadJoined]()
+		return response.PublicBadRequestError[*lead.LeadJoined]()
 
 	}
 
-	return helpers.Success(leadObj)
+	return response.Success(leadObj)
 }
 
 func authCreate(_ http.ResponseWriter, req *http.Request) (*lead.Lead, int, error) {
-	if helpers.IsSuperUpdate(req) {
-		return helpers.PublicCustomError[*lead.Lead]("not allowed to update as super user", http.StatusBadRequest)
-	}
 
-	userSession := helpers.GetReqSession(req)
+	user := request.GetReqSession(req).User
 
-	user := userSession.User
-
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	leadObj := lead.NewPublic(data, user)
-	err := leadObj.Save(userSession.User)
+	err := leadObj.Save(user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*lead.Lead]()
+		return response.PublicBadRequestError[*lead.Lead]()
 
 	}
 
-	return helpers.Success(leadObj)
+	return response.Success(leadObj)
 }
 
 func authUpdate(_ http.ResponseWriter, req *http.Request) (*lead.LeadJoined, int, error) {
-	if helpers.IsSuperUpdate(req) {
-		return helpers.PublicCustomError[*lead.LeadJoined]("not allowed to update as super user", http.StatusBadRequest)
-	}
 
-	userSession := helpers.GetReqSession(req)
-
-	user := userSession.User
+	user := request.GetReqSession(req).User
 
 	id := chi.URLParam(req, "id")
-	rawdata := router.GetJSONPostData(req)
-	data := helpers.ConvertPost(rawdata)
+	data := request.GetModelPostData(req)
 	leadObj, err := lead.GetRestrictedJoined(req.Context(), types.UUID(id), user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*lead.LeadJoined]()
+		return response.PublicBadRequestError[*lead.LeadJoined]()
 	}
 
 	lead.UpdatePublic(&leadObj.Lead, data, user)
-	err = leadObj.Save(userSession.User)
+	err = leadObj.Save(user)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError[*lead.LeadJoined]()
+		return response.PublicBadRequestError[*lead.LeadJoined]()
 	}
 
-	return helpers.Success(leadObj)
+	return response.Success(leadObj)
 }

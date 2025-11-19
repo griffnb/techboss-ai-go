@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "code_tools": {
+      "type": "stdio",
+      "command": "./scripts/make_mcp.sh",
+      "args": []
+    }
+  }
+}
