@@ -65,8 +65,8 @@ func TestProxyRequest_MockOpenAI(t *testing.T) {
 			t.Errorf("Expected POST request, got %s", r.Method)
 		}
 
-		if r.URL.Path != "/chat/completions" {
-			t.Errorf("Expected /chat/completions path, got %s", r.URL.Path)
+		if r.URL.Path != "/responses" {
+			t.Errorf("Expected /responses path, got %s", r.URL.Path)
 		}
 
 		authHeader := r.Header.Get("Authorization")

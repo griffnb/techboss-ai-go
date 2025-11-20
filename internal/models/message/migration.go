@@ -34,7 +34,7 @@ func AddMessageTable() {
 				AttributeType: types.ScalarAttributeTypeN,
 			},
 			{
-				AttributeName: aws.String("conversation_key"),
+				AttributeName: aws.String("conversation_id"),
 				AttributeType: types.ScalarAttributeTypeS,
 			},
 			{
@@ -44,10 +44,10 @@ func AddMessageTable() {
 		},
 		GlobalSecondaryIndexes: []types.GlobalSecondaryIndex{
 			{
-				IndexName: aws.String("conversation_key-index"),
+				IndexName: aws.String("conversation_id-index"),
 				KeySchema: []types.KeySchemaElement{
 					{
-						AttributeName: aws.String("conversation_key"),
+						AttributeName: aws.String("conversation_id"),
 						KeyType:       types.KeyTypeHash,
 					},
 					{

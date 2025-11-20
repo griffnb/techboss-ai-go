@@ -16,11 +16,16 @@ func init() {
 }
 
 func TestNew(_ *testing.T) {
-	_ = testmodel.New()
+	obj := testmodel.New()
+	obj.AccountID.Set(tools.GUID())
 }
 
 func TestSave(t *testing.T) {
+	testAccountID := tools.GUID()
+	changedAccountID := tools.GUID()
+	
 	obj := testmodel.New()
+	obj.AccountID.Set(testAccountID)
 
 	err := obj.Save(nil)
 	if err != nil {
@@ -33,8 +38,23 @@ func TestSave(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if objFromDb.ID() != obj.ID() {
+	if objFromDb.AccountID.Get() != testAccountID {
 		t.Fatalf("Didnt Save")
+	}
+
+	obj.AccountID.Set(changedAccountID)
+	err = obj.Save(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	updatedObjFromDb, err := testmodel.Get(context.Background(), obj.ID())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if updatedObjFromDb.AccountID.Get() != changedAccountID {
+		t.Fatalf("UNIT_TEST_FIELD Didnt Update")
 	}
 }
 

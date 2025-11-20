@@ -58,7 +58,7 @@ func (c *Client) WithTimeout(timeout time.Duration) *Client {
 // ProxyRequest proxies a request to OpenAI API without streaming
 func (c *Client) ProxyRequest(ctx context.Context, requestBody []byte, responseWriter http.ResponseWriter) error {
 	// Create the request to OpenAI
-	req, err := http.NewRequestWithContext(ctx, "POST", c.baseURL+"/chat/completions", bytes.NewReader(requestBody))
+	req, err := http.NewRequestWithContext(ctx, "POST", c.baseURL+"/responses", bytes.NewReader(requestBody))
 	if err != nil {
 		return errors.Wrap(err, "failed to create request")
 	}

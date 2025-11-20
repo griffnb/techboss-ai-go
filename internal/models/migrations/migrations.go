@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	env "github.com/griffnb/core/lib/environment"
 	senv "github.com/griffnb/techboss-ai-go/internal/environment"
+	"github.com/griffnb/techboss-ai-go/internal/models/message"
 
 	"github.com/griffnb/core/lib/log"
 	"github.com/pkg/errors"
@@ -17,6 +18,7 @@ import (
 // BuildDynamo Builds the Dynamo Tables
 func BuildDynamo() {
 	_ = createDynamoSession() // Login Sessions
+	message.AddMessageTable()  // Message tables
 }
 
 func createDynamoSession() error {

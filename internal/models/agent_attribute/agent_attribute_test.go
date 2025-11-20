@@ -15,12 +15,20 @@ func init() {
 	system_testing.BuildSystem()
 }
 
-func TestNew(_ *testing.T) {
-	_ = testmodel.New()
+const (
+	UNIT_TEST_FIELD         = "account_id"
+	UNIT_TEST_VALUE         = 12345
+	UNIT_TEST_CHANGED_VALUE = 67890
+)
+
+func TestNew(t *testing.T) {
+	obj := testmodel.New()
+	obj.Set(UNIT_TEST_FIELD, UNIT_TEST_VALUE)
 }
 
 func TestSave(t *testing.T) {
 	obj := testmodel.New()
+	obj.Set(UNIT_TEST_FIELD, UNIT_TEST_VALUE)
 
 	err := obj.Save(nil)
 	if err != nil {
@@ -33,8 +41,23 @@ func TestSave(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if objFromDb.ID() != obj.ID() {
+	if objFromDb.GetInt(UNIT_TEST_FIELD) != UNIT_TEST_VALUE {
 		t.Fatalf("Didnt Save")
+	}
+
+	obj.Set(UNIT_TEST_FIELD, UNIT_TEST_CHANGED_VALUE)
+	err = obj.Save(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	updatedObjFromDb, err := testmodel.Get(context.Background(), obj.ID())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if updatedObjFromDb.GetInt(UNIT_TEST_FIELD) != UNIT_TEST_CHANGED_VALUE {
+		t.Fatalf("UNIT_TEST_FIELD Didnt Update")
 	}
 }
 

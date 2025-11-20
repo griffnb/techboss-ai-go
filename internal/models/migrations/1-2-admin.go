@@ -23,6 +23,14 @@ func init() {
 		ID:    2,
 		Table: admin.TABLE,
 		DataTransform: func() error {
+			// Drop the old unique constraint first
+			err := environment.DB().DB.Insert(`
+			ALTER TABLE admins DROP CONSTRAINT IF EXISTS admins_email_key;
+			`, map[string]interface{}{})
+			if err != nil {
+				return err
+			}
+			// Create the partial unique index that only applies to non-deleted records
 			return environment.DB().DB.Insert(`
 			CREATE UNIQUE INDEX admins_email_unique_idx
 			ON admins (email)
@@ -58,7 +66,7 @@ type AdminV1 struct {
 	base.Structure
 	FirstName  *fields.StringField                      `column:"first_name"  type:"text"     default:""`
 	LastName   *fields.StringField                      `column:"last_name"   type:"text"     default:""`
-	Email      *fields.StringField                      `column:"email"       type:"text"     default:""`
+	Email      *fields.StringField                      `column:"email"       type:"text"     default:""   unique:"true"`
 	ExternalID *fields.StringField                      `column:"external_id" type:"text"     default:""                 index:"true"`
 	Role       *fields.IntConstantField[constants.Role] `column:"role"        type:"smallint" default:"0"`
 	SlackID    *fields.StringField                      `column:"slack_id"    type:"text"     default:""`
