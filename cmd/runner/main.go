@@ -27,7 +27,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// log.Debug("Checking SQS")
+	log.Debug("Checking SQS")
 	// SQS
 	_, err = environment.GetQueue().GetCount("priority1")
 	if err != nil {
@@ -44,14 +44,14 @@ func main() {
 	}
 
 	// S3
-	log.Debug("Checking S3")
-	_, err = env.S3.ListObjects(
-		context.Background(),
-		environment.GetConfig().S3Config.Buckets["assets"],
-		"",
-		1,
-		"",
-	)
+	//log.Debug("Checking S3")
+	//_, err = env.S3.ListObjects(
+	//	context.Background(),
+	//	environment.GetConfig().S3Config.Buckets["assets"],
+	//	"",
+	//	1,
+	//	"",
+	//)
 	//if err != nil {
 	//	log.Error(errors.WithMessage(err, "failed to connect to S3"))
 	//	os.Exit(1)
