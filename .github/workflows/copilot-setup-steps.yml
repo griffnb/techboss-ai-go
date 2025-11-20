@@ -35,6 +35,7 @@ jobs:
             image: amazon/dynamodb-local
             ports:
                 - 8000:8000
+          
 
     # You can define any steps you want, and they will run before the agent starts.
     # If you do not check out your code, Copilot will do this for you.
@@ -58,6 +59,12 @@ jobs:
           git config --global url."ssh://git@github.com/griffnb/core/".insteadOf "https://github.com/griffnb/core/"
           go mod download
           go install github.com/griffnb/core/core_gen@latest
+     
+      - name: Start LocalStack
+        uses: LocalStack/setup-localstack@v0.2.3
+        with:
+          image-tag: 'latest'
+          install-awslocal: 'true'
       - name: Setup Config
         run: |
           mkdir -p ./.configs

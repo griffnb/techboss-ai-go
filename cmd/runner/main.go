@@ -8,13 +8,14 @@ import (
 
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/services/runners"
+	"github.com/pkg/errors"
 
 	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/techboss-ai-go/internal/models"
 )
 
 func main() {
-	environment.CreateEnvironment()
+	env := environment.CreateEnvironment()
 
 	// Validate everything works as expected
 
@@ -26,31 +27,31 @@ func main() {
 		os.Exit(1)
 	}
 
-	//log.Debug("Checking SQS")
+	// log.Debug("Checking SQS")
 	// SQS
-	//_, err = environment.GetQueue().GetCount(environment.)
-	//if err != nil {
-	//	log.Error(errors.WithMessage(err, "failed connect to SQS"))
-	//	os.Exit(1)
-	//}
+	_, err = environment.GetQueue().GetCount("priority1")
+	if err != nil {
+		log.Error(errors.WithMessage(err, "failed connect to SQS"))
+		os.Exit(1)
+	}
 
-	//log.Debug("Checking Dynamo")
-	//// Dynamo
-	//_, err = env.GetSessionStore().SessionGet("a-b-c")
-	//if err != nil {
-	//	log.Error(err)
-	//	os.Exit(1)
-	//}
+	log.Debug("Checking Dynamo")
+	// Dynamo
+	_, err = env.GetSessionStore().SessionGet("a-b-c")
+	if err != nil {
+		log.Error(err)
+		os.Exit(1)
+	}
 
 	// S3
-	//log.Debug("Checking S3")
-	//_, err = env.S3.ListObjects(
-	//	context.Background(),
-	//	environment.GetConfig().S3Config.Buckets["assets"],
-	//	"",
-	//	1,
-	//	"",
-	//)
+	log.Debug("Checking S3")
+	_, err = env.S3.ListObjects(
+		context.Background(),
+		environment.GetConfig().S3Config.Buckets["assets"],
+		"",
+		1,
+		"",
+	)
 	//if err != nil {
 	//	log.Error(errors.WithMessage(err, "failed to connect to S3"))
 	//	os.Exit(1)

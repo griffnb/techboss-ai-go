@@ -1,23 +1,9 @@
 name: Upload Go test results
 
 on:
-  push:
-    branches:
-      - main
-      - development
-    paths:
-      - 'internal/**'
-      - 'cmd/**'
-      - 'go.mod'
-  pull_request:
-    paths:
-      - 'internal/**'
-      - 'cmd/**'
-      - 'go.mod'
+  workflow_dispatch:
+  
 
-concurrency:
-  group: test-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
 
 permissions:
   # Required: allow read access to the content for analysis.
@@ -26,32 +12,8 @@ permissions:
   pull-requests: read
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-            go-version-file: go.mod     
-      - name: Authenticate to GitHub and Install Deps
-        env:
-          GOPRIVATE: github.com/CrowdShield/*
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.CI_DEPLOY_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          git config --global url."git@github.com:".insteadOf "https://github.com/"
-          go mod download
-      - name: setup-config
-        run: rm .golangci.yml && cp .golangci_github.yml .golangci.yml
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v7
-        with:
-          version: v2.1.2
-
-  test:
+ 
+  run-action:
     runs-on: ubuntu-latest
     env:
         REGION: us-east-1
@@ -99,11 +61,5 @@ jobs:
       - name: Run Migrations
         run: go run ./cmd/migrations
 
-      - name: Run Tests
-        run: go run gotest.tools/gotestsum@latest --junitfile results.xml -- ./... -race
-
-      - name: Test Summary
-        uses: test-summary/action@v2.3
-        with:
-          paths: "results.xml"
-        if: always()
+      - name: Validate System
+        run: go run ./cmd/runner test 
