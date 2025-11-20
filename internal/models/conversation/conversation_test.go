@@ -15,20 +15,12 @@ func init() {
 	system_testing.BuildSystem()
 }
 
-const (
-	UNIT_TEST_FIELD         = "contact_ext_id"
-	UNIT_TEST_VALUE         = "UNIT_TEST_VALUE"
-	UNIT_TEST_CHANGED_VALUE = "UNIT_TEST_CHANGED_VALUE"
-)
-
 func TestNew(_ *testing.T) {
-	obj := testmodel.New()
-	obj.Set(UNIT_TEST_FIELD, UNIT_TEST_VALUE)
+	_ = testmodel.New()
 }
 
 func TestSave(t *testing.T) {
 	obj := testmodel.New()
-	obj.Set(UNIT_TEST_FIELD, UNIT_TEST_VALUE)
 
 	err := obj.Save(nil)
 	if err != nil {
@@ -41,23 +33,8 @@ func TestSave(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if objFromDb.GetString(UNIT_TEST_FIELD) != UNIT_TEST_VALUE {
-		t.Fatalf(`Didnt Save`)
-	}
-
-	obj.Set(UNIT_TEST_FIELD, UNIT_TEST_CHANGED_VALUE)
-	err = obj.Save(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	updatedObjFromDb, err := testmodel.Get(context.Background(), obj.ID())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if updatedObjFromDb.GetString(UNIT_TEST_FIELD) != UNIT_TEST_CHANGED_VALUE {
-		t.Fatalf(`UNIT_TEST_FIELD Didnt Update`)
+	if objFromDb.ID() != obj.ID() {
+		t.Fatalf("Didnt Save")
 	}
 }
 

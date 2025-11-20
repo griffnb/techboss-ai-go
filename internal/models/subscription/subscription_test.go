@@ -17,7 +17,7 @@ func init() {
 }
 
 const (
-	UNIT_TEST_FIELD         = "name"
+	UNIT_TEST_FIELD         = "subscription_id"
 	UNIT_TEST_VALUE         = "UNIT_TEST_VALUE"
 	UNIT_TEST_CHANGED_VALUE = "UNIT_TEST_CHANGED_VALUE"
 )
