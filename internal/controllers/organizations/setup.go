@@ -1,4 +1,4 @@
-//go:generate core_generate controller Organization -modelPackage=organization
+//go:generate core_gen controller Organization -modelPackage=organization
 package organizations
 
 import (

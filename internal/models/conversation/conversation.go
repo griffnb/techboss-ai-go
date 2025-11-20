@@ -1,4 +1,4 @@
-//go:generate core_generate model Conversation
+//go:generate core_gen model Conversation
 
 package conversation
 

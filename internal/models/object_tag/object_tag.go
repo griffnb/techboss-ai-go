@@ -1,4 +1,4 @@
-//go:generate core_generate model ObjectTag
+//go:generate core_gen model ObjectTag
 package object_tag
 
 import (

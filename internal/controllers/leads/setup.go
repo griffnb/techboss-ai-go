@@ -1,4 +1,4 @@
-//go:generate core_generate controller Lead -modelPackage=lead -skip=authIndex
+//go:generate core_gen controller Lead -modelPackage=lead -skip=authIndex
 package leads
 
 import (

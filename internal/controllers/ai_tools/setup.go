@@ -1,4 +1,4 @@
-//go:generate core_generate controller AiTool -modelPackage=ai_tool -skip=authCreate,authUpdate
+//go:generate core_gen controller AiTool -modelPackage=ai_tool -skip=authCreate,authUpdate
 package ai_tools
 
 import (

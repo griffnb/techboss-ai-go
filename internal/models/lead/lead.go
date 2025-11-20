@@ -1,4 +1,4 @@
-//go:generate core_generate model Lead
+//go:generate core_gen model Lead
 package lead
 
 import (

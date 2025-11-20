@@ -1,4 +1,4 @@
-//go:generate core_generate model GlobalConfig -options=base,queries,marshaler
+//go:generate core_gen model GlobalConfig -options=base,queries,marshaler
 package global_config
 
 import (

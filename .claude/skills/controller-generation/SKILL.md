@@ -12,7 +12,7 @@ The system uses `core_generate` to automatically create standard CRUD operations
 Add this directive to your `setup.go` file:
 
 ```go
-//go:generate core_generate controller Account -modelPackage=account
+//go:generate core_gen controller Account -modelPackage=account
 ```
 
 **Parameters:**
@@ -56,7 +56,7 @@ Running `go generate` creates two files:
 You can disable specific endpoints using the `-skip` parameter:
 
 ```go
-//go:generate core_generate controller AiTool -modelPackage=ai_tool -skip=authCreate,authUpdate
+//go:generate core_gen controller AiTool -modelPackage=ai_tool -skip=authCreate,authUpdate
 ```
 
 This will generate all endpoints except `authCreate` and `authUpdate`.
@@ -76,12 +76,12 @@ This will generate all endpoints except `authCreate` and `authUpdate`.
 
 **Read-only public endpoint:**
 ```go
-//go:generate core_generate controller Config -modelPackage=config -skip=authCreate,authUpdate
+//go:generate core_gen controller Config -modelPackage=config -skip=authCreate,authUpdate
 ```
 
 **Admin-only resource:**
 ```go
-//go:generate core_generate controller SystemLog -modelPackage=system_log -options=admin
+//go:generate core_gen controller SystemLog -modelPackage=system_log -options=admin
 ```
 
 

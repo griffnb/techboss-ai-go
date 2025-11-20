@@ -1,4 +1,4 @@
-//go:generate core_generate model Admin
+//go:generate core_gen model Admin
 package admin
 
 import (

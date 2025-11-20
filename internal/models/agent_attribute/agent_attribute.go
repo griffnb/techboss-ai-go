@@ -1,4 +1,4 @@
-//go:generate core_generate model AgentAttribute
+//go:generate core_gen model AgentAttribute
 
 package agent_attribute
 

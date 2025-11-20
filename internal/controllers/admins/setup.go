@@ -1,4 +1,4 @@
-//go:generate core_generate controller Admin -modelPackage=admin -options=admin
+//go:generate core_gen controller Admin -modelPackage=admin -options=admin
 
 package admins
 

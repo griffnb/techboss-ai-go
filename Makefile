@@ -282,3 +282,15 @@ opencode: ## Open the current directory in VSCode
 	. .env; \
 	set +a; \
 	opencode
+
+
+.PHONY: sync-core
+sync-core: ## sync custom core packages with shadcn_builder
+	@echo "Syncing custom core packages"
+	@GITHUB_TOKEN=$$(gh auth token) shadcn_builder add -all;
+
+.PHONY: check-sync-core
+check-sync-core: ## sync custom core packages with shadcn_builder
+	@echo "Syncing custom core packages"
+	@GITHUB_TOKEN=$$(gh auth token) shadcn_builder check -all;
+	

@@ -1,4 +1,4 @@
-//go:generate core_generate model Document
+//go:generate core_gen model Document
 package document
 
 import (

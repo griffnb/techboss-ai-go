@@ -1,4 +1,4 @@
-//go:generate core_generate model AiTool
+//go:generate core_gen model AiTool
 package ai_tool
 
 import (

@@ -120,7 +120,7 @@ The system uses `core_generate` to automatically create standard CRUD operations
 
 **Code Generation Command:**
 ```go
-//go:generate core_generate controller Account -modelPackage=account
+//go:generate core_gen controller Account -modelPackage=account
 ```
 
 **Generated Endpoints:**
@@ -137,7 +137,7 @@ The system uses `core_generate` to automatically create standard CRUD operations
 **Skipping Endpoints:**
 You can disable specific endpoints using the `-skip` parameter:
 ```go
-//go:generate core_generate controller AiTool -modelPackage=ai_tool -skip=authCreate,authUpdate
+//go:generate core_gen controller AiTool -modelPackage=ai_tool -skip=authCreate,authUpdate
 ```
 
 This will generate all endpoints except `authCreate` and `authUpdate`.

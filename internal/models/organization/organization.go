@@ -1,4 +1,4 @@
-//go:generate core_generate model Organization
+//go:generate core_gen model Organization
 package organization
 
 import (

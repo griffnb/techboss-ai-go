@@ -1,4 +1,4 @@
-//go:generate core_generate controller Category -modelPackage=category
+//go:generate core_gen controller Category -modelPackage=category
 package categories
 
 import (

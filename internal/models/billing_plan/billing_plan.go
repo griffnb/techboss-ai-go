@@ -1,4 +1,4 @@
-//go:generate core_generate model BillingPlan
+//go:generate core_gen model BillingPlan
 package billing_plan
 
 import (

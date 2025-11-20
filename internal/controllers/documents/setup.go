@@ -1,4 +1,4 @@
-//go:generate core_generate controller Document -modelPackage=document
+//go:generate core_gen controller Document -modelPackage=document
 package documents
 
 import (

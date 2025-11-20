@@ -1,4 +1,4 @@
-//go:generate core_generate model Category
+//go:generate core_gen model Category
 package category
 
 import (

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "registries": {
+    "@core": {
+      "url": "https://raw.githubusercontent.com/griffnb/core/refs/heads/feature/frontend-backend/backend/registry.json",
+      "headers": {
+        "Authorization": "token ${GITHUB_TOKEN}"
+      }
+    }
+  }
+}

@@ -1,4 +1,4 @@
-//go:generate core_generate controller Agent -modelPackage=agent -skip=authCreate,authUpdate
+//go:generate core_gen controller Agent -modelPackage=agent -skip=authCreate,authUpdate
 package agents
 
 import (

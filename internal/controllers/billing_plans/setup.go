@@ -1,4 +1,4 @@
-//go:generate core_generate controller BillingPlan -modelPackage=billing_plan -skip=authCreate,authUpdate,authIndex
+//go:generate core_gen controller BillingPlan -modelPackage=billing_plan -skip=authCreate,authUpdate,authIndex
 package billing_plans
 
 import (

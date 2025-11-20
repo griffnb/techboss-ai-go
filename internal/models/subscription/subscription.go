@@ -1,4 +1,4 @@
-//go:generate core_generate model Subscription
+//go:generate core_gen model Subscription
 package subscription
 
 import (

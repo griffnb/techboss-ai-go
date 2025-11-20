@@ -1,4 +1,4 @@
-//go:generate core_generate model Tag
+//go:generate core_gen model Tag
 package tag
 
 import (

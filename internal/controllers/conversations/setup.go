@@ -1,4 +1,4 @@
-//go:generate core_generate controller Conversation -modelPackage=conversation
+//go:generate core_gen controller Conversation -modelPackage=conversation
 package conversations
 
 import (

@@ -1,4 +1,4 @@
-//go:generate core_generate model Agent
+//go:generate core_gen model Agent
 
 package agent
 

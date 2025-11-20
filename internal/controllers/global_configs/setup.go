@@ -1,4 +1,4 @@
-//go:generate core_generate controller GlobalConfig -modelPackage=global_config -options=admin
+//go:generate core_gen controller GlobalConfig -modelPackage=global_config -options=admin
 
 package global_configs
 
