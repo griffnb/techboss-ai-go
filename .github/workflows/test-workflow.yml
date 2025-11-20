@@ -1,4 +1,4 @@
-name: Upload Go test results
+name: Test Workflow
 
 on:
   workflow_dispatch:
