@@ -17,16 +17,25 @@ func init() {
 }
 
 const (
-	UNIT_TEST_FIELD         = "name"
+	UNIT_TEST_FIELD         = "first_name" // Using first_name which is an actual DB column
 	UNIT_TEST_VALUE         = "UNIT_TEST_VALUE"
 	UNIT_TEST_CHANGED_VALUE = "UNIT_TEST_CHANGED_VALUE"
 )
 
+// TestNew verifies that a new Account instance can be created successfully
+// and that field values can be set on the newly created object.
 func TestNew(_ *testing.T) {
 	obj := account.New()
 	obj.Set(UNIT_TEST_FIELD, UNIT_TEST_VALUE)
 }
 
+// TestSave verifies that an Account can be saved to the database and retrieved correctly.
+// It tests both initial save (INSERT) and update (UPDATE) operations, ensuring that:
+// - A new account can be saved with a field value
+// - The saved account can be retrieved from the database
+// - The retrieved account has the correct field value
+// - The account can be updated with a new field value
+// - The updated account can be retrieved with the new value
 func TestSave(t *testing.T) {
 	obj := account.New()
 	obj.Set(UNIT_TEST_FIELD, UNIT_TEST_VALUE)
@@ -62,6 +71,11 @@ func TestSave(t *testing.T) {
 	}
 }
 
+// TestFindAll verifies that the FindAll function correctly retrieves multiple accounts
+// from the database with the specified conditions. It tests:
+// - Creating and saving a test account
+// - Querying for all non-disabled and non-deleted accounts
+// - Verifying that at least one account is returned
 func TestFindAll(t *testing.T) {
 	obj := account.New()
 	err := obj.Save(nil)
@@ -84,6 +98,11 @@ func TestFindAll(t *testing.T) {
 	}
 }
 
+// TestFindFirst verifies that the FindFirst function can locate a specific account
+// by ID using parameterized queries. It tests:
+// - Creating and saving a test account
+// - Querying for the account using its ID with a parameterized condition
+// - Verifying that the correct account is found and returned
 func TestFindFirst(t *testing.T) {
 	obj := account.New()
 	err := obj.Save(nil)
@@ -109,6 +128,12 @@ func TestFindFirst(t *testing.T) {
 	}
 }
 
+// TestFindFirstJoined verifies that the FindFirstJoined function can retrieve an account
+// with joined data (such as name, created_by_name, updated_by_name) from related tables.
+// It tests:
+// - Creating and saving a test account
+// - Querying for the account using a table-qualified condition
+// - Verifying that the account with joined data is found and returned
 func TestFindFirstJoined(t *testing.T) {
 	obj := account.New()
 	err := obj.Save(nil)
