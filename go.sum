@@ -77,8 +77,6 @@ github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX
 github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
-github.com/griffnb/core/lib v0.0.1 h1:gNosgljm7mdfn3xnDLC8u37P+dMDU8nyjVK4KDfwkgE=
-github.com/griffnb/core/lib v0.0.1/go.mod h1:QltUpvwZzeuckdmCy4ldOTShSPSRdFCq3CzsjGGlxWQ=
 github.com/griffnb/core/lib v0.0.2 h1:JLrhsn18R3RCAlGRVtYEuV3hSc2lPUJnfJ5ZcX13e+Q=
 github.com/griffnb/core/lib v0.0.2/go.mod h1:QltUpvwZzeuckdmCy4ldOTShSPSRdFCq3CzsjGGlxWQ=
 github.com/iancoleman/strcase v0.3.0 h1:nTXanmYxhfFAMjZL34Ov6gkzEsSJZ5DbhxWjvSASxEI=
