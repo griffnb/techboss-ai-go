@@ -1,6 +1,13 @@
 name: Claude Code
 
 on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: 'Prompt for Claude'
+        required: true
+        type: string
+        default: 'List out your MCP tools and read the CLAUDE.md and tell me if you have access to everything you need'
   issue_comment:
     types: [created]
   pull_request_review_comment:
@@ -19,7 +26,9 @@ jobs:
       - id: check
         run: |
           SHOULD_RUN="false"
-          if [[ "${{ github.event_name }}" == "issue_comment" ]] && [[ "${{ contains(github.event.comment.body, '@claude') }}" == "true" ]]; then
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            SHOULD_RUN="true"
+          elif [[ "${{ github.event_name }}" == "issue_comment" ]] && [[ "${{ contains(github.event.comment.body, '@claude') }}" == "true" ]]; then
             SHOULD_RUN="true"
           elif [[ "${{ github.event_name }}" == "pull_request_review_comment" ]] && [[ "${{ contains(github.event.comment.body, '@claude') }}" == "true" ]]; then
             SHOULD_RUN="true"
@@ -62,3 +71,4 @@ jobs:
         with:
             use_bedrock: "true"
             github_token: ${{ secrets.GITHUB_TOKEN }} 
+            prompt: ${{ github.event.inputs.prompt || 'List out your MCP tools and read the CLAUDE.md and tell me if you have access to everything you need' }}
