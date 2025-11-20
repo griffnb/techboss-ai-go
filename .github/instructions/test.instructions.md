@@ -3,8 +3,7 @@ applyTo: '**/*_test.go'
 ---
 
 USE ONLY `#code_tools` for formatting / linting / testing
-**If tables do not exist or you need to rebuild due to migrations, use `#code_tools/rebuild_unit_test_db`**
-
+**If tables do not exist, use `#code_tools/rebuild_unit_test_db`**
 
 
 - Write unit tests in a single function with each conditional test being written in its own t.Run("Condition im looking for")
