@@ -58,7 +58,7 @@ type AdminV1 struct {
 	base.Structure
 	FirstName  *fields.StringField                      `column:"first_name"  type:"text"     default:""`
 	LastName   *fields.StringField                      `column:"last_name"   type:"text"     default:""`
-	Email      *fields.StringField                      `column:"email"       type:"text"     default:""   unique:"true"`
+	Email      *fields.StringField                      `column:"email"       type:"text"     default:""`
 	ExternalID *fields.StringField                      `column:"external_id" type:"text"     default:""                 index:"true"`
 	Role       *fields.IntConstantField[constants.Role] `column:"role"        type:"smallint" default:"0"`
 	SlackID    *fields.StringField                      `column:"slack_id"    type:"text"     default:""`
