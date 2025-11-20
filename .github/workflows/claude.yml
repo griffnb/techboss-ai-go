@@ -11,12 +11,28 @@ on:
     types: [submitted]
 
 jobs:
+  check-mention:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - id: check
+        run: |
+          SHOULD_RUN="false"
+          if [[ "${{ github.event_name }}" == "issue_comment" ]] && [[ "${{ contains(github.event.comment.body, '@claude') }}" == "true" ]]; then
+            SHOULD_RUN="true"
+          elif [[ "${{ github.event_name }}" == "pull_request_review_comment" ]] && [[ "${{ contains(github.event.comment.body, '@claude') }}" == "true" ]]; then
+            SHOULD_RUN="true"
+          elif [[ "${{ github.event_name }}" == "pull_request_review" ]] && [[ "${{ contains(github.event.review.body, '@claude') }}" == "true" ]]; then
+            SHOULD_RUN="true"
+          elif [[ "${{ github.event_name }}" == "issues" ]] && ([[ "${{ contains(github.event.issue.body, '@claude') }}" == "true" ]] || [[ "${{ contains(github.event.issue.title, '@claude') }}" == "true" ]]); then
+            SHOULD_RUN="true"
+          fi
+          echo "should-run=$SHOULD_RUN" >> $GITHUB_OUTPUT
+
   claude:
-    if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+    needs: check-mention
+    if: needs.check-mention.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     environment: 
         name: claude
