@@ -43,10 +43,36 @@ jobs:
       id-token: write
       actions: read # Required for Claude to read CI results on PRs
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v5
         with:
-          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+      - uses: actions/setup-go@v5
+        with:
+            go-version-file: go.mod     
+      - name: Authenticate to GitHub and Install Deps
+        env:
+          GOPRIVATE: github.com/griffnb/core/*
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.CI_DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          git config --global url."ssh://git@github.com/griffnb/core/".insteadOf "https://github.com/griffnb/core/"
+          go mod download
+          go install github.com/griffnb/core/core_gen@latest
+     
+      - name: Start LocalStack
+        uses: LocalStack/setup-localstack@v0.2.3
+        with:
+          image-tag: 'latest'
+          install-awslocal: 'true'
+      - name: Setup Config
+        run: |
+          mkdir -p ./.configs
+          cp ./infra/unit_test.json ./.configs/unit_test.json          
+          make install-lint & make install-deadcode & wait
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
