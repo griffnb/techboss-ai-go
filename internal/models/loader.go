@@ -9,10 +9,13 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 	"github.com/griffnb/techboss-ai-go/internal/models/admin"
 	"github.com/griffnb/techboss-ai-go/internal/models/agent"
+	"github.com/griffnb/techboss-ai-go/internal/models/agent_attribute"
 	"github.com/griffnb/techboss-ai-go/internal/models/ai_tool"
 	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
 	"github.com/griffnb/techboss-ai-go/internal/models/category"
 	"github.com/griffnb/techboss-ai-go/internal/models/change_log"
+	"github.com/griffnb/techboss-ai-go/internal/models/conversation"
+	"github.com/griffnb/techboss-ai-go/internal/models/document"
 	"github.com/griffnb/techboss-ai-go/internal/models/global_config"
 	"github.com/griffnb/techboss-ai-go/internal/models/lead"
 	"github.com/griffnb/techboss-ai-go/internal/models/migrations"
@@ -46,18 +49,21 @@ func LoadModels() (err error) {
 	defaultClient := environment.GetDBClient(environment.CLIENT_DEFAULT)
 
 	models := map[string]any{
-		account.TABLE:       &account.Structure{},
-		admin.TABLE:         &admin.Structure{},
-		agent.TABLE:         &agent.Structure{},
-		ai_tool.TABLE:       &ai_tool.Structure{},
-		billing_plan.TABLE:  &billing_plan.Structure{},
-		category.TABLE:      &category.Structure{},
-		lead.TABLE:          &lead.Structure{},
-		subscription.TABLE:  &subscription.Structure{},
-		tag.TABLE:           &tag.Structure{},
-		object_tag.TABLE:    &object_tag.Structure{},
-		global_config.TABLE: &global_config.Structure{},
-		organization.TABLE:  &organization.Structure{},
+		account.TABLE:         &account.Structure{},
+		admin.TABLE:           &admin.Structure{},
+		agent.TABLE:           &agent.Structure{},
+		agent_attribute.TABLE: &agent_attribute.Structure{},
+		ai_tool.TABLE:         &ai_tool.Structure{},
+		billing_plan.TABLE:    &billing_plan.Structure{},
+		category.TABLE:        &category.Structure{},
+		conversation.TABLE:    &conversation.Structure{},
+		document.TABLE:        &document.Structure{},
+		lead.TABLE:            &lead.Structure{},
+		subscription.TABLE:    &subscription.Structure{},
+		tag.TABLE:             &tag.Structure{},
+		object_tag.TABLE:      &object_tag.Structure{},
+		global_config.TABLE:   &global_config.Structure{},
+		organization.TABLE:    &organization.Structure{},
 	}
 
 	for table, structure := range models {

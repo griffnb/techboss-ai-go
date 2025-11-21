@@ -35,8 +35,8 @@ type DBColumns struct {
 }
 
 type JoinData struct {
-	DocumentGroupName      *fields.StringField `public:"view" json:"document_group_name"`
-	DocumentGroupGroupType *fields.IntField    `public:"view" json:"document_group_group_type"`
+	DocumentGroupName      *fields.StringField `public:"view" json:"document_group_name" type:"text"`
+	DocumentGroupGroupType *fields.IntField    `public:"view" json:"document_group_group_type" type:"integer"`
 }
 
 type Document struct {

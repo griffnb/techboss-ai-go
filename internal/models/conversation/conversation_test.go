@@ -15,20 +15,17 @@ func init() {
 	system_testing.BuildSystem()
 }
 
-const (
-	UNIT_TEST_FIELD         = "contact_ext_id"
-	UNIT_TEST_VALUE         = "UNIT_TEST_VALUE"
-	UNIT_TEST_CHANGED_VALUE = "UNIT_TEST_CHANGED_VALUE"
-)
-
 func TestNew(_ *testing.T) {
 	obj := testmodel.New()
-	obj.Set(UNIT_TEST_FIELD, UNIT_TEST_VALUE)
+	obj.AccountID.Set(tools.GUID())
 }
 
 func TestSave(t *testing.T) {
+	testAccountID := tools.GUID()
+	changedAccountID := tools.GUID()
+	
 	obj := testmodel.New()
-	obj.Set(UNIT_TEST_FIELD, UNIT_TEST_VALUE)
+	obj.AccountID.Set(testAccountID)
 
 	err := obj.Save(nil)
 	if err != nil {
@@ -41,11 +38,11 @@ func TestSave(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if objFromDb.GetString(UNIT_TEST_FIELD) != UNIT_TEST_VALUE {
-		t.Fatalf(`Didnt Save`)
+	if objFromDb.AccountID.Get() != testAccountID {
+		t.Fatalf("Didnt Save")
 	}
 
-	obj.Set(UNIT_TEST_FIELD, UNIT_TEST_CHANGED_VALUE)
+	obj.AccountID.Set(changedAccountID)
 	err = obj.Save(nil)
 	if err != nil {
 		t.Fatal(err)
@@ -56,8 +53,8 @@ func TestSave(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if updatedObjFromDb.GetString(UNIT_TEST_FIELD) != UNIT_TEST_CHANGED_VALUE {
-		t.Fatalf(`UNIT_TEST_FIELD Didnt Update`)
+	if updatedObjFromDb.AccountID.Get() != changedAccountID {
+		t.Fatalf("UNIT_TEST_FIELD Didnt Update")
 	}
 }
 

@@ -16,9 +16,9 @@ func init() {
 }
 
 const (
-	UNIT_TEST_FIELD         = "attribute_prompt_label"
-	UNIT_TEST_VALUE         = "UNIT_TEST_VALUE"
-	UNIT_TEST_CHANGED_VALUE = "UNIT_TEST_CHANGED_VALUE"
+	UNIT_TEST_FIELD         = "account_id"
+	UNIT_TEST_VALUE         = 12345
+	UNIT_TEST_CHANGED_VALUE = 67890
 )
 
 func TestNew(t *testing.T) {
@@ -41,8 +41,8 @@ func TestSave(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if objFromDb.GetString(UNIT_TEST_FIELD) != UNIT_TEST_VALUE {
-		t.Fatalf(`Didnt Save`)
+	if objFromDb.GetInt(UNIT_TEST_FIELD) != UNIT_TEST_VALUE {
+		t.Fatalf("Didnt Save")
 	}
 
 	obj.Set(UNIT_TEST_FIELD, UNIT_TEST_CHANGED_VALUE)
@@ -56,8 +56,8 @@ func TestSave(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if updatedObjFromDb.GetString(UNIT_TEST_FIELD) != UNIT_TEST_CHANGED_VALUE {
-		t.Fatalf(`UNIT_TEST_FIELD Didnt Update`)
+	if updatedObjFromDb.GetInt(UNIT_TEST_FIELD) != UNIT_TEST_CHANGED_VALUE {
+		t.Fatalf("UNIT_TEST_FIELD Didnt Update")
 	}
 }
 

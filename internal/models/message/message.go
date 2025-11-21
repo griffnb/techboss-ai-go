@@ -53,7 +53,7 @@ func GetMessagesByConversationID(ctx context.Context, conversationID types.UUID,
 	messages := []*Message{}
 	throttled, err := environment.GetDynamo().
 		// nolint: gosec
-		GetByIndexWithContext(ctx, TABLE_NAME, "conversation_id", conversationID, &messages, int32(limit), true)
+		GetByIndexWithContext(ctx, TABLE_NAME, "conversation_id", conversationID, &messages, int32(limit), false)
 	if err != nil {
 		return nil, err
 	}
