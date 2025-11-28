@@ -13,7 +13,7 @@ create_object() {
   echo "Enter the plural form of the model name (Lowercase, snake case):"
   read model_plural
 
-  core_generate object "${model_name}" "-plural=${model_plural}" "-modelPackage=${PACKAGE_NAME}"
+  core_gen object "${model_name}" "-plural=${model_plural}" "-modelPackage=${PACKAGE_NAME}"
 
   go generate "./internal/models/${model_name}/${model_name}.go"
   go generate "./internal/controllers/${model_plural}/setup.go"
@@ -26,7 +26,7 @@ create_public_object() {
   echo "Enter the plural form of the model name (Lowercase, snake case):"
   read model_plural
 
-  core_generate object "${model_name}" "-plural=${model_plural}" "-modelPackage=${PACKAGE_NAME}" "-public=true"
+  core_gen object "${model_name}" "-plural=${model_plural}" "-modelPackage=${PACKAGE_NAME}" "-public=true"
 
   go generate "./internal/models/${model_name}/${model_name}.go"
   go generate "./internal/controllers/${model_plural}/setup.go"
@@ -34,12 +34,14 @@ create_public_object() {
 
 # Function to create a migration
 create_migration() {
-  echo "What's the name of the migration?"
+  echo "What's the model name or "seed" for global data? (Lowercase, snake case, non-plural):"
+  read model_name
+  echo "Enter a descriptive name for the migration (Lowercase, snake case):"
   read migration_name
 
-  # Since there's no corresponding command in the core_generate main.go for migrations,
+  # Since there's no corresponding command in the core_gen main.go for migrations,
   # you might need to implement this functionality or adjust as needed
-  core_generate migration "${migration_name}"
+  core_gen migration "${model_name}" "-label=${migration_name}"
 }
 
 # Main menu
