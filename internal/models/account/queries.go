@@ -25,7 +25,7 @@ func Exists(ctx context.Context, email string) (bool, error) {
 // GetByExternalID finds an account by its external ID (e.g., Stripe customer ID).
 // Returns the first non-disabled account matching the external ID.
 func GetByExternalID(ctx context.Context, externalID string) (*Account, error) {
-	mocker, ok := model.GetMocker[mocker](ctx)
+	mocker, ok := model.GetMocker[mocker](ctx, PACKAGE)
 	if ok {
 		return mocker.GetByExternalID(ctx, externalID)
 	}

@@ -40,7 +40,7 @@ func init() {
 type SysEnvironment struct {
 	baseenv.BaseEnvironment
 	Region     string
-	LogReader  *log.Reader
+	Cloudwatch *log.Cloudwatch
 	RequestLog *log.CoreLogger
 	S3         *s3.S3
 	Oauth      *oauth.Authenticator
@@ -334,18 +334,18 @@ func withLogs(env *SysEnvironment, configObj *Config, region string) error {
 
 	// Load Cloudwatch reader
 	if !tools.Empty(cloudWatchConfig.Key) {
-		reader, err := log.NewReaderWithKeys(region, cloudWatchConfig.Key, cloudWatchConfig.Skey)
+		reader, err := log.NewCloudwatchWithKeys(region, cloudWatchConfig.Key, cloudWatchConfig.Skey)
 		if err != nil {
 			return err
 		}
-		env.LogReader = reader
+		env.Cloudwatch = reader
 	} else {
 		if IS_CLOUD {
-			reader, err := log.NewReaderWithAWSConfig(AWS_CONFIG)
+			reader, err := log.NewCloudwatchWithAWSConfig(AWS_CONFIG)
 			if err != nil {
 				return err
 			}
-			env.LogReader = reader
+			env.Cloudwatch = reader
 		}
 	}
 
