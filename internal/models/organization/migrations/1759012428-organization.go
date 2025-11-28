@@ -5,13 +5,14 @@ import (
 	"github.com/griffnb/core/lib/model/fields"
 	"github.com/griffnb/techboss-ai-go/internal/models/base"
 	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
-	"github.com/griffnb/techboss-ai-go/internal/models/organization"
 )
+
+const TABLE string = "organizations"
 
 func init() {
 	model.AddMigration(&model.Migration{
 		ID:          1759012428,
-		Table:       organization.TABLE,
+		Table:       TABLE,
 		TableStruct: &OrganizationV1{},
 		TableMigration: &model.TableMigration{
 			Type: model.CREATE_TABLE,

@@ -4,13 +4,14 @@ import (
 	"github.com/griffnb/core/lib/model"
 	"github.com/griffnb/core/lib/model/fields"
 	"github.com/griffnb/techboss-ai-go/internal/models/base"
-	"github.com/griffnb/techboss-ai-go/internal/models/category"
 )
+
+const TABLE string = "categories"
 
 func init() {
 	model.AddMigration(&model.Migration{
 		ID:          1759604809,
-		Table:       category.TABLE,
+		Table:       TABLE,
 		TableStruct: &CategoryV1{},
 		TableMigration: &model.TableMigration{
 			Type: model.CREATE_TABLE,

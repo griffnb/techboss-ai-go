@@ -10,6 +10,7 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/base"
 	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
+	_ "github.com/griffnb/techboss-ai-go/internal/models/subscription/migrations"
 )
 
 // Constants for the model

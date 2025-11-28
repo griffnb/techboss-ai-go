@@ -10,6 +10,7 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/common"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/base"
+	_ "github.com/griffnb/techboss-ai-go/internal/models/category/migrations"
 )
 
 // Constants for the model

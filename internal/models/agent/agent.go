@@ -9,6 +9,7 @@ import (
 	"github.com/griffnb/core/lib/model/fields"
 	"github.com/griffnb/techboss-ai-go/internal/common"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
+	_ "github.com/griffnb/techboss-ai-go/internal/models/agent/migrations"
 	"github.com/griffnb/techboss-ai-go/internal/models/base"
 )
 
