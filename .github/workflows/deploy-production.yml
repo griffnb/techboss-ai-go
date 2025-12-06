@@ -2,9 +2,22 @@ name: Deploy Production
 
 on:
   workflow_dispatch:
+    inputs:
+      spot_instances:
+        description: 'Use Spot Instances (Disable if AWS out of capacity)'
+        required: false
+        default: true
+        type: boolean
   push:
     branches:
       - 'main'
+
+# Control which subsystems to build and deploy
+env:
+  DEPLOY_API: true
+  DEPLOY_MIGRATION: true
+  DEPLOY_TASKMASTER: false
+  DEPLOY_TASKWORKER: false
 
 # Define environment mappings
 jobs:
@@ -20,6 +33,7 @@ jobs:
       api_image_tag: ${{ steps.build_api.outputs.api_image_tag }}
       taskmaster_image_tag: ${{ steps.build_taskmaster.outputs.taskmaster_image_tag }}
       taskworker_image_tag: ${{ steps.build_taskworker.outputs.taskworker_image_tag }}
+      migration_image_tag: ${{ steps.build_migration.outputs.migration_image_tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -41,48 +55,109 @@ jobs:
       
       #---- API ----
       - uses: aws-actions/configure-aws-credentials@v4
+        if: env.DEPLOY_API == 'true'
         with:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/api-deploy-role
           unset-current-credentials: true
       - name: Build API
+        if: env.DEPLOY_API == 'true'
         id: build_api
+        env:
+          APP: api
+          COMMAND_PATH: "cmd/server"
         run: |
-          FULL_OUTPUT=$(APP="api" COMMAND_PATH="cmd/server" bash -ex infra/build/build_image.sh)
+          FULL_OUTPUT=$(bash -ex infra/build/build_image.sh)
           API_IMAGE_TAG=$(echo "$FULL_OUTPUT" | tail -n 1)
           echo "api_image_tag=$API_IMAGE_TAG" >> $GITHUB_OUTPUT
 
+      #---- MIGRATIONS ----
+      - uses: aws-actions/configure-aws-credentials@v4
+        if: env.DEPLOY_MIGRATION == 'true'
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/runner-deploy-role
+          unset-current-credentials: true
+      - name: Build Migration
+        if: env.DEPLOY_MIGRATION == 'true'
+        id: build_migration
+        env:
+          APP: runner
+          COMMAND_PATH: "cmd/migrations"
+        run: |
+          FULL_OUTPUT=$(bash -ex infra/build/build_image.sh)
+          MIGRATION_IMAGE_TAG=$(echo "$FULL_OUTPUT" | tail -n 1)
+          echo "migration_image_tag=$MIGRATION_IMAGE_TAG" >> $GITHUB_OUTPUT
+
       #---- TASKMASTER ----
       - uses: aws-actions/configure-aws-credentials@v4
+        if: env.DEPLOY_TASKMASTER == 'true'
         with:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/task-master-deploy-role
           unset-current-credentials: true
       - name: Build Taskmaster
+        if: env.DEPLOY_TASKMASTER == 'true'
         id: build_taskmaster
+        env:
+          APP: task-master
+          COMMAND_PATH: "cmd/taskmaster"
         run: |
-          FULL_OUTPUT=$(APP="task-master" COMMAND_PATH="cmd/taskmaster" bash -ex infra/build/build_image.sh)
+          FULL_OUTPUT=$(bash -ex infra/build/build_image.sh)
           TASKMASTER_IMAGE_TAG=$(echo "$FULL_OUTPUT" | tail -n 1)
           echo "taskmaster_image_tag=$TASKMASTER_IMAGE_TAG" >> $GITHUB_OUTPUT
 
       #---- TASKWORKER ----
       - uses: aws-actions/configure-aws-credentials@v4
+        if: env.DEPLOY_TASKWORKER == 'true'
         with:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/task-worker-deploy-role
           unset-current-credentials: true
       - name: Build Taskworker
+        if: env.DEPLOY_TASKWORKER == 'true'
         id: build_taskworker
+        env:
+          APP: task-worker
+          COMMAND_PATH: "cmd/taskworker"
         run: |
-          FULL_OUTPUT=$(APP="task-worker" COMMAND_PATH="cmd/taskworker" bash -ex infra/build/build_image.sh)
+          FULL_OUTPUT=$(bash -ex infra/build/build_image.sh)
           TASKWORKER_IMAGE_TAG=$(echo "$FULL_OUTPUT" | tail -n 1)
           echo "taskworker_image_tag=$TASKWORKER_IMAGE_TAG" >> $GITHUB_OUTPUT
 
+  deploy_migration:
+    name: Deploy migration
+    if: needs.build.outputs.migration_image_tag != ''
+    needs: [build]
+    env:
+      APP: runner
+      ENVIRONMENT: production
+      SYSTEM_MEMORY: "2048"
+      SYSTEM_CPU: "1024"
+      TASK_COUNT: 1
+      IMAGE: "${{ needs.build.outputs.migration_image_tag }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency: ${{ github.event.inputs.environment }}-migration
+    permissions:
+      id-token: write
+      contents: read
+    environment: 
+      name: production
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/runner-deploy-role
+      - uses: actions/checkout@v4
+      - run: |
+              bash -ex infra/deploy/deploy_migration.sh
 
   # Split the jobs to ensure we have independent jobs for each service
   deploy_taskmaster:
     name: Deploy taskmaster
-    needs: [build]
+    if: needs.build.outputs.taskmaster_image_tag != ''
+    needs: [build,deploy_migration]
     env:
       APP: task-master
       ENVIRONMENT: production
@@ -109,7 +184,8 @@ jobs:
 
   deploy_taskworker:
     name: Deploy taskworker
-    needs: [build, deploy_taskmaster]
+    if: always() && needs.build.outputs.taskworker_image_tag != ''
+    needs: [build, deploy_migration]
     env:
       APP: task-worker
       ENVIRONMENT: production
@@ -117,6 +193,7 @@ jobs:
       SYSTEM_CPU: "1024"
       TASK_COUNT: 1
       IMAGE: "${{ needs.build.outputs.taskworker_image_tag }}"
+      SPOT_INSTANCES: "${{ github.event.inputs.spot_instances }}"
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency: ${{ github.event.inputs.environment }}-taskworker
@@ -136,7 +213,8 @@ jobs:
 
   deploy_api:
     name: Deploy api
-    needs: [build, deploy_taskmaster]
+    if: always() && needs.build.outputs.api_image_tag != ''
+    needs: [build, deploy_migration]
     env:
       APP: api
       ENVIRONMENT: production
@@ -144,6 +222,7 @@ jobs:
       SYSTEM_CPU: "1024"
       TASK_COUNT: 2
       IMAGE: "${{ needs.build.outputs.api_image_tag }}"
+      SPOT_INSTANCES: "${{ github.event.inputs.spot_instances }}"
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency: ${{ github.event.inputs.environment }}-api

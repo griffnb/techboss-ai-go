@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "additionalProperties": false,
-  "description": "Configuration schema for the asset trading desk server",
+  "description": "Configuration schema",
   "properties": {
     "$schema": {
       "description": "JSON Schema reference",
@@ -48,15 +48,6 @@
             }
           },
           "type": "object"
-        }
-      },
-      "type": "object"
-    },
-    "clerk": {
-      "additionalProperties": false,
-      "properties": {
-        "api_key": {
-          "type": "string"
         }
       },
       "type": "object"
@@ -278,6 +269,21 @@
           "type": "string"
         },
         "skey": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "sendpulse": {
+      "additionalProperties": false,
+      "properties": {
+        "client_id": {
+          "type": "string"
+        },
+        "client_secret": {
+          "type": "string"
+        },
+        "webhook_key": {
           "type": "string"
         }
       },

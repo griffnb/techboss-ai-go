@@ -27,6 +27,7 @@ type Structure struct {
 	DBColumns
 	JoinData
 	ManualFields
+	PlanJoins
 }
 
 type DBColumns struct {
