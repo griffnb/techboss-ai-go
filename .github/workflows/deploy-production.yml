@@ -156,8 +156,8 @@ jobs:
   # Split the jobs to ensure we have independent jobs for each service
   deploy_taskmaster:
     name: Deploy taskmaster
-    if: needs.build.outputs.taskmaster_image_tag != ''
-    needs: [build,deploy_migration]
+    if: (success() || needs.deploy_migration.result == 'skipped') && needs.build.outputs.taskmaster_image_tag != ''
+    needs: [build, deploy_migration]
     env:
       APP: task-master
       ENVIRONMENT: production
@@ -184,7 +184,7 @@ jobs:
 
   deploy_taskworker:
     name: Deploy taskworker
-    if: always() && needs.build.outputs.taskworker_image_tag != ''
+    if: (success() || needs.deploy_migration.result == 'skipped') && needs.build.outputs.taskworker_image_tag != ''
     needs: [build, deploy_migration]
     env:
       APP: task-worker
@@ -213,7 +213,7 @@ jobs:
 
   deploy_api:
     name: Deploy api
-    if: always() && needs.build.outputs.api_image_tag != ''
+    if: (success() || needs.deploy_migration.result == 'skipped') && needs.build.outputs.api_image_tag != ''
     needs: [build, deploy_migration]
     env:
       APP: api

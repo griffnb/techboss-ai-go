@@ -54,6 +54,17 @@ Parameters:
     Description: Whether to assign a public IP address to the task's elastic network interface., need this for default VPC
     Default: DISABLED
 
+  SpotInstances:
+    Description: Whether to use Fargate Spot instances
+    Type: String
+    AllowedValues:
+      - true
+      - false
+    Default: true
+
+Conditions:
+  SpotInstancesCondition: !Equals [ !Ref SpotInstances, "true" ]
+
 Resources:
 
   FargateService:
@@ -66,10 +77,20 @@ Resources:
       DeploymentConfiguration:
         MaximumPercent: 200
         MinimumHealthyPercent: 100
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
       CapacityProviderStrategy:
-        - CapacityProvider: FARGATE_SPOT
-          Base: 1          
-          Weight: 1
+        Fn::If:
+          - SpotInstancesCondition
+          - - CapacityProvider: FARGATE
+              Weight: 0
+              Base: 1
+            - CapacityProvider: FARGATE_SPOT          
+              Weight: 1
+          - - CapacityProvider: FARGATE
+              Weight: 1
+            
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: !Ref AssignPublicIp
@@ -78,6 +99,8 @@ Resources:
           Subnets:
             - !ImportValue PrivateSubnetA
             - !ImportValue PrivateSubnetB
+            - !ImportValue PrivateSubnetC
+            - !ImportValue PrivateSubnetD
       LoadBalancers:
         - ContainerName: task
           ContainerPort: !Ref ContainerPort
@@ -112,14 +135,6 @@ Resources:
               Value: "AWS"
             - Name: REGION
               Value: !Ref AWS::Region
-          #HealthCheck: scratch image cant do this
-          #  Command:
-          #    - CMD-SHELL
-          #    - !Sub curl -f http://localhost:${ContainerPort}/ || exit 1
-          #  Interval: 30
-          #  Timeout: 5
-          #  Retries: 3
-          #  StartPeriod: 10
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -128,9 +143,10 @@ Resources:
                 Fn::ImportValue: !Sub "${App}-log-group"
               awslogs-stream-prefix: task
 
+
 Outputs:
   FargateService:
-    Description: "Fargate Service"
+    Description: "ECS Fargate Service"
     Value: !Ref FargateService
     Export:
       Name: !Sub "${App}-fargate-service"
