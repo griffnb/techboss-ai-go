@@ -10,6 +10,8 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/base"
+
+	_ "github.com/griffnb/techboss-ai-go/internal/models/admin/migrations"
 )
 
 const TABLE string = "admins"

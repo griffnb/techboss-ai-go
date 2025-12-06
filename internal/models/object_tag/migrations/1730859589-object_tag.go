@@ -2,13 +2,14 @@ package migrations
 
 import (
 	"github.com/griffnb/core/lib/model"
-	"github.com/griffnb/techboss-ai-go/internal/models/object_tag"
 )
+
+const TABLE string = "object_tags"
 
 func init() {
 	model.AddMigration(&model.Migration{
 		ID:    1730859589,
-		Table: object_tag.TABLE,
+		Table: TABLE,
 		SQLMigration: `
 		CREATE TABLE object_tags (
 			"id" UUid DEFAULT gen_random_uuid() NOT NULL,

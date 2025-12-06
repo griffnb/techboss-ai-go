@@ -10,6 +10,7 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/common"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
+	_ "github.com/griffnb/techboss-ai-go/internal/models/object_tag/migrations"
 )
 
 const TABLE string = "object_tags"

@@ -3,14 +3,15 @@ package migrations
 import (
 	"github.com/griffnb/core/lib/model"
 	"github.com/griffnb/core/lib/model/fields"
-	"github.com/griffnb/techboss-ai-go/internal/models/ai_tool"
 	"github.com/griffnb/techboss-ai-go/internal/models/base"
 )
+
+const TABLE string = "ai_tools"
 
 func init() {
 	model.AddMigration(&model.Migration{
 		ID:          1758846966,
-		Table:       ai_tool.TABLE,
+		Table:       TABLE,
 		TableStruct: &AiToolV1{},
 		TableMigration: &model.TableMigration{
 			Type: model.CREATE_TABLE,

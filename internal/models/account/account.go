@@ -11,6 +11,8 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/base"
+
+	_ "github.com/griffnb/techboss-ai-go/internal/models/account/migrations"
 )
 
 // Constants for the model
@@ -25,6 +27,7 @@ type Structure struct {
 	DBColumns
 	JoinData
 	ManualFields
+	PlanJoins
 }
 
 type DBColumns struct {

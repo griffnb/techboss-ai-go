@@ -13,7 +13,7 @@ type mocker interface {
 // GetByExternalID finds an organization by its external ID (e.g., Stripe organization ID).
 // Returns the first non-disabled organization matching the external ID.
 func GetByExternalID(ctx context.Context, externalID string) (*Organization, error) {
-	mocker, ok := model.GetMocker[mocker](ctx)
+	mocker, ok := model.GetMocker[mocker](ctx, PACKAGE)
 	if ok {
 		return mocker.GetByExternalID(ctx, externalID)
 	}

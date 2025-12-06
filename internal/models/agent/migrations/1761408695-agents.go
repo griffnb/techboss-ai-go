@@ -3,14 +3,15 @@ package migrations
 import (
 	"github.com/griffnb/core/lib/model"
 	"github.com/griffnb/core/lib/model/fields"
-	"github.com/griffnb/techboss-ai-go/internal/models/agent"
 	"github.com/griffnb/techboss-ai-go/internal/models/base"
 )
+
+const TABLE string = "agents"
 
 func init() {
 	model.AddMigration(&model.Migration{
 		ID:          1761408695,
-		Table:       agent.TABLE,
+		Table:       TABLE,
 		TableStruct: &AgentV1{},
 		TableMigration: &model.TableMigration{
 			Type: model.CREATE_TABLE,

@@ -54,8 +54,8 @@ func GetOauth() *oauth.Authenticator {
 	return env.Env().(*SysEnvironment).Oauth
 }
 
-func GetLogReader() *log.Reader {
-	return env.Env().(*SysEnvironment).LogReader
+func GetCloudwatch() *log.Cloudwatch {
+	return env.Env().(*SysEnvironment).Cloudwatch
 }
 
 func GetCache() cache.Cache {
