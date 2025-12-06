@@ -69,14 +69,6 @@ Resources:
               Value: "AWS"
             - Name: REGION
               Value: !Ref AWS::Region
-          #HealthCheck: scratch image cant do this
-          #  Command:
-          #    - CMD-SHELL
-          #    - !Sub curl -f http://localhost:${ContainerPort}/ || exit 1
-          #  Interval: 30
-          #  Timeout: 5
-          #  Retries: 3
-          #  StartPeriod: 10
           LogConfiguration:
             LogDriver: awslogs
             Options:
