@@ -101,6 +101,8 @@ func LoadModelsOnly() error {
 
 // RunMigration runs the migrations
 func RunMigration() error {
+	// Dynamo Change Logs
+	change_log.AddChangeLogTable()
 	migrations.BuildDynamo()
 	delay_queue.AddDelayQueueTable()
 
@@ -129,7 +131,5 @@ func setupChangeLogs() {
 		}
 	*/
 
-	// Dynamo Change Logs
-	change_log.AddChangeLogTable()
 	model.RegisterChangeLogFunction(change_log.DynamoChangeLog)
 }
