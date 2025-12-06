@@ -79,6 +79,12 @@ github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aN
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/griffnb/core/lib v0.0.3 h1:aQGBk4NARChFwQmSn7L1TdDUZSsLnSjA9tLEP64yoew=
 github.com/griffnb/core/lib v0.0.3/go.mod h1:9TivywUeHPRRE1t5AvXc9NhSz1Mk+3VegYJaFqNuV5k=
+github.com/griffnb/core/lib v0.0.11 h1:nnJ8Nr+NpBUD7kKKJxeKF4m3N0eZ8zLqnB45PDh7+sc=
+github.com/griffnb/core/lib v0.0.11/go.mod h1:Ti53UKRsY61YIDPOga3dJMvWVQHfL0y6qyjpl2T+Gj8=
+github.com/griffnb/core/lib v0.0.12 h1:ZGt9hy62yZ6CKFf75z2o5eT+Q7juYqadZvLvrVLi4I4=
+github.com/griffnb/core/lib v0.0.12/go.mod h1:Ti53UKRsY61YIDPOga3dJMvWVQHfL0y6qyjpl2T+Gj8=
+github.com/griffnb/core/lib v0.0.13 h1:K1rqIZLSHtVNeVhX+e6pRSs/Z72+c7gvr+UDgj9Ohb8=
+github.com/griffnb/core/lib v0.0.13/go.mod h1:Ti53UKRsY61YIDPOga3dJMvWVQHfL0y6qyjpl2T+Gj8=
 github.com/iancoleman/strcase v0.3.0 h1:nTXanmYxhfFAMjZL34Ov6gkzEsSJZ5DbhxWjvSASxEI=
 github.com/iancoleman/strcase v0.3.0/go.mod h1:iwCmte+B7n89clKwxIoIXy/HfoL7AsD47ZCWhYzw7ho=
 github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=
