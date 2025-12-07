@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/router/request"
 	"github.com/griffnb/core/lib/router/response"
 	"github.com/griffnb/core/lib/router/route_helpers"
 	"github.com/griffnb/core/lib/session"
@@ -43,7 +44,13 @@ func adminLogInAs(res http.ResponseWriter, req *http.Request) {
 
 // This is for loging in on the frontend with a token
 func adminTokenLogin(res http.ResponseWriter, req *http.Request) (*TokenResponse, int, error) {
-	profile, token, err := route_helpers.HandleTokenLogin(environment.GetOauth(), res, req)
+	input, err := request.GetJSONPostAs[*TokenInput](req)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.AdminBadRequestError[*TokenResponse](err)
+	}
+
+	profile, token, err := route_helpers.HandleTokenLogin(req.Context(), input.Token, environment.GetOauth())
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.AdminBadRequestError[*TokenResponse](err)

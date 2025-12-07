@@ -85,6 +85,8 @@ github.com/griffnb/core/lib v0.0.12 h1:ZGt9hy62yZ6CKFf75z2o5eT+Q7juYqadZvLvrVLi4
 github.com/griffnb/core/lib v0.0.12/go.mod h1:Ti53UKRsY61YIDPOga3dJMvWVQHfL0y6qyjpl2T+Gj8=
 github.com/griffnb/core/lib v0.0.13 h1:K1rqIZLSHtVNeVhX+e6pRSs/Z72+c7gvr+UDgj9Ohb8=
 github.com/griffnb/core/lib v0.0.13/go.mod h1:Ti53UKRsY61YIDPOga3dJMvWVQHfL0y6qyjpl2T+Gj8=
+github.com/griffnb/core/lib v0.0.15 h1:bXIHd0Alok3odPAlzYkj2mEaa2mi4fL5MbpGehMkPcc=
+github.com/griffnb/core/lib v0.0.15/go.mod h1:Ti53UKRsY61YIDPOga3dJMvWVQHfL0y6qyjpl2T+Gj8=
 github.com/iancoleman/strcase v0.3.0 h1:nTXanmYxhfFAMjZL34Ov6gkzEsSJZ5DbhxWjvSASxEI=
 github.com/iancoleman/strcase v0.3.0/go.mod h1:iwCmte+B7n89clKwxIoIXy/HfoL7AsD47ZCWhYzw7ho=
 github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=

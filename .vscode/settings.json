@@ -5,11 +5,7 @@
     "REGION": "us-east-1"
   },
   "go.testFlags": ["-v", "-count=1", "-timeout=30s", "-race"],
-  "go.lintTool": "golangci-lint",
-  "go.lintFlags": [
-    "--path-mode=abs"
-    //"--fast-only"
-  ],
+  "go.lintTool": "golangci-lint-v2",
   "go.formatTool": "custom",
   "go.alternateTools": {
     "customFormatter": "golangci-lint"
