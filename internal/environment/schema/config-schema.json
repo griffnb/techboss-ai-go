@@ -392,6 +392,9 @@
       "type": "object"
     }
   },
+  "required": [
+    "encryption"
+  ],
   "title": "Server Configuration",
   "type": "object"
 }
