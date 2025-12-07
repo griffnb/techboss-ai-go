@@ -14,7 +14,7 @@ import (
 func Setup(coreRouter *router.CoreRouter) {
 	coreRouter.Router.Post("/logout", response.StandardPublicRequestWrapper(logout))
 	coreRouter.Router.Post("/login", response.StandardPublicRequestWrapper(login))
-	coreRouter.Router.Get("/tokenLogin", response.StandardPublicRequestWrapper(tokenLogin))
+	coreRouter.Router.Post("/tokenLogin", response.StandardPublicRequestWrapper(tokenLogin))
 	// Gets oauth profile
 	coreRouter.Router.Post("/login/getProfile", response.StandardPublicRequestWrapper(getProfile))
 	coreRouter.Router.Post("/login/link/send", response.StandardPublicRequestWrapper(sendMagicLink))
@@ -22,11 +22,11 @@ func Setup(coreRouter *router.CoreRouter) {
 
 	coreRouter.AddMainRoute("/admin", func(r chi.Router) {
 		r.Group(func(authR chi.Router) {
-			authR.Get("/login/super/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
+			authR.Post("/login/super/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_READ_ADMIN: adminLogInAs,
 			}))
 		})
 	})
 
-	coreRouter.Router.Get("/admin/tokenLogin", response.StandardRequestWrapper(adminTokenLogin))
+	coreRouter.Router.Post("/admin/tokenLogin", response.StandardRequestWrapper(adminTokenLogin))
 }

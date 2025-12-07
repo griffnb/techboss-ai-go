@@ -126,7 +126,12 @@ func getProfile(_ http.ResponseWriter, req *http.Request) (any, int, error) {
 
 // This is for loging in on the frontend with an oauth token
 func tokenLogin(res http.ResponseWriter, req *http.Request) (*LoginResponse, int, error) {
-	profile, token, err := route_helpers.HandleTokenLogin(environment.GetOauth(), res, req)
+	input, err := request.GetJSONPostAs[*TokenInput](req)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[*LoginResponse]()
+	}
+	profile, token, err := route_helpers.HandleTokenLogin(req.Context(), input.Token, environment.GetOauth())
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.PublicBadRequestError[*LoginResponse]()

@@ -19,7 +19,7 @@ require (
 )
 
 require (
-	github.com/griffnb/core/lib v0.0.13
+	github.com/griffnb/core/lib v0.0.15
 	github.com/openai/openai-go/v3 v3.10.0
 	github.com/slack-go/slack v0.16.0
 	github.com/stripe/stripe-go/v83 v83.2.1
