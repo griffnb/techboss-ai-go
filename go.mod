@@ -20,7 +20,7 @@ require (
 
 require (
 	github.com/griffnb/core/lib v0.0.13
-	github.com/openai/openai-go/v3 v3.2.0
+	github.com/openai/openai-go/v3 v3.10.0
 	github.com/slack-go/slack v0.16.0
 	github.com/stripe/stripe-go/v83 v83.2.1
 )
@@ -66,10 +66,11 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mediocregopher/radix/v3 v3.8.1 // indirect
+	github.com/openai/openai-go/v2 v2.7.1 // indirect
 	github.com/pquerna/cachecontrol v0.2.0 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/serialx/hashring v0.0.0-20200727003509-22c0c7ab6b1b // indirect
-	github.com/tidwall/gjson v1.14.4 // indirect
+	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect

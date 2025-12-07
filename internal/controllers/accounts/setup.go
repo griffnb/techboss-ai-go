@@ -19,6 +19,12 @@ const (
 
 // Setup sets up the router
 func Setup(coreRouter *router.CoreRouter) {
+	coreRouter.AddMainRoute(tools.BuildString("/api/", ROUTE), func(r chi.Router) {
+		r.Group(func(apiR chi.Router) {
+			apiR.Get("/{id}", helpers.ApiAuthRequestWrapper(response.StandardRequestWrapper(internalAPIAccount)))
+		})
+	})
+
 	// Admin routes
 	coreRouter.AddMainRoute(tools.BuildString("/admin/", ROUTE), func(r chi.Router) {
 		r.Group(func(adminR chi.Router) {

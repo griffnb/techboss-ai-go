@@ -49,6 +49,7 @@ func generateSchema(t reflect.Type) map[string]interface{} {
 	}
 
 	properties := schema["properties"].(map[string]interface{})
+	var required []string
 
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
@@ -61,6 +62,10 @@ func generateSchema(t reflect.Type) map[string]interface{} {
 					properties[k] = v
 				}
 			}
+			// Merge required fields from embedded struct
+			if embeddedRequired, ok := embeddedSchema["required"].([]string); ok {
+				required = append(required, embeddedRequired...)
+			}
 			continue
 		}
 
@@ -71,6 +76,15 @@ func generateSchema(t reflect.Type) map[string]interface{} {
 
 		fieldSchema := generateFieldSchema(field.Type)
 		properties[jsonTag] = fieldSchema
+
+		// Check for required tag
+		if requiredTag := field.Tag.Get("required"); requiredTag == "true" {
+			required = append(required, jsonTag)
+		}
+	}
+
+	if len(required) > 0 {
+		schema["required"] = required
 	}
 
 	return schema
