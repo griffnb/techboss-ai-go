@@ -11,7 +11,7 @@ linters:
   settings:
     wrapcheck:
       ignore-package-globs:
-        - github.com/CrowdShield/*
+        - github.com/griffnb/*
   exclusions:
     generated: lax
     rules:
