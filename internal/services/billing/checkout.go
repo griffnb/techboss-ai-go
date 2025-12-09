@@ -107,3 +107,13 @@ func SuccessfulStripeCheckout(
 	org.BillingPlanID.Set(subObj.BillingPlanID.Get())
 	return org.Save(savingUser)
 }
+
+// TODO
+func ProcessStripeCancel(_ context.Context, _ *organization.Organization, _ *subscription.Subscription, _ coremodel.Model) error {
+	return nil
+}
+
+// TODO
+func ProcessStripeResume(_ context.Context, _ *organization.Organization, _ *subscription.Subscription, _ coremodel.Model) error {
+	return nil
+}

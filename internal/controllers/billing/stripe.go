@@ -24,7 +24,7 @@ type CheckoutSuccessPost struct {
 	PromoCode      string `json:"promo_code"`
 }
 
-func authStripeCheckoutSuccess(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
+func authStripeCheckoutSuccess(_ http.ResponseWriter, _ *http.Request) (bool, int, error) {
 	/*
 		userSession := request.GetReqSession(req)
 

@@ -12,5 +12,4 @@ func TestDocument_GetFilePath(t *testing.T) {
 	if path != "stbl/core.webp" {
 		t.Errorf("Expected stbl/core.webp, got %s", path)
 	}
-
 }

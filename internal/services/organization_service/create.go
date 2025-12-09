@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func CreateOrganization(ctx context.Context, accountObj *account.Account) (*organization.Organization, error) {
+func CreateOrganization(_ context.Context, accountObj *account.Account) (*organization.Organization, error) {
 	org := organization.New()
 	org.Name.Set(accountObj.GetName())
 	org.Properties.Set(&organization.Properties{

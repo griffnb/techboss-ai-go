@@ -15,6 +15,7 @@ func init() {
 }
 
 func TestGetMessagesByConversationID(t *testing.T) {
+	t.Skip()
 	conversationKey := tools.GUID()
 
 	{

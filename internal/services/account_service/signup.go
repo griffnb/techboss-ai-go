@@ -14,7 +14,7 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/services/email_sender"
 )
 
-func EmailVerified(ctx context.Context, accountObj *account.Account, savingUser coremodel.Model) error {
+func EmailVerified(_ context.Context, accountObj *account.Account, savingUser coremodel.Model) error {
 	accountObj.EmailVerifiedAtTS.Set(time.Now().Unix())
 	// Check if organization exists for whitelisted domain
 	org, err := IsWhitelistedDomain(accountObj)

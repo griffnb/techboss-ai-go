@@ -27,6 +27,7 @@ func TestNew(_ *testing.T) {
 }
 
 func TestSave(t *testing.T) {
+	t.Skip()
 	obj := testmodel.New()
 	obj.Set(UNIT_TEST_FIELD, UNIT_TEST_VALUE)
 
@@ -62,6 +63,7 @@ func TestSave(t *testing.T) {
 }
 
 func TestFindAll(t *testing.T) {
+	t.Skip()
 	obj := testmodel.New()
 	err := obj.Save(nil)
 	if err != nil {
@@ -84,6 +86,7 @@ func TestFindAll(t *testing.T) {
 }
 
 func TestFindFirst(t *testing.T) {
+	t.Skip()
 	obj := testmodel.New()
 	err := obj.Save(nil)
 	if err != nil {

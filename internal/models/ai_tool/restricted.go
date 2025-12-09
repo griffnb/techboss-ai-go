@@ -5,7 +5,6 @@ import (
 
 	"github.com/griffnb/core/lib/model"
 	"github.com/griffnb/core/lib/model/coremodel"
-	"github.com/griffnb/core/lib/sanitize"
 	"github.com/griffnb/core/lib/types"
 )
 
@@ -56,19 +55,4 @@ func GetRestricted(ctx context.Context, id types.UUID, _ coremodel.Model) (*AiTo
 	//	WithParam(":account_id:", sessionAccount.ID())
 
 	return FindFirst(ctx, options)
-}
-
-// NewPublic creates a new model instance with sanitized input and session account context
-// TODO: Add any session-specific initialization
-func NewPublic(data map[string]any, sessionAccount coremodel.Model) *AiTool {
-	obj := New()
-	data = sanitize.SanitizeModelInput(data, obj, &Structure{})
-	obj.MergeData(data)
-	// obj.AccountID.Set(sessionAccount.ID())
-	return obj
-}
-
-func UpdatePublic(obj *AiTool, data map[string]any, sessionAccount coremodel.Model) {
-	data = sanitize.SanitizeModelInput(data, obj, &Structure{})
-	obj.MergeData(data)
 }

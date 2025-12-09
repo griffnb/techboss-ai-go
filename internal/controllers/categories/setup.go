@@ -1,4 +1,4 @@
-//go:generate core_gen controller Category -modelPackage=category
+//go:generate core_gen controller Category -modelPackage=category -skip=authCreate,authUpdate
 package categories
 
 import (
@@ -55,14 +55,6 @@ func Setup(coreRouter *router.CoreRouter) {
 			}))
 			authR.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authGet),
-			}))
-		})
-		r.Group(func(authR chi.Router) {
-			authR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authCreate),
-			}))
-			authR.Put("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authUpdate),
 			}))
 		})
 	})

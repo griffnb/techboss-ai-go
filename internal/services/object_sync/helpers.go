@@ -6,15 +6,6 @@ import (
 	"github.com/griffnb/core/lib/types"
 )
 
-// getIDsFromMap returns the IDs from a map of models
-func getIDsFromMap(m map[types.UUID]coremodel.Model) []types.UUID {
-	ids := make([]types.UUID, 0)
-	for id := range m {
-		ids = append(ids, id)
-	}
-	return ids
-}
-
 func Lookup(objMap map[string]map[types.UUID]coremodel.Model, otherObj coremodel.Model) coremodel.Model {
 	packageName := otherObj.GetPackage()
 	id := otherObj.ID()

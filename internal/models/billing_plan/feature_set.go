@@ -5,12 +5,9 @@ const (
 	FEATURE_ENABLED  int64 = 1
 )
 
-type FeatureSet struct {
-}
+type FeatureSet struct{}
 
-type MergeableFeatureSet struct {
-}
+type MergeableFeatureSet struct{}
 
-func (this *FeatureSet) Merge(that *MergeableFeatureSet) {
-
+func (this *FeatureSet) Merge(_ *MergeableFeatureSet) {
 }

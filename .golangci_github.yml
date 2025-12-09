@@ -16,6 +16,8 @@ linters:
     generated: lax
     rules:
       - path: (.+)\.go$
+        text: blank-imports
+      - path: (.+)\.go$
         text: ST1006
       - path: (.+)\.go$
         text: ST1003
