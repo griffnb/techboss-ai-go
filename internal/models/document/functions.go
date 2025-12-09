@@ -10,7 +10,7 @@ import (
 
 func (this *Document) GetFilePath(field string) string {
 	fullURL := this.GetString(field)
-	fullURL = strings.Replace(fullURL, "https://", "", -1)
+	fullURL = strings.ReplaceAll(fullURL, "https://", "")
 	urlParts := strings.Split(fullURL, "/")
 	return strings.Join(urlParts[1:], "/")
 }

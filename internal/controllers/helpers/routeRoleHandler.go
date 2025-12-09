@@ -83,12 +83,7 @@ func handleAdminRoute(res http.ResponseWriter, req *http.Request, roleHandlers R
 }
 
 func handlePublicRoute(res http.ResponseWriter, req *http.Request, roleHandlers RoleHandlerMap) {
-	userSession, err := getAccountSession(req)
-	if err != nil {
-		log.ErrorContext(err, req.Context())
-		response.ErrorWrapper(res, req, "internal error", http.StatusBadRequest)
-		return
-	}
+	userSession := getAccountSession(req)
 
 	if tools.Empty(userSession) {
 		if handler, ok := roleHandlers[constants.ROLE_UNAUTHORIZED]; ok {

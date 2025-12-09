@@ -24,7 +24,7 @@ func TestFindAll(t *testing.T) {
 	ctx := context.Background()
 
 	obj := global_config.New()
-	obj.Set("value", 54871)
+	obj.Set("value", "54871")
 	err := obj.Save(nil)
 	if err != nil {
 		t.Fatalf(`Save Err %v`, err)
@@ -48,7 +48,7 @@ func TestFindFirst(t *testing.T) {
 	ctx := context.Background()
 
 	obj := global_config.New()
-	obj.Set("value", 54871)
+	obj.Set("value", "54871")
 	err := obj.Save(nil)
 	if err != nil {
 		t.Fatalf(`Save Err %v`, err)
@@ -74,7 +74,7 @@ func TestFindFirst(t *testing.T) {
 func TestGet(t *testing.T) {
 	ctx := context.Background()
 	obj := global_config.New()
-	obj.Set("value", 54871)
+	obj.Set("value", "54871")
 	err := obj.Save(nil)
 	if err != nil {
 		t.Fatalf(`Save Err %v`, err)

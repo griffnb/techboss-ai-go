@@ -11,11 +11,12 @@ linters:
   settings:
     wrapcheck:
       ignore-package-globs:
-        - github.com/CrowdShield/*
         - github.com/griffnb/*
   exclusions:
     generated: lax
     rules:
+      - path: (.+)\.go$
+        text: blank-imports
       - path: (.+)\.go$
         text: ST1006
       - path: (.+)\.go$

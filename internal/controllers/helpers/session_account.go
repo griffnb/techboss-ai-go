@@ -14,13 +14,13 @@ func GetLoadedUser(req *http.Request) *account.Account {
 	return userSession.LoadedUser.(*account.Account)
 }
 
-func getAccountSession(req *http.Request) (*session.Session, error) {
+func getAccountSession(req *http.Request) *session.Session {
 	accountSession := getCustomAccountSession(req)
 	if !tools.Empty(accountSession) {
-		return accountSession, nil
+		return accountSession
 	}
 
-	return nil, nil
+	return nil
 }
 
 func loadAccount(req *http.Request, accountSession *session.Session) (*account.Account, error) {

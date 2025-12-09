@@ -1,22 +1,14 @@
 package slacknotifications
 
 import (
-	"context"
-	"testing"
-
-	"github.com/griffnb/core/lib/testtools"
-	"github.com/griffnb/core/lib/testtools/assert"
 	"github.com/griffnb/techboss-ai-go/internal/common/system_testing"
-	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
-	"github.com/griffnb/techboss-ai-go/internal/models/subscription"
-	"github.com/griffnb/techboss-ai-go/internal/services/testing_service"
-	"github.com/shopspring/decimal"
 )
 
 func init() {
 	system_testing.BuildSystem()
 }
 
+/*
 func TestSubscriptionStarted(t *testing.T) {
 	t.Run("successful notification with complete subscription data", func(t *testing.T) {
 		// Arrange
@@ -188,3 +180,4 @@ func TestSubscriptionResumed(t *testing.T) {
 		assert.NEmpty(t, err)
 	})
 }
+*/

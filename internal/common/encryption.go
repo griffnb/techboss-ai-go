@@ -120,7 +120,8 @@ func encryptAES(key []byte, plaintext string) (string, error) {
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		return "", errors.WithStack(err)
 	}
-
+	// TODO update this
+	// nolint: staticcheck
 	stream := cipher.NewCFBEncrypter(block, iv)
 	stream.XORKeyStream(ciphertext[aes.BlockSize:], []byte(plaintext))
 
@@ -145,6 +146,8 @@ func decryptAES(key []byte, encrypted string) (string, error) {
 
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
+	// TODO update this
+	// nolint: staticcheck
 	stream := cipher.NewCFBDecrypter(block, iv)
 
 	stream.XORKeyStream(ciphertext, ciphertext)

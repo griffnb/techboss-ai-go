@@ -23,13 +23,13 @@ func Setup(coreRouter *router.CoreRouter) {
 				constants.ROLE_ORG_ADMIN: response.StandardPublicRequestWrapper(authStripeCheckoutSuccess),
 			}))
 
-			//authR.Post("/cancel", helpers.RoleHandler(helpers.RoleHandlerMap{
-			//	constants.ROLE_ORG_ADMIN: response.StandardPublicRequestWrapper(authCancel),
-			//}))
-			//
-			//authR.Post("/resume", helpers.RoleHandler(helpers.RoleHandlerMap{
-			//	constants.ROLE_ORG_ADMIN: response.StandardPublicRequestWrapper(authResume),
-			//}))
+			authR.Post("/cancel", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ORG_ADMIN: response.StandardPublicRequestWrapper(authCancel),
+			}))
+
+			authR.Post("/resume", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ORG_ADMIN: response.StandardPublicRequestWrapper(authResume),
+			}))
 
 			//authR.Get("/portal", helpers.RoleHandler(helpers.RoleHandlerMap{
 			//	constants.ROLE_ORG_ADMIN: response.StandardRequestWrapper(authPortal),
@@ -37,9 +37,9 @@ func Setup(coreRouter *router.CoreRouter) {
 		})
 
 		r.Group(func(openR chi.Router) {
-			//openR.Post("/stripe/webhook", helpers.RoleHandler(helpers.RoleHandlerMap{
-			//	constants.ROLE_UNAUTHORIZED: openStripeHook,
-			//}))
+			openR.Post("/stripe/webhook", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_UNAUTHORIZED: openStripeHook,
+			}))
 		})
 	})
 }

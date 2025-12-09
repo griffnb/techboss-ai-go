@@ -64,7 +64,10 @@ func (this *WebhookEventService) ProcessUnpaid(ctx context.Context, stripeSub *s
 	}
 
 	this.Subscription = subObj
-	this.Subscription.ProcessUnpaid(stripeSub)
+	err = this.Subscription.ProcessUnpaid(stripeSub)
+	if err != nil {
+		return err
+	}
 	return this.Subscription.Save(nil)
 }
 

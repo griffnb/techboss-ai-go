@@ -1,88 +1,77 @@
 package billing
 
-/*
+import (
+	"net/http"
+
+	"github.com/griffnb/core/lib/router/request"
+	"github.com/griffnb/core/lib/router/response"
+	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
+	"github.com/griffnb/techboss-ai-go/internal/models/organization"
+	"github.com/griffnb/techboss-ai-go/internal/models/subscription"
+
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/techboss-ai-go/internal/services/billing"
+	"github.com/pkg/errors"
+)
+
 func authCancel(_ http.ResponseWriter, req *http.Request) (any, int, error) {
-	userSession := helpers.GetReqSession(req)
+	session := request.GetReqSession(req)
 	accountObj := helpers.GetLoadedUser(req)
 
-	subscriptionInfo, err := family_subscription.GetJoinedActiveByFamilyID(req.Context(), accountObj.FamilyID.Get())
+	subscriptionInfo, err := subscription.GetActiveByOrganizationID(req.Context(), accountObj.OrganizationID.Get())
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError()
+		return response.PublicBadRequestError[any]()
+	}
+
+	org, err := organization.Get(req.Context(), accountObj.OrganizationID.Get())
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[any]()
 	}
 
 	if tools.Empty(subscriptionInfo) {
-		log.ErrorContext(errors.Errorf("failed to get active subscription for family %s", accountObj.FamilyID.Get()), req.Context())
-		return helpers.PublicBadRequestError()
+		log.ErrorContext(errors.Errorf("failed to get active subscription for organization %s", accountObj.OrganizationID.Get()), req.Context())
+		return response.PublicBadRequestError[any]()
 	}
 
-		fullAccount, err := account.GetJoinedFull(req.Context(), accountObj.ID())
-		if err != nil {
-			log.ErrorContext(err, req.Context())
-			return helpers.PublicBadRequestError()
-		}
-		err = billing.ProcessStripeCancel(req.Context(), fullAccount, &subscriptionInfo.FamilySubscription, userSession.User)
-		if err != nil {
-			log.ErrorContext(err, req.Context())
-			return helpers.PublicBadRequestError()
-		}
+	err = billing.ProcessStripeCancel(req.Context(), org, subscriptionInfo, session.User)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[any]()
 	}
 
-	return helpers.Success(subscriptionInfo)
+	return response.Success(subscriptionInfo)
 }
-
 
 func authResume(_ http.ResponseWriter, req *http.Request) (any, int, error) {
-	userSession := helpers.GetReqSession(req)
+	userSession := request.GetReqSession(req)
 
 	accountObj := helpers.GetLoadedUser(req)
 
-	subscriptionInfo, err := family_subscription.GetJoinedActiveByFamilyID(req.Context(), accountObj.FamilyID.Get())
+	subscriptionInfo, err := subscription.GetActiveByOrganizationID(req.Context(), accountObj.OrganizationID.Get())
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError()
+		return response.PublicBadRequestError[any]()
 	}
 
 	if tools.Empty(subscriptionInfo) {
-		log.ErrorContext(errors.Errorf("failed to get active subscription for family %s", accountObj.FamilyID.Get()), req.Context())
-		return helpers.PublicBadRequestError()
+		log.ErrorContext(errors.Errorf("failed to get active subscription for organization %s", accountObj.OrganizationID.Get()), req.Context())
+		return response.PublicBadRequestError[any]()
 	}
 
-	switch subscriptionInfo.BillingProvider.Get() {
-	case constants.BILLING_PROVIDER_CHARGEBEE:
-
-		err = billing.ProcessChargebeeResume(req.Context(), &subscriptionInfo.FamilySubscription, userSession.User)
-		if err != nil {
-			log.ErrorContext(err, req.Context())
-			return helpers.PublicBadRequestError()
-		}
-
-	case constants.BILLING_PROVIDER_STRIPE:
-		fullAccount, err := account.GetJoinedFull(req.Context(), accountObj.ID())
-		if err != nil {
-			log.ErrorContext(err, req.Context())
-			return helpers.PublicBadRequestError()
-		}
-		err = billing.ProcessStripeResume(req.Context(), fullAccount, &subscriptionInfo.FamilySubscription, userSession.User)
-		if err != nil {
-			log.ErrorContext(err, req.Context())
-			return helpers.PublicBadRequestError()
-		}
-
-	}
-
-	return helpers.Success(subscriptionInfo)
-}
-/*
-func authPortal(_ http.ResponseWriter, req *http.Request) (any, int, error) {
-	accountObj := helpers.GetLoadedUser(req)
-
-	portal, err := billing.StripePortal(req.Context(), &accountObj.Account)
+	organization, err := organization.Get(req.Context(), accountObj.OrganizationID.Get())
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return helpers.PublicBadRequestError()
+		return response.PublicBadRequestError[any]()
 	}
 
-	return helpers.Success(portal)
+	err = billing.ProcessStripeResume(req.Context(), organization, subscriptionInfo, userSession.User)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[any]()
+	}
+
+	return response.Success(subscriptionInfo)
 }
-*/

@@ -5,7 +5,6 @@ import (
 
 	"github.com/griffnb/core/lib/model"
 	"github.com/griffnb/core/lib/model/coremodel"
-	"github.com/griffnb/core/lib/sanitize"
 	"github.com/griffnb/core/lib/types"
 )
 
@@ -13,15 +12,15 @@ import (
 // TODO: Implement specific access restrictions for this model
 func FindAllRestrictedJoined(ctx context.Context, options *model.Options, sessionAccount coremodel.Model) ([]*SubscriptionJoined, error) {
 	// Uncomment and adjust the following lines to implement proper restrictions
-	// options.WithCondition("%s = :account_id:", Columns.AccountID.Column())
-	// options.WithParam(":account_id:", sessionAccount.ID())
+	options.WithCondition("%s = :organization_id:", Columns.OrganizationID.Column())
+	options.WithParam(":organization_id:", sessionAccount.GetString("organization_id"))
 	return FindAllJoined(ctx, options)
 }
 
 func FindAllRestricted(ctx context.Context, options *model.Options, sessionAccount coremodel.Model) ([]*Subscription, error) {
 	// Uncomment and adjust the following lines to implement proper restrictions
-	// options.WithCondition("%s = :account_id:", Columns.AccountID.Column())
-	// options.WithParam(":account_id:", sessionAccount.ID())
+	options.WithCondition("%s = :organization_id:", Columns.OrganizationID.Column())
+	options.WithParam(":organization_id:", sessionAccount.GetString("organization_id"))
 	return FindAll(ctx, options)
 }
 
@@ -29,8 +28,8 @@ func FindAllRestricted(ctx context.Context, options *model.Options, sessionAccou
 // TODO: Implement specific access restrictions for this model
 func CountRestricted(ctx context.Context, options *model.Options, sessionAccount coremodel.Model) (int64, error) {
 	// Uncomment and adjust the following lines to implement proper restrictions
-	// options.WithCondition("%s = :account_id:", Columns.AccountID.Column())
-	// options.WithParam(":account_id:", sessionAccount.ID())
+	options.WithCondition("%s = :organization_id:", Columns.OrganizationID.Column())
+	options.WithParam(":organization_id:", sessionAccount.GetString("organization_id"))
 	return FindResultsCount(ctx, options)
 }
 
@@ -40,8 +39,8 @@ func GetRestrictedJoined(ctx context.Context, id types.UUID, sessionAccount core
 	options := model.NewOptions().
 		WithCondition("%s.id = :id:", TABLE).
 		WithParam(":id:", id).
-		WithCondition("%s = :account_id:", Columns.OrganizationID.Column()).
-		WithParam(":account_id:", sessionAccount.ID())
+		WithCondition("%s = :organization_id:", Columns.OrganizationID.Column()).
+		WithParam(":organization_id:", sessionAccount.GetString("organization_id"))
 
 	return FindFirstJoined(ctx, options)
 }
@@ -57,16 +56,3 @@ func GetRestricted(ctx context.Context, id types.UUID, sessionAccount coremodel.
 }
 
 // NewPublic creates a new model instance with sanitized input and session account context
-// TODO: Add any session-specific initialization
-func NewPublic(data map[string]any, sessionAccount coremodel.Model) *Subscription {
-	obj := New()
-	data = sanitize.SanitizeModelInput(data, obj, &Structure{})
-	obj.MergeData(data)
-	// obj.AccountID.Set(sessionAccount.ID())
-	return obj
-}
-
-func UpdatePublic(obj *Subscription, data map[string]any, sessionAccount coremodel.Model) {
-	data = sanitize.SanitizeModelInput(data, obj, &Structure{})
-	obj.MergeData(data)
-}

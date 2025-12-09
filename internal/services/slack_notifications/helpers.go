@@ -1,13 +1,8 @@
 package slacknotifications
 
 import (
-	"context"
 	"fmt"
 
-	"strings"
-
-	"github.com/griffnb/core/lib/log/trace"
-	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 )
@@ -25,6 +20,7 @@ func AccountLink(accountObj *account.AccountJoined) string {
 	)
 }
 
+/*
 func mobileIcon(ctx context.Context) string {
 	if isMobile(ctx) {
 		return "📱"
@@ -51,3 +47,4 @@ func isMobile(ctx context.Context) bool {
 	}
 	return false
 }
+*/

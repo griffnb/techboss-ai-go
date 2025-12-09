@@ -16,7 +16,7 @@ type APIResponse struct {
 	Organization *organization.Organization `json:"organization"`
 }
 
-func internalAPIAccount(res http.ResponseWriter, req *http.Request) (*APIResponse, int, error) {
+func internalAPIAccount(_ http.ResponseWriter, req *http.Request) (*APIResponse, int, error) {
 	id := chi.URLParam(req, "id")
 
 	accountObj, err := account.Get(req.Context(), types.UUID(id))
