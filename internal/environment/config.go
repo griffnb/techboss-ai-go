@@ -16,7 +16,13 @@ type Config struct {
 	AIKeys         *AIKeys       `json:"ai_keys"`
 	Cloudflare     *Cloudflare   `json:"cloudflare"`
 	Sendpulse      *Sendpulse    `json:"sendpulse"`
+	Modal          *Modal        `json:"modal"`
 	Stripe         *StripeConfig `json:"stripe"`
+}
+
+type Modal struct {
+	TokenID     string `json:"token_id"`
+	TokenSecret string `json:"token_secret"`
 }
 
 type Cloudflare struct {

@@ -7,10 +7,100 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/griffnb/core/lib/types"
 	"github.com/modal-labs/libmodal/modal-go"
+	"github.com/pkg/errors"
 )
 
-func main() {
+func (this *APIClient) BuildSandbox(ctx context.Context, accountID types.UUID) (*modal.Sandbox, error) {
+	app, err := this.client.Apps.FromName(ctx, "app-"+accountID.String(), &modal.AppFromNameParams{CreateIfMissing: true})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get or create App for account %s", accountID)
+	}
+
+	image := this.client.Images.FromRegistry("alpine:3.21", nil).DockerfileCommands([]string{
+		"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep",
+		"RUN curl -fsSL https://claude.ai/install.sh | bash",
+		"ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0",
+	}, nil)
+
+	// standard volume
+	volume, err := this.client.Volumes.FromName(ctx, fmt.Sprintf("volume-%s", accountID), &modal.VolumeFromNameParams{
+		CreateIfMissing: true,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create Volume for account %s", accountID)
+	}
+
+	bucketSecret, err := this.client.Secrets.FromName(ctx, "s3-bucket", nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get Secret for account %s", accountID)
+	}
+
+	// S3 bucket mount
+	keyPrefix := fmt.Sprintf("docs/%s/", accountID)
+	cloudBucketMount, err := this.client.CloudBucketMounts.New("tb-prod-agent-docs", &modal.CloudBucketMountParams{
+		Secret:    bucketSecret,
+		KeyPrefix: &keyPrefix,
+		ReadOnly:  true,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create Cloud Bucket Mount for account %s", accountID)
+	}
+
+	sb, err := this.client.Sandboxes.Create(ctx, app, image, &modal.SandboxCreateParams{
+		Volumes: map[string]*modal.Volume{
+			"/mnt/volume": volume,
+		},
+		CloudBucketMounts: map[string]*modal.CloudBucketMount{
+			"/mnt/s3-bucket": cloudBucketMount,
+		},
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create writer Sandbox for account %s", accountID)
+	}
+
+	return sb, nil
+}
+
+func (this *APIClient) TerminateSandbox(ctx context.Context, sb *modal.Sandbox) error {
+	err := sb.Terminate(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "failed to terminate Sandbox %s", sb.SandboxID)
+	}
+	return nil
+}
+
+func (this *APIClient) ExecClaude(
+	ctx context.Context,
+	sb *modal.Sandbox,
+	prompt string,
+) (*modal.ContainerProcess, error) {
+	secrets, err := this.client.Secrets.FromMap(ctx, map[string]string{
+		"ANTHROPIC_API_KEY":       "sk-xxxx",
+		"AWS_BEDROCK_API_KEY":     "ABSKxxxx",
+		"CLAUDE_CODE_USE_BEDROCK": "1",
+		"AWS_REGION":              "us-east-1", // or your preferred region
+	}, nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get secrets for Sandbox %s", sb.SandboxID)
+	}
+
+	cmd := []string{"claude", "-c", "-p", prompt, "--dangerously-skip-permissions", "--output-format", "stream-json", "--verbose"}
+
+	claude, err := sb.Exec(ctx, cmd, &modal.SandboxExecParams{
+		PTY:     true, // Adding a PTY is important, since Claude requires it!
+		Secrets: []*modal.Secret{secrets},
+		Workdir: "/repo",
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to execute command in Sandbox %s", sb.SandboxID)
+	}
+
+	return claude, nil
+}
+
+func sandbox() {
 	ctx := context.Background()
 	mc, err := modal.NewClient()
 	if err != nil {
@@ -68,6 +158,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create writer Sandbox: %v", err)
 	}
+
 	fmt.Printf("Writer Sandbox: %s\n", sb.SandboxID)
 	defer func() {
 		if err := sb.Terminate(context.Background()); err != nil {
@@ -80,6 +171,7 @@ func main() {
 		"-p",
 		"Summarize what this repository is about. Don't modify any code or files.",
 	}
+
 	fmt.Println("\nRunning command:", claudeCmd)
 
 	claudeSecret, err := mc.Secrets.FromName(ctx, "libmodal-anthropic-secret", &modal.SecretFromNameParams{
