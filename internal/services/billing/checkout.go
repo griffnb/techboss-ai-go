@@ -2,7 +2,6 @@ package billing
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/core/lib/model/coremodel"
@@ -24,7 +23,6 @@ func StripeCheckout(
 	customer := &stripe_wrapper.Customer{
 		ReturnURL: "http://localhost:5173",
 	}
-	fmt.Printf("\n\n--------Creating checkout for organization %s with plan %s------------\n\n", org.ID().String(), plan.ID().String())
 
 	if org.StripeID.IsEmpty() {
 		stripeCustomer, err := Client().CreateCustomer(ctx, org.Properties.GetI().BillingEmail, map[string]string{
@@ -48,8 +46,7 @@ func StripeCheckout(
 }
 
 type SuccessCheckout struct {
-	SubscriptionID string
-	PromoCode      string
+	PromoCode string
 }
 
 func SuccessfulStripeCheckout(
@@ -59,50 +56,29 @@ func SuccessfulStripeCheckout(
 	checkoutValues *SuccessCheckout,
 	savingUser coremodel.Model,
 ) error {
-	var subObj *subscription.Subscription
-	var err error
-	fmt.Printf("\n\n--------Processing successful checkout for organization %s with plan %s------------\n\n", org.ID().String(), plan.ID().String())
-
-	if !tools.Empty(checkoutValues.SubscriptionID) {
-		subObj, err = subscription.GetBySubscriptionID(ctx, checkoutValues.SubscriptionID)
-		if err != nil {
-			return err
-		}
-	} else {
-		subObj, err = subscription.GetByOrganizationAndPlanID(ctx, org.ID(), plan.ID())
-		if err != nil {
-			return err
-		}
+	log.Debugf("--------Processing successful checkout for organization %s with plan %s------------", org.ID().String(), plan.ID().String())
+	subObj, err := subscription.GetByOrganizationAndPlanID(ctx, org.ID(), plan.ID())
+	if err != nil {
+		return err
 	}
 
-	// Possible maybe for webhook to create it first?
+	// Create new subscription if one does not exist, webhook possibly could have come in first
 	if tools.Empty(subObj) {
 		subObj = subscription.New()
 		subObj.Status.Set(subscription.STATUS_PENDING)
 		subObj.OrganizationID.Set(org.ID())
 		subObj.BillingProvider.Set(subscription.BILLING_PROVIDER_STRIPE)
 		subObj.BillingCycle.Set(plan.BillingCycle.Get())
-		if !tools.Empty(checkoutValues.SubscriptionID) {
-			subObj.SubscriptionID.Set(checkoutValues.SubscriptionID)
-		}
 		subObj.CouponCode.Set(checkoutValues.PromoCode)
 		subObj.PriceOrPlanID.Set(plan.Properties.GetI().StripePriceID)
 		subObj.Amount.Set(plan.Price.Get())
 	}
 
-	var stripeSubscription *stripe.Subscription
-
 	subObj.BillingPlanID.Set(plan.ID())
-	if !tools.Empty(checkoutValues.SubscriptionID) {
-		stripeSubscription, err = Client().GetSubscriptionByID(ctx, checkoutValues.SubscriptionID)
-		if err != nil {
-			return err
-		}
-	} else {
-		stripeSubscription, err = Client().GetSubscriptionByCustomer(ctx, org.StripeID.Get())
-		if err != nil {
-			return err
-		}
+
+	stripeSubscription, err := Client().GetSubscriptionByCustomer(ctx, org.StripeID.Get())
+	if err != nil {
+		return err
 	}
 
 	log.Debugf("--------Subscription Status on success call------------ %s", stripeSubscription.Status)
@@ -138,16 +114,81 @@ func SuccessfulStripeCheckout(
 		return err
 	}
 
-	org.BillingPlanID.Set(subObj.BillingPlanID.Get())
+	org.BillingPlanID.Set(plan.ID())
 	return org.Save(savingUser)
 }
 
-// TODO
-func ProcessStripeCancel(_ context.Context, _ *organization.Organization, _ *subscription.Subscription, _ coremodel.Model) error {
-	return nil
+func ProcessStripeCancel(ctx context.Context, sub *subscription.Subscription, savingUser coremodel.Model) error {
+	// Cancel it now but set end date to the current term end
+
+	err := Client().Cancel(ctx, sub.SubscriptionID.Get())
+	if err != nil {
+		return err
+	}
+
+	sub.Status.Set(subscription.STATUS_CANCELING)
+	sub.EndTS.Set(sub.NextBillingTS.Get())
+	return sub.Save(savingUser)
 }
 
 // TODO
-func ProcessStripeResume(_ context.Context, _ *organization.Organization, _ *subscription.Subscription, _ coremodel.Model) error {
+func ProcessStripeResume(ctx context.Context, sub *subscription.Subscription, savingUser coremodel.Model) error {
+	err := Client().Resume(ctx, sub.SubscriptionID.Get())
+	if err != nil {
+		return err
+	}
+
+	sub.Status.Set(subscription.STATUS_ACTIVE)
+	return sub.Save(savingUser)
+}
+
+func ProcessStripePlanChange(
+	ctx context.Context,
+	org *organization.Organization,
+	currentSub *subscription.Subscription,
+	newPlan *billing_plan.BillingPlan,
+	savingUser coremodel.Model,
+) error {
+	stripeSub, err := Client().GetSubscriptionByID(ctx, currentSub.SubscriptionID.Get())
+	if err != nil {
+		return err
+	}
+
+	itemID := stripeSub.Items.Data[0].ID
+
+	err = Client().Change(ctx, currentSub.SubscriptionID.Get(), itemID, newPlan.Properties.GetI().StripePriceID)
+	if err != nil {
+		return err
+	}
+
+	// Disable current subscription and create a new one
+	currentSub.Status.Set(subscription.STATUS_DISABLED)
+	err = currentSub.Save(savingUser)
+	if err != nil {
+		return err
+	}
+
+	// Create new subscription record to track new plan
+	newSub := subscription.New()
+	newSub.OrganizationID.Set(currentSub.OrganizationID.Get())
+	newSub.BillingProvider.Set(subscription.BILLING_PROVIDER_STRIPE)
+	newSub.BillingCycle.Set(newPlan.BillingCycle.Get())
+	newSub.SubscriptionID.Set(currentSub.SubscriptionID.Get())
+	newSub.Status.Set(subscription.STATUS_ACTIVE)
+	newSub.PriceOrPlanID.Set(newPlan.Properties.GetI().StripePriceID)
+	newSub.Amount.Set(newPlan.Price.Get())
+	newSub.BillingPlanID.Set(newPlan.ID())
+
+	err = newSub.Save(savingUser)
+	if err != nil {
+		return err
+	}
+
+	org.BillingPlanID.Set(newPlan.ID())
+	err = org.Save(savingUser)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

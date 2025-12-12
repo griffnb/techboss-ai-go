@@ -19,9 +19,8 @@ import (
 )
 
 type CheckoutSuccessPost struct {
-	SubscriptionID string `json:"subscription_id"`
-	BillingPlanID  string `json:"billing_plan_id"`
-	PromoCode      string `json:"promo_code"`
+	BillingPlanID string `json:"billing_plan_id"`
+	PromoCode     string `json:"promo_code"`
 }
 
 func authStripeCheckoutSuccess(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
@@ -45,8 +44,7 @@ func authStripeCheckoutSuccess(_ http.ResponseWriter, req *http.Request) (bool, 
 	}
 
 	err = billing.SuccessfulStripeCheckout(req.Context(), organizationObj, plan, &billing.SuccessCheckout{
-		SubscriptionID: checkoutSuccess.SubscriptionID,
-		PromoCode:      checkoutSuccess.PromoCode,
+		PromoCode: checkoutSuccess.PromoCode,
 	}, accountObj)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
@@ -113,6 +111,5 @@ func authStripeCheckout(_ http.ResponseWriter, req *http.Request) (*stripe_wrapp
 	}
 
 	checkoutProps.PromoCode = checkoutData.PromotionCode
-
 	return response.Success(checkoutProps)
 }
