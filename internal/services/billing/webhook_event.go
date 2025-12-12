@@ -90,16 +90,21 @@ func ProcessStripeEvent(ctx context.Context, event stripe.Event) error {
 	if err != nil {
 		return err
 	}
-	subObj := service.Subscription
 
-	if subObj.IsNew() {
-		err := mergeBillingInfo(subObj, stripeSub)
-		if err != nil {
-			return err
+	// Succeeded
+	if !tools.Empty(service.Subscription) {
+		subObj := service.Subscription
+
+		if subObj.IsNew() {
+			err := mergeBillingInfo(subObj, stripeSub)
+			if err != nil {
+				return err
+			}
 		}
-	}
 
-	return subObj.Save(nil)
+		return subObj.Save(nil)
+	}
+	return nil
 }
 
 func mergeBillingInfo(subObj *subscription.Subscription, stripeSub *stripe.Subscription) error {

@@ -19,51 +19,39 @@ import (
 )
 
 type CheckoutSuccessPost struct {
-	HostedPageID   string `json:"hosted_page_id"`
 	SubscriptionID string `json:"subscription_id"`
+	BillingPlanID  string `json:"billing_plan_id"`
 	PromoCode      string `json:"promo_code"`
 }
 
-func authStripeCheckoutSuccess(_ http.ResponseWriter, _ *http.Request) (bool, int, error) {
-	/*
-		userSession := request.GetReqSession(req)
+func authStripeCheckoutSuccess(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
+	accountObj := helpers.GetLoadedUser(req)
+	checkoutSuccess, err := request.GetJSONPostAs[*CheckoutSuccessPost](req)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[bool]()
+	}
 
-		checkoutSuccess := &CheckoutSuccessPost{}
-		err := request.GetJSONPostDataStruct(req, checkoutSuccess)
-		if err != nil {
-			log.ErrorContext(err, req.Context())
-			return response.PublicBadRequestError[bool]()
-		}
+	organizationObj, err := organization.Get(req.Context(), accountObj.OrganizationID.Get())
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[bool]()
+	}
 
-		accountObj, err := account.Get(req.Context(), userSession.User.ID())
-		if err != nil {
-			log.ErrorContext(err, req.Context())
-			return response.PublicBadRequestError[bool]()
-		}
-		currentPlan, err := billing_plan.GetJoinedPlanForFamily(req.Context(), accountObj.FamilyID.Get())
-		if err != nil {
-			log.ErrorContext(err, req.Context())
-			return response.PublicBadRequestError[bool]()
-		}
+	plan, err := billing_plan.Get(req.Context(), types.UUID(checkoutSuccess.BillingPlanID))
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[bool]()
+	}
 
-		if !tools.Empty(checkoutSuccess.SubscriptionID) {
-			err = billing.ProcessStripeSuccessCheckout(req.Context(), accountObj, &plan.OrganizationSubscriptionPlan, &billing.SuccessCheckout{
-				SubscriptionID: checkoutSuccess.SubscriptionID,
-				PromoCode:      checkoutSuccess.PromoCode,
-			}, userSession.User)
-			if err != nil {
-				log.ErrorContext(err, req.Context())
-				return response.PublicBadRequestError[bool]()
-			}
-		} else if !tools.Empty(checkoutSuccess.HostedPageID) {
-
-			err = billing.ProcessChargebeeSuccessCheckout(req.Context(), &accountObj.Account, checkoutSuccess.HostedPageID, types.UUID(checkoutSuccess.OrganizationPlanID), userSession.User)
-			if err != nil {
-				log.ErrorContext(err, req.Context())
-				return response.PublicBadRequestError[bool]()
-			}
-		}
-	*/
+	err = billing.SuccessfulStripeCheckout(req.Context(), organizationObj, plan, &billing.SuccessCheckout{
+		SubscriptionID: checkoutSuccess.SubscriptionID,
+		PromoCode:      checkoutSuccess.PromoCode,
+	}, accountObj)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[bool]()
+	}
 
 	return response.Success(true)
 }

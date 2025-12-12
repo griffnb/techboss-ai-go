@@ -10,6 +10,7 @@ import (
 type mocker interface {
 	GetBySubscriptionID(ctx context.Context, subscriptionID string) (*Subscription, error)
 	GetActiveByOrganizationID(ctx context.Context, organizationID types.UUID) (*Subscription, error)
+	GetByOrganizationAndPlanID(ctx context.Context, organizationID types.UUID, planID types.UUID) (*Subscription, error)
 }
 
 // GetBySubscriptionID finds a subscription by its Stripe subscription ID.
@@ -39,4 +40,18 @@ func GetActiveByOrganizationID(ctx context.Context, organizationID types.UUID) (
 		WithCondition("%s = 0", Columns.EndTS.Column()).
 		WithCondition("%s = 0", Columns.Disabled.Column()).
 		WithParam(":organization_id:", organizationID))
+}
+
+func GetByOrganizationAndPlanID(ctx context.Context, organizationID types.UUID, planID types.UUID) (*Subscription, error) {
+	mocker, ok := model.GetMocker[mocker](ctx, PACKAGE)
+	if ok {
+		return mocker.GetByOrganizationAndPlanID(ctx, organizationID, planID)
+	}
+
+	return FindFirst(ctx, model.NewOptions().
+		WithCondition("%s = :organization_id:", Columns.OrganizationID.Column()).
+		WithCondition("%s = :plan_id:", Columns.BillingPlanID.Column()).
+		WithCondition("%s = 0", Columns.Disabled.Column()).
+		WithParam(":organization_id:", organizationID).
+		WithParam(":plan_id:", planID))
 }

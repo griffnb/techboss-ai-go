@@ -28,15 +28,15 @@ type Structure struct {
 
 type DBColumns struct {
 	base.Structure
-	Name                *fields.StringField                           `column:"name"                  type:"text"  default:""`
-	ExternalID          *fields.StringField                           `column:"external_id"           type:"text"  default:"null" null:"true" index:"true" unique:"true"`
-	StripeID            *fields.StringField                           `column:"stripe_id"             type:"text"  default:"null" null:"true" index:"true"`
-	BillingPlanID       *fields.UUIDField                             `column:"billing_plan_id"       type:"uuid"  default:"null" null:"true" index:"true"               public:"view"`
-	Properties          *fields.StructField[*Properties]              `column:"properties"            type:"jsonb" default:"{}"                                          public:"view"`
-	MetaData            *fields.StructField[*MetaData]                `column:"meta_data"             type:"jsonb" default:"{}"                                          public:"view"`
-	EmailDomains        *fields.StructField[[]string]                 `column:"email_domains"         type:"jsonb" default:"[]"               index:"true"`
-	Subdomain           *fields.StringField                           `column:"subdomain"             type:"text"  default:""`
-	FeatureSetOverrides *fields.StructField[*billing_plan.FeatureSet] `column:"feature_set_overrides" type:"jsonb" default:"{}"`
+	Name                *fields.StringField                           `public:"edit" column:"name"                  type:"text"  default:""`
+	ExternalID          *fields.StringField                           `              column:"external_id"           type:"text"  default:"null" null:"true" index:"true" unique:"true"`
+	StripeID            *fields.StringField                           `              column:"stripe_id"             type:"text"  default:"null" null:"true" index:"true"`
+	BillingPlanID       *fields.UUIDField                             `public:"view" column:"billing_plan_id"       type:"uuid"  default:"null" null:"true" index:"true"`
+	Properties          *fields.StructField[*Properties]              `public:"view" column:"properties"            type:"jsonb" default:"{}"`
+	MetaData            *fields.StructField[*MetaData]                `public:"view" column:"meta_data"             type:"jsonb" default:"{}"`
+	EmailDomains        *fields.StructField[[]string]                 `              column:"email_domains"         type:"jsonb" default:"[]"               index:"true"`
+	Subdomain           *fields.StringField                           `              column:"subdomain"             type:"text"  default:""`
+	FeatureSetOverrides *fields.StructField[*billing_plan.FeatureSet] `              column:"feature_set_overrides" type:"jsonb" default:"{}"`
 }
 
 type JoinData struct {
