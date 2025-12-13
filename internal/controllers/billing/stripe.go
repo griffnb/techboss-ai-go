@@ -12,6 +12,7 @@ import (
 	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/griffnb/techboss-ai-go/internal/services/billing"
+	"github.com/pkg/errors"
 
 	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan_price"
@@ -23,6 +24,7 @@ type CheckoutSuccessPost struct {
 	PromoCode          string `json:"promo_code"`
 }
 
+// @link {models}/src/models/billing_plan/services/_checkout.ts:checkoutSuccess
 func authStripeCheckoutSuccess(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
 	accountObj := helpers.GetLoadedUser(req)
 	checkoutSuccess, err := request.GetJSONPostAs[*CheckoutSuccessPost](req)
@@ -59,6 +61,7 @@ type Checkout struct {
 	PromotionCode string `json:"promotion_code"`
 }
 
+// @link {models}/src/models/billing_plan/services/_checkout.ts:startStripeCheckout
 func authStripeCheckout(_ http.ResponseWriter, req *http.Request) (*stripe_wrapper.StripeCheckout, int, error) {
 	accountObj := helpers.GetLoadedUser(req)
 
@@ -78,18 +81,20 @@ func authStripeCheckout(_ http.ResponseWriter, req *http.Request) (*stripe_wrapp
 		return response.PublicBadRequestError[*stripe_wrapper.StripeCheckout]()
 	}
 
-	planPriceID := chi.URLParam(req, "id")
-	if tools.Empty(planPriceID) {
+	priceID := chi.URLParam(req, "id")
+	if tools.Empty(priceID) {
+		log.ErrorContext(errors.Errorf("no id sent"), req.Context())
 		return response.PublicBadRequestError[*stripe_wrapper.StripeCheckout]()
 	}
 
-	planPrice, err := billing_plan_price.Get(req.Context(), types.UUID(planPriceID))
+	planPrice, err := billing_plan_price.Get(req.Context(), types.UUID(priceID))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.PublicBadRequestError[*stripe_wrapper.StripeCheckout]()
 	}
 
 	if tools.Empty(planPrice) {
+		log.ErrorContext(errors.Errorf("no plan price found with id %s", priceID), req.Context())
 		return response.PublicBadRequestError[*stripe_wrapper.StripeCheckout]()
 	}
 

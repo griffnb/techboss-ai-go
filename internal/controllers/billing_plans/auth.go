@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/griffnb/core/lib/log"
-	"github.com/griffnb/core/lib/model"
 	"github.com/griffnb/core/lib/router/request"
 	"github.com/griffnb/core/lib/router/response"
 	"github.com/griffnb/core/lib/tools"
@@ -43,16 +42,12 @@ type PlanResponse struct {
 	Plans []*PlanWithPrices `json:"plans"`
 }
 type PlanWithPrices struct {
-	Plan   *billing_plan.BillingPlanJoined        `json:"plan"`
+	Plan   *billing_plan.BillingPlan              `json:"plan"`
 	Prices []*billing_plan_price.BillingPlanPrice `json:"prices"`
 }
 
 // @link {models}/src/models/billing_plan/services/_checkout.ts:getPlans
 func authPlans(_ http.ResponseWriter, req *http.Request) (*PlanResponse, int, error) {
-	userSession := request.GetReqSession(req)
-
-	user := userSession.User
-	parameters := model.NewOptions().WithCondition("%s = 0")
 	billingPlanObjs, err := billing_plan.GetAllActivePlans(req.Context())
 	if err != nil {
 		log.ErrorContext(err, req.Context())
