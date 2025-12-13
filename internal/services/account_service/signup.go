@@ -14,6 +14,7 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"
 	"github.com/griffnb/techboss-ai-go/internal/services/email_sender"
 	"github.com/griffnb/techboss-ai-go/internal/services/organization_service"
+	"github.com/pkg/errors"
 )
 
 func EmailVerified(ctx context.Context, accountObj *account.Account, savingUser coremodel.Model) error {
@@ -87,4 +88,30 @@ func IsWhitelistedDomain(accountObj *account.Account) (*organization.Organizatio
 	}
 
 	return nil, nil
+}
+
+func UpdatePrimaryEmailAddressForUnverified(ctx context.Context, accountObj *account.Account, emailAddress string) error {
+	if tools.Empty(accountObj) {
+		return errors.New("account object is empty")
+	}
+
+	if tools.Empty(emailAddress) {
+		return errors.New("email address is empty")
+	}
+
+	exists, err := account.Exists(ctx, emailAddress)
+	if err != nil {
+		return errors.Wrap(err, "failed to check if email address exists")
+	}
+	if exists {
+		return errors.New("email address already exists")
+	}
+
+	accountObj.Email.Set(emailAddress)
+	err = accountObj.Save(accountObj.ToSavingUser())
+	if err != nil {
+		return errors.Wrap(err, "failed to save account object with new email address")
+	}
+
+	return nil
 }

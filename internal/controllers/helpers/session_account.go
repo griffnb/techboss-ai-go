@@ -9,9 +9,9 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 )
 
-func GetLoadedUser(req *http.Request) *account.Account {
+func GetLoadedUser(req *http.Request) *account.AccountWithFeatures {
 	userSession := request.GetReqSession(req)
-	return userSession.LoadedUser.(*account.Account)
+	return userSession.LoadedUser.(*account.AccountWithFeatures)
 }
 
 func getAccountSession(req *http.Request) *session.Session {
@@ -23,9 +23,9 @@ func getAccountSession(req *http.Request) *session.Session {
 	return nil
 }
 
-func loadAccount(req *http.Request, accountSession *session.Session) (*account.Account, error) {
+func loadAccount(req *http.Request, accountSession *session.Session) (*account.AccountWithFeatures, error) {
 	// TODO might need to cache this
-	accnt, err := account.Get(req.Context(), accountSession.User.ID())
+	accnt, err := account.GetAccountWithFeatures(req.Context(), accountSession.User.ID())
 	if err != nil {
 		return nil, err
 	}

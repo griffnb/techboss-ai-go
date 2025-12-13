@@ -19,9 +19,25 @@ type Mocker struct {
 	FindFirstJoined  func(ctx context.Context, options *model.Options) (*AccountJoined, error)
 	FindResultsCount func(ctx context.Context, options *model.Options) (int64, error)
 	// Custom Functions
-	GetByExternalId    func(ctx context.Context, externalID string) (*Account, error)
-	GetByEmail         func(ctx context.Context, email string) (*Account, error)
-	GetExistingByEmail func(ctx context.Context, email string) (*Account, error)
+	GetAccountWithFeatures func(ctx context.Context, id types.UUID) (*AccountWithFeatures, error)
+	GetByExternalId        func(ctx context.Context, externalID string) (*Account, error)
+	GetByEmail             func(ctx context.Context, email string) (*Account, error)
+	GetExistingByEmail     func(ctx context.Context, email string) (*Account, error)
+}
+
+func GetAccountWithFeatures(ctx context.Context, id types.UUID) (*AccountWithFeatures, error) {
+	mocker, ok := model.GetMocker[*Mocker](ctx, PACKAGE)
+	if ok {
+		return mocker.GetAccountWithFeatures(ctx, id)
+	}
+
+	options := model.NewOptions().
+		WithCondition("%s.id = :id: AND %s = 0", TABLE, Columns.Disabled.Column()).
+		WithParam(":id:", id)
+	AddPlans(options)
+	AddJoinData(options)
+
+	return first[*AccountWithFeatures](ctx, options)
 }
 
 func Exists(ctx context.Context, email string) (bool, error) {
