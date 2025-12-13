@@ -16,7 +16,7 @@ type WebhookEventService struct {
 // This file contains additional helper functions for the Subscription model
 
 func (this *WebhookEventService) ProcessActive(ctx context.Context, stripeSub *stripe.Subscription) error {
-	subObj, err := subscription.GetBySubscriptionID(ctx, stripeSub.ID)
+	subObj, err := subscription.GetByStripeSubscriptionID(ctx, stripeSub.ID)
 	if err != nil {
 		return err
 	}
@@ -29,7 +29,7 @@ func (this *WebhookEventService) ProcessActive(ctx context.Context, stripeSub *s
 }
 
 func (this *WebhookEventService) ProcessCanceled(ctx context.Context, stripeSub *stripe.Subscription) error {
-	subObj, err := subscription.GetBySubscriptionID(ctx, stripeSub.ID)
+	subObj, err := subscription.GetByStripeSubscriptionID(ctx, stripeSub.ID)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (this *WebhookEventService) ProcessCanceled(ctx context.Context, stripeSub 
 }
 
 func (this *WebhookEventService) ProcessPaused(ctx context.Context, stripeSub *stripe.Subscription) error {
-	subObj, err := subscription.GetBySubscriptionID(ctx, stripeSub.ID)
+	subObj, err := subscription.GetByStripeSubscriptionID(ctx, stripeSub.ID)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func (this *WebhookEventService) ProcessPaused(ctx context.Context, stripeSub *s
 }
 
 func (this *WebhookEventService) ProcessUnpaid(ctx context.Context, stripeSub *stripe.Subscription) error {
-	subObj, err := subscription.GetBySubscriptionID(ctx, stripeSub.ID)
+	subObj, err := subscription.GetByStripeSubscriptionID(ctx, stripeSub.ID)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (this *WebhookEventService) ProcessUnpaid(ctx context.Context, stripeSub *s
 }
 
 func (this *WebhookEventService) ProcessTrialStarted(ctx context.Context, stripeSub *stripe.Subscription) error {
-	subObj, err := subscription.GetBySubscriptionID(ctx, stripeSub.ID)
+	subObj, err := subscription.GetByStripeSubscriptionID(ctx, stripeSub.ID)
 	if err != nil {
 		return err
 	}

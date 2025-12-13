@@ -27,14 +27,14 @@ type Structure struct {
 
 type DBColumns struct {
 	base.Structure
-	Name         *fields.StringField                    `public:"view" column:"name"          type:"text"     default:""`
-	InternalName *fields.StringField                    `              column:"internal_name" type:"text"     default:""`
-	BillingCycle *fields.IntConstantField[BillingCycle] `public:"view" column:"billing_cycle" type:"smallint" default:"0"`
-	Price        *fields.DecimalField                   `public:"view" column:"price"         type:"numeric"  default:"0"  scale:"4" precision:"10"`
-	FeatureSet   *fields.StructField[*FeatureSet]       `public:"view" column:"feature_set"   type:"jsonb"    default:"{}"`
-	Properties   *fields.StructField[*Properties]       `public:"view" column:"properties"    type:"jsonb"    default:"{}"`
-	Level        *fields.IntField                       `public:"view" column:"level"         type:"smallint" default:"0"`
-	IsDefault    *fields.IntField                       `public:"view" column:"is_default"    type:"smallint" default:"0"                           index:"true"`
+	Name            *fields.StringField              `public:"view" column:"name"              type:"text"     default:""`
+	Description     *fields.StringField              `public:"view" column:"description"       type:"text"     default:""`
+	InternalName    *fields.StringField              `              column:"internal_name"     type:"text"     default:""`
+	FeatureSet      *fields.StructField[*FeatureSet] `public:"view" column:"feature_set"       type:"jsonb"    default:"{}"`
+	Properties      *fields.StructField[*Properties] `public:"view" column:"properties"        type:"jsonb"    default:"{}"`
+	StripeProductID *fields.StringField              `public:"view" column:"stripe_product_id" type:"text"     default:""   index:"true"`
+	Level           *fields.IntField                 `public:"view" column:"level"             type:"smallint" default:"0"`
+	IsDefault       *fields.IntField                 `public:"view" column:"is_default"        type:"smallint" default:"0"  index:"true"`
 }
 
 type JoinData struct {

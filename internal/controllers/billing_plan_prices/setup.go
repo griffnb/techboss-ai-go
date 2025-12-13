@@ -1,5 +1,5 @@
-//go:generate core_gen controller BillingPlan -modelPackage=billing_plan -skip=authCreate,authUpdate,authIndex,adminUpdate,adminCreate
-package billing_plans
+//go:generate core_gen controller BillingPlanPrice -modelPackage=billing_plan_price -skip=authCreate,authUpdate,adminCreate,adminUpdate
+package billing_plan_prices
 
 import (
 	"github.com/go-chi/chi/v5"
@@ -9,12 +9,12 @@ import (
 	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
-	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
+	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan_price"
 )
 
 const (
-	TABLE_NAME string = billing_plan.TABLE
-	ROUTE      string = "billing_plan"
+	TABLE_NAME string = billing_plan_price.TABLE
+	ROUTE      string = "billing_plan_price"
 )
 
 // Setup sets up the router
