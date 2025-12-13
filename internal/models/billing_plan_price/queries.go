@@ -17,4 +17,14 @@ type Mocker struct {
 	FindFirstJoined  func(ctx context.Context, options *model.Options) (*BillingPlanPriceJoined, error)
 	FindResultsCount func(ctx context.Context, options *model.Options) (int64, error)
 	// Custom Functions
+	GetAllActivePrices func(ctx context.Context) ([]*BillingPlanPrice, error)
+}
+
+func GetAllActivePrices(ctx context.Context) ([]*BillingPlanPrice, error) {
+	mocker, ok := model.GetMocker[*Mocker](ctx, PACKAGE)
+	if ok {
+		return mocker.GetAllActivePrices(ctx)
+	}
+	options := model.NewOptions().WithCondition("%s = 0", Columns.Disabled.Column())
+	return FindAll(ctx, options)
 }
