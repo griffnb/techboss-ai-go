@@ -29,7 +29,7 @@ type Structure struct {
 type DBColumns struct {
 	base.Structure
 	OrganizationID       *fields.UUIDField                                         `column:"organization_id"        type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
-	BillingPlanPriceID   *fields.UUIDField                                         `column:"billing_plan_priceid"   type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
+	BillingPlanPriceID   *fields.UUIDField                                         `column:"billing_plan_price_id"  type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
 	Level                *fields.IntField                                          `column:"level"                  type:"int"      default:"0"`
 	BillingProvider      *fields.IntConstantField[BillingProvider]                 `column:"billing_provider"       type:"smallint" default:"0"    index:"true"`
 	StripeCustomerID     *fields.StringField                                       `column:"stripe_customer_id"     type:"text"     default:""     index:"true"`
@@ -43,11 +43,6 @@ type DBColumns struct {
 	CouponCode           *fields.StringField                                       `column:"coupon_code"            type:"text"     default:""                              public:"view"`
 	BillingInfo          *fields.StructField[*BillingInfo]                         `column:"billing_info"           type:"jsonb"    default:"{}"                            public:"view"`
 	MetaData             *fields.StructField[*MetaData]                            `column:"meta_data"              type:"jsonb"    default:"{}"                            public:"view"`
-}
-
-type JoinData struct {
-	CreatedByName *fields.StringField `json:"created_by_name" type:"text"`
-	UpdatedByName *fields.StringField `json:"updated_by_name" type:"text"`
 }
 
 // Subscription - Database model

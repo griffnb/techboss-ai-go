@@ -11,6 +11,7 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/controllers/billing_plans"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/categories"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/change_logs"
+	"github.com/griffnb/techboss-ai-go/internal/controllers/subscriptions"
 
 	"github.com/griffnb/core/lib/router"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/global_configs"
@@ -42,6 +43,7 @@ func Setup(coreRouter *router.CoreRouter) {
 	categories.Setup(coreRouter)
 	leads.Setup(coreRouter)
 	organizations.Setup(coreRouter)
+	subscriptions.Setup(coreRouter)
 	agents.Setup(coreRouter)
 
 	// Print all routes

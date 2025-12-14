@@ -2,7 +2,6 @@ package billing
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/griffnb/core/lib/log"
@@ -24,8 +23,6 @@ func openStripeHook(res http.ResponseWriter, req *http.Request) {
 		response.ErrorWrapper(res, req, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	fmt.Printf("\n\n--------Received stripe webhook event %s------------\n\n", event.Type)
 
 	bgContext := context.WithoutCancel(req.Context())
 	go func() {

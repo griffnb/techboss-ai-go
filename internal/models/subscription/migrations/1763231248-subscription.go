@@ -23,7 +23,7 @@ func init() {
 type SubscriptionV1 struct {
 	base.Structure
 	OrganizationID       *fields.UUIDField                                         `column:"organization_id"        type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
-	BillingPlanPriceID   *fields.UUIDField                                         `column:"billing_plan_priceid"   type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
+	BillingPlanPriceID   *fields.UUIDField                                         `column:"billing_plan_price_id"  type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
 	Level                *fields.IntField                                          `column:"level"                  type:"int"      default:"0"`
 	BillingProvider      *fields.IntConstantField[int]                             `column:"billing_provider"       type:"smallint" default:"0"    index:"true"`
 	StripeCustomerID     *fields.StringField                                       `column:"stripe_customer_id"     type:"text"     default:""     index:"true"`

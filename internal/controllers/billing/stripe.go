@@ -45,7 +45,7 @@ func authStripeCheckoutSuccess(_ http.ResponseWriter, req *http.Request) (bool, 
 		return response.PublicBadRequestError[bool]()
 	}
 
-	err = billing.SuccessfulStripeCheckout(req.Context(), organizationObj, planPrice, &billing.SuccessCheckout{
+	_, err = billing.SuccessfulStripeCheckout(req.Context(), organizationObj, planPrice, &billing.SuccessCheckout{
 		PromoCode: checkoutSuccess.PromoCode,
 	}, accountObj)
 	if err != nil {

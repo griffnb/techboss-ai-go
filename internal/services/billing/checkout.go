@@ -7,6 +7,7 @@ import (
 	"github.com/griffnb/core/lib/model/coremodel"
 	"github.com/griffnb/core/lib/stripe_wrapper"
 	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan_price"
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"
 	"github.com/griffnb/techboss-ai-go/internal/models/subscription"
@@ -21,7 +22,7 @@ func StripeCheckout(
 	promoCodeIDs *stripe_wrapper.StripeCodes,
 ) (*stripe_wrapper.StripeCheckout, error) {
 	customer := &stripe_wrapper.Customer{
-		ReturnURL: "http://localhost:5173",
+		ReturnURL: environment.GetConfig().Server.AppURL,
 	}
 
 	if org.StripeID.IsEmpty() {
@@ -38,6 +39,15 @@ func StripeCheckout(
 			return nil, err
 		}
 		customer.ID = stripeCustomer.ID
+
+		if !environment.IsProduction() {
+			err = Client().AddTestPaymentMethod(ctx, stripeCustomer.ID)
+			if err != nil {
+				return nil, err
+			}
+			log.Debugf("Added test payment method to Stripe customer %s", stripeCustomer.ID)
+		}
+
 	} else {
 		customer.ID = org.StripeID.Get()
 	}
@@ -55,11 +65,11 @@ func SuccessfulStripeCheckout(
 	planPrice *billing_plan_price.BillingPlanPrice,
 	checkoutValues *SuccessCheckout,
 	savingUser coremodel.Model,
-) error {
+) (*subscription.Subscription, error) {
 	log.Debugf("--------Processing successful checkout for organization %s with plan %s------------", org.ID().String(), planPrice.ID().String())
 	subObj, err := subscription.GetByOrganizationAndPlanPriceID(ctx, org.ID(), planPrice.ID())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Create new subscription if one does not exist, webhook possibly could have come in first
@@ -78,13 +88,13 @@ func SuccessfulStripeCheckout(
 	subObj.BillingPlanPriceID.Set(planPrice.ID())
 	stripeSubscription, err := Client().GetSubscriptionByCustomer(ctx, org.StripeID.Get())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	log.Debugf("--------Subscription Status on success call------------ %s", stripeSubscription.Status)
 
 	if tools.Empty(stripeSubscription) {
-		return errors.Errorf("could not find stripe subscription for organization %s", org.ID().String())
+		return nil, errors.Errorf("could not find stripe subscription for organization %s", org.ID().String())
 	}
 
 	if subObj.StripeSubscriptionID.IsEmpty() {
@@ -92,9 +102,9 @@ func SuccessfulStripeCheckout(
 	}
 
 	if !tools.Empty(stripeSubscription) && stripeSubscription.Status == stripe.SubscriptionStatusActive {
-		err := mergeBillingInfo(subObj, stripeSubscription)
+		err := mergeBillingInfo(ctx, subObj, stripeSubscription)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		subObj.Status.Set(subscription.STATUS_ACTIVE)
 
@@ -111,11 +121,16 @@ func SuccessfulStripeCheckout(
 
 	err = subObj.Save(savingUser)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	org.BillingPlanPriceID.Set(planPrice.ID())
-	return org.Save(savingUser)
+	err = org.Save(savingUser)
+	if err != nil {
+		return nil, err
+	}
+
+	return subObj, nil
 }
 
 func ProcessStripeCancel(ctx context.Context, sub *subscription.Subscription, savingUser coremodel.Model) error {
@@ -179,6 +194,7 @@ func ProcessStripePlanChange(
 	newSub.StripeCustomerID.Set(currentSub.StripeCustomerID.Get())
 	newSub.Amount.Set(newPlanPrice.Price.Get())
 	newSub.BillingPlanPriceID.Set(newPlanPrice.ID())
+	newSub.BillingInfo.Set(currentSub.BillingInfo.GetI())
 
 	err = newSub.Save(savingUser)
 	if err != nil {
