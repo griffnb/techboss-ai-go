@@ -32,21 +32,12 @@ func StripeCheckout(
 		if err != nil {
 			return nil, err
 		}
-		log.Debugf("Created Stripe customer %s for organization %s", stripeCustomer.ID, org.ID().String())
 		org.StripeID.Set(stripeCustomer.ID)
 		err = org.Save(nil)
 		if err != nil {
 			return nil, err
 		}
 		customer.ID = stripeCustomer.ID
-
-		if !environment.IsProduction() {
-			err = Client().AddTestPaymentMethod(ctx, stripeCustomer.ID)
-			if err != nil {
-				return nil, err
-			}
-			log.Debugf("Added test payment method to Stripe customer %s", stripeCustomer.ID)
-		}
 
 	} else {
 		customer.ID = org.StripeID.Get()
