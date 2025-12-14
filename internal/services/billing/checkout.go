@@ -19,7 +19,7 @@ func StripeCheckout(
 	ctx context.Context,
 	org *organization.Organization,
 	planPrice *billing_plan_price.BillingPlanPrice,
-	promoCodeIDs *stripe_wrapper.StripeCodes,
+	checkoutOptions *stripe_wrapper.CheckoutOptions,
 ) (*stripe_wrapper.StripeCheckout, error) {
 	customer := &stripe_wrapper.Customer{
 		ReturnURL: environment.GetConfig().Server.AppURL,
@@ -43,7 +43,12 @@ func StripeCheckout(
 		customer.ID = org.StripeID.Get()
 	}
 
-	return Client().SetupStripeCheckoutSession(ctx, planPrice.StripePriceID.Get(), customer, promoCodeIDs)
+	if planPrice.TrialDays.Get() > 0 {
+		checkoutOptions.TrialDays = planPrice.TrialDays.Get()
+		log.Debugf("Adding trial days to checkout: %d", planPrice.TrialDays.Get())
+	}
+
+	return Client().SetupStripeCheckoutSession(ctx, planPrice.StripePriceID.Get(), customer, checkoutOptions)
 }
 
 type SuccessCheckout struct {
@@ -74,6 +79,7 @@ func SuccessfulStripeCheckout(
 		subObj.StripePriceID.Set(planPrice.StripePriceID.Get())
 		subObj.StripeCustomerID.Set(org.StripeID.Get())
 		subObj.Amount.Set(planPrice.Price.Get())
+
 	}
 
 	subObj.BillingPlanPriceID.Set(planPrice.ID())
@@ -92,7 +98,13 @@ func SuccessfulStripeCheckout(
 		subObj.StripeSubscriptionID.Set(stripeSubscription.ID)
 	}
 
-	if !tools.Empty(stripeSubscription) && stripeSubscription.Status == stripe.SubscriptionStatusActive {
+	if stripeSubscription.TrialEnd > 0 {
+		subObj.TrialEndTS.Set(stripeSubscription.TrialEnd)
+		subObj.InTrial.Set(1)
+	}
+
+	if !tools.Empty(stripeSubscription) &&
+		(stripeSubscription.Status == stripe.SubscriptionStatusActive || stripeSubscription.Status == stripe.SubscriptionStatusTrialing) {
 		err := mergeBillingInfo(ctx, subObj, stripeSubscription)
 		if err != nil {
 			return nil, err
@@ -127,24 +139,29 @@ func SuccessfulStripeCheckout(
 func ProcessStripeCancel(ctx context.Context, sub *subscription.Subscription, savingUser coremodel.Model) error {
 	// Cancel it now but set end date to the current term end
 
-	err := Client().Cancel(ctx, sub.StripeSubscriptionID.Get())
+	stripeSubscription, err := Client().Cancel(ctx, sub.StripeSubscriptionID.Get())
 	if err != nil {
 		return err
 	}
 
+	log.PrintEntity(stripeSubscription, "Canceled Subscription")
+
 	sub.Status.Set(subscription.STATUS_CANCELING)
-	sub.EndTS.Set(sub.NextBillingTS.Get())
+	if !tools.Empty(stripeSubscription.CancelAt) {
+		sub.EndTS.Set(stripeSubscription.CancelAt)
+	}
 	return sub.Save(savingUser)
 }
 
 // TODO
 func ProcessStripeResume(ctx context.Context, sub *subscription.Subscription, savingUser coremodel.Model) error {
-	err := Client().Resume(ctx, sub.StripeSubscriptionID.Get())
+	_, err := Client().Resume(ctx, sub.StripeSubscriptionID.Get())
 	if err != nil {
 		return err
 	}
 
 	sub.Status.Set(subscription.STATUS_ACTIVE)
+	sub.EndTS.Set(0)
 	return sub.Save(savingUser)
 }
 

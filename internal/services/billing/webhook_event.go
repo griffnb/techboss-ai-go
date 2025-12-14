@@ -3,6 +3,7 @@ package billing
 import (
 	"context"
 
+	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/models/subscription"
 	"github.com/pkg/errors"
@@ -72,6 +73,8 @@ func (this *WebhookEventService) ProcessUnpaid(ctx context.Context, stripeSub *s
 }
 
 func (this *WebhookEventService) ProcessTrialStarted(ctx context.Context, stripeSub *stripe.Subscription) error {
+	log.Debugf("-----Processing trial started for subscription %s ----- ", stripeSub.ID)
+
 	subObj, err := subscription.GetByStripeSubscriptionID(ctx, stripeSub.ID)
 	if err != nil {
 		return err

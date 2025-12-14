@@ -31,6 +31,8 @@ type SubscriptionV1 struct {
 	StripePriceID        *fields.StringField                                       `column:"stripe_price_id"        type:"text"     default:""     index:"true"`
 	StartTS              *fields.IntField                                          `column:"start_ts"               type:"bigint"   default:"0"                             public:"view"`
 	EndTS                *fields.IntField                                          `column:"end_ts"                 type:"bigint"   default:"0"                             public:"view"`
+	TrialEndTS           *fields.IntField                                          `column:"trial_end_ts"           type:"bigint"   default:"0"                             public:"view"`
+	InTrial              *fields.IntField                                          `column:"in_trial"               type:"smallint" default:"0"`
 	NextBillingTS        *fields.IntField                                          `column:"next_billing_ts"        type:"bigint"   default:"0"                             public:"view"`
 	BillingCycle         *fields.IntConstantField[billing_plan_price.BillingCycle] `column:"billing_cycle"          type:"smallint" default:"0"`
 	Amount               *fields.DecimalField                                      `column:"amount"                 type:"numeric"  default:"0"                             public:"view" scale:"4" precision:"10"`

@@ -107,7 +107,7 @@ func authStripeCheckout(_ http.ResponseWriter, req *http.Request) (*stripe_wrapp
 		}
 	}
 
-	checkoutProps, err := billing.StripeCheckout(req.Context(), org, planPrice, &stripe_wrapper.StripeCodes{
+	checkoutProps, err := billing.StripeCheckout(req.Context(), org, planPrice, &stripe_wrapper.CheckoutOptions{
 		PromotionCodeID: promoCodeID,
 	})
 	if err != nil {

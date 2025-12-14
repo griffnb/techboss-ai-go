@@ -70,6 +70,7 @@ type ChangePlanInput struct {
 	BillingPlanPriceID types.UUID `json:"billing_plan_price_id"`
 }
 
+// Tested and working
 func authChangePlan(_ http.ResponseWriter, req *http.Request) (any, int, error) {
 	userSession := request.GetReqSession(req)
 	accountObj := helpers.GetLoadedUser(req)

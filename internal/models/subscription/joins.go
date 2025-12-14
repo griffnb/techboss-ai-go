@@ -6,16 +6,16 @@ import (
 )
 
 type JoinData struct {
-	BillingPlanPricePrice    *fields.DecimalField `json:"billing_plan_price_price"    type:"numeric"`
-	BillingPlanPriceCurrency *fields.StringField  `json:"billing_plan_price_currency" type:"text"`
-	BillingPlanName          *fields.StringField  `json:"billing_plan_name"           type:"text"`
-	BillingPlanLevel         *fields.IntField     `json:"billing_plan_level"          type:"smallint"`
+	BillingPlanPricePrice    *fields.DecimalField `public:"view" json:"billing_plan_price_price"    type:"numeric"`
+	BillingPlanPriceCurrency *fields.StringField  `public:"view" json:"billing_plan_price_currency" type:"text"`
+	BillingPlanName          *fields.StringField  `public:"view" json:"billing_plan_name"           type:"text"`
+	BillingPlanLevel         *fields.IntField     `public:"view" json:"billing_plan_level"          type:"smallint"`
 }
 
 // AddJoinData adds in the join data
 func AddJoinData(options *model.Options) {
 	options.WithPrependJoins([]string{
-		"LEFT JOIN billing_plan_prices ON subscription.billing_plan_price_id = billing_plan_prices.id",
+		"LEFT JOIN billing_plan_prices ON subscriptions.billing_plan_price_id = billing_plan_prices.id",
 		"LEFT JOIN billing_plans ON billing_plan_prices.billing_plan_id = billing_plans.id",
 	}...)
 	options.WithIncludeFields([]string{

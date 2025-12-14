@@ -33,7 +33,12 @@ func (this *Subscription) ProcessUnpaid(_ *stripe.Subscription) error {
 	return nil
 }
 
-func (this *Subscription) ProcessTrialStarted(_ *stripe.Subscription) error {
-	this.Status.Set(STATUS_ACTIVE)
+func (this *Subscription) ProcessTrialStarted(sub *stripe.Subscription) error {
+	if !tools.Empty(sub.CanceledAt) {
+		this.Status.Set(STATUS_CANCELING)
+		this.EndTS.Set(sub.CancelAt)
+	} else {
+		this.Status.Set(STATUS_TRIALING)
+	}
 	return nil
 }
