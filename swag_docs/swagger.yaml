@@ -1,97 +1,11 @@
 definitions:
-  AdminAccountJoined:
-    properties:
-      created_at:
-        type: string
-      created_by_name:
-        type: string
-      created_by_urn:
-        type: string
-      deleted:
-        type: integer
-      disabled:
-        type: integer
-      email:
-        type: string
-      email_verified_at_ts:
-        type: integer
-      external_id:
-        type: string
-      first_name:
-        type: string
-      hashed_password:
-        type: string
-      id:
-        type: string
-      is_super_user_session:
-        type: integer
-      last_login_ts:
-        type: integer
-      last_name:
-        type: string
-      name:
-        type: string
-      organization_id:
-        type: string
-      organization_name:
-        type: string
-      password_updated_at_ts:
-        type: integer
-      phone:
-        type: string
-      properties:
-        $ref: '#/definitions/account.Properties'
-      role:
-        type: integer
-      signup_properties:
-        $ref: '#/definitions/account.SignupProperties'
-      status:
-        type: integer
-      test_user_type:
-        type: integer
-      updated_at:
-        type: string
-      updated_by_name:
-        type: string
-      updated_by_urn:
-        type: string
-      urn:
-        type: string
-    type: object
   account.Account:
     properties:
-      ChangeLogs:
-        type: boolean
-      Class:
-        type: string
-      Client:
-        $ref: '#/definitions/Client'
-      CreatedAtColumn:
-        type: string
-      IDColumn:
-        type: string
-      IsVersioned:
-        type: boolean
-      ManualCache:
-        type: boolean
-      PackageName:
-        type: string
-      SavingUser:
-        $ref: '#/definitions/github.com/griffnb/core/lib/model/coremodel.Model'
-      Standardized:
-        type: boolean
-      Table:
-        type: string
-      UpdatedAtColumn:
-        type: string
       created_at:
         format: date-time
         type: string
       created_by_urn:
         type: string
-      data:
-        additionalProperties: {}
-        type: object
       deleted:
         type: integer
       disabled:
@@ -102,9 +16,6 @@ definitions:
         type: integer
       external_id:
         type: string
-      fieldMap:
-        additionalProperties: {}
-        type: object
       first_name:
         type: string
       hashed_password:
@@ -114,17 +25,10 @@ definitions:
         type: string
       is_super_user_session:
         type: integer
-      isLoaded:
-        type: boolean
-      isSaved:
-        type: boolean
       last_login_ts:
         type: integer
       last_name:
         type: string
-      newData:
-        additionalProperties: {}
-        type: object
       organization_id:
         format: uuid
         type: string
@@ -132,19 +36,10 @@ definitions:
         type: integer
       phone:
         type: string
-      preValues:
-        additionalProperties: {}
-        type: object
       properties:
         $ref: '#/definitions/account.Properties'
-      readerSem:
-        format: int32
-        type: integer
       role:
         type: integer
-      saveData:
-        additionalProperties: {}
-        type: object
       signup_properties:
         $ref: '#/definitions/account.SignupProperties'
       status:
@@ -158,12 +53,6 @@ definitions:
         type: string
       urn:
         type: string
-      v:
-        format: int32
-        type: integer
-      writerSem:
-        format: int32
-        type: integer
     required:
     - id
     - urn
@@ -192,30 +81,6 @@ definitions:
     type: object
   account.AccountJoined:
     properties:
-      ChangeLogs:
-        type: boolean
-      Class:
-        type: string
-      Client:
-        $ref: '#/definitions/Client'
-      CreatedAtColumn:
-        type: string
-      IDColumn:
-        type: string
-      IsVersioned:
-        type: boolean
-      ManualCache:
-        type: boolean
-      PackageName:
-        type: string
-      SavingUser:
-        $ref: '#/definitions/github.com/griffnb/core/lib/model/coremodel.Model'
-      Standardized:
-        type: boolean
-      Table:
-        type: string
-      UpdatedAtColumn:
-        type: string
       created_at:
         format: date-time
         type: string
@@ -223,9 +88,6 @@ definitions:
         type: string
       created_by_urn:
         type: string
-      data:
-        additionalProperties: {}
-        type: object
       deleted:
         type: integer
       disabled:
@@ -236,9 +98,6 @@ definitions:
         type: integer
       external_id:
         type: string
-      fieldMap:
-        additionalProperties: {}
-        type: object
       first_name:
         type: string
       hashed_password:
@@ -248,19 +107,12 @@ definitions:
         type: string
       is_super_user_session:
         type: integer
-      isLoaded:
-        type: boolean
-      isSaved:
-        type: boolean
       last_login_ts:
         type: integer
       last_name:
         type: string
       name:
         type: string
-      newData:
-        additionalProperties: {}
-        type: object
       organization_id:
         format: uuid
         type: string
@@ -270,19 +122,10 @@ definitions:
         type: integer
       phone:
         type: string
-      preValues:
-        additionalProperties: {}
-        type: object
       properties:
         $ref: '#/definitions/account.Properties'
-      readerSem:
-        format: int32
-        type: integer
       role:
         type: integer
-      saveData:
-        additionalProperties: {}
-        type: object
       signup_properties:
         $ref: '#/definitions/account.SignupProperties'
       status:
@@ -298,12 +141,6 @@ definitions:
         type: string
       urn:
         type: string
-      v:
-        format: int32
-        type: integer
-      writerSem:
-        format: int32
-        type: integer
     required:
     - id
     - urn
@@ -460,30 +297,6 @@ definitions:
     type: object
   account.AccountWithFeatures:
     properties:
-      ChangeLogs:
-        type: boolean
-      Class:
-        type: string
-      Client:
-        $ref: '#/definitions/Client'
-      CreatedAtColumn:
-        type: string
-      IDColumn:
-        type: string
-      IsVersioned:
-        type: boolean
-      ManualCache:
-        type: boolean
-      PackageName:
-        type: string
-      SavingUser:
-        $ref: '#/definitions/github.com/griffnb/core/lib/model/coremodel.Model'
-      Standardized:
-        type: boolean
-      Table:
-        type: string
-      UpdatedAtColumn:
-        type: string
       billing_plan_feature_set:
         $ref: '#/definitions/billing_plan.FeatureSet'
       billing_plan_id:
@@ -500,9 +313,6 @@ definitions:
         type: string
       created_by_urn:
         type: string
-      data:
-        additionalProperties: {}
-        type: object
       deleted:
         type: integer
       disabled:
@@ -517,9 +327,6 @@ definitions:
         $ref: '#/definitions/billing_plan.FeatureSet'
       feature_set_overrides:
         $ref: '#/definitions/billing_plan.MergeableFeatureSet'
-      fieldMap:
-        additionalProperties: {}
-        type: object
       first_name:
         type: string
       hashed_password:
@@ -529,17 +336,10 @@ definitions:
         type: string
       is_super_user_session:
         type: integer
-      isLoaded:
-        type: boolean
-      isSaved:
-        type: boolean
       last_login_ts:
         type: integer
       last_name:
         type: string
-      newData:
-        additionalProperties: {}
-        type: object
       organization_id:
         format: uuid
         type: string
@@ -547,19 +347,10 @@ definitions:
         type: integer
       phone:
         type: string
-      preValues:
-        additionalProperties: {}
-        type: object
       properties:
         $ref: '#/definitions/account.Properties'
-      readerSem:
-        format: int32
-        type: integer
       role:
         type: integer
-      saveData:
-        additionalProperties: {}
-        type: object
       signup_properties:
         $ref: '#/definitions/account.SignupProperties'
       status:
@@ -573,12 +364,6 @@ definitions:
         type: string
       urn:
         type: string
-      v:
-        format: int32
-        type: integer
-      writerSem:
-        format: int32
-        type: integer
     required:
     - id
     - urn
@@ -689,10 +474,6 @@ definitions:
     - billing_plan_id
     - billing_plan_name
     - feature_set
-    type: object
-  account.Client:
-    type: object
-  account.ClientPublic:
     type: object
   account.Properties:
     properties:
@@ -840,14 +621,6 @@ definitions:
     type: object
   billing_plan.MergeableFeatureSetPublic:
     type: object
-  github.Model:
-    type: object
-  github.ModelPublic:
-    type: object
-  organization.Client:
-    type: object
-  organization.ClientPublic:
-    type: object
   organization.MetaData:
     properties:
       onboard_answers:
@@ -870,30 +643,6 @@ definitions:
     type: object
   organization.Organization:
     properties:
-      ChangeLogs:
-        type: boolean
-      Class:
-        type: string
-      Client:
-        $ref: '#/definitions/Client'
-      CreatedAtColumn:
-        type: string
-      IDColumn:
-        type: string
-      IsVersioned:
-        type: boolean
-      ManualCache:
-        type: boolean
-      PackageName:
-        type: string
-      SavingUser:
-        $ref: '#/definitions/github.com/griffnb/core/lib/model/coremodel.Model'
-      Standardized:
-        type: boolean
-      Table:
-        type: string
-      UpdatedAtColumn:
-        type: string
       billing_plan_price_id:
         format: uuid
         type: string
@@ -902,9 +651,6 @@ definitions:
         type: string
       created_by_urn:
         type: string
-      data:
-        additionalProperties: {}
-        type: object
       deleted:
         type: integer
       disabled:
@@ -917,34 +663,15 @@ definitions:
         type: string
       feature_set_overrides:
         $ref: '#/definitions/billing_plan.FeatureSet'
-      fieldMap:
-        additionalProperties: {}
-        type: object
       id:
         format: uuid
         type: string
-      isLoaded:
-        type: boolean
-      isSaved:
-        type: boolean
       meta_data:
         $ref: '#/definitions/organization.MetaData'
       name:
         type: string
-      newData:
-        additionalProperties: {}
-        type: object
-      preValues:
-        additionalProperties: {}
-        type: object
       properties:
         $ref: '#/definitions/organization.Properties'
-      readerSem:
-        format: int32
-        type: integer
-      saveData:
-        additionalProperties: {}
-        type: object
       status:
         type: integer
       stripe_id:
@@ -958,12 +685,6 @@ definitions:
         type: string
       urn:
         type: string
-      v:
-        format: int32
-        type: integer
-      writerSem:
-        format: int32
-        type: integer
     required:
     - id
     - urn
@@ -1043,12 +764,14 @@ definitions:
       error:
         type: string
       success:
+        default: false
         type: boolean
     type: object
   response.SuccessResponse:
     properties:
       data: {}
       success:
+        default: true
         type: boolean
     type: object
 info:
@@ -1175,7 +898,7 @@ paths:
             - $ref: '#/definitions/response.SuccessResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/AdminAccountJoined'
+                  $ref: '#/definitions/account.AccountJoinedPublic'
               type: object
         "400":
           description: Bad Request
@@ -1285,7 +1008,7 @@ paths:
             - $ref: '#/definitions/response.SuccessResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/AdminAccountJoined'
+                  $ref: '#/definitions/account.AccountJoinedPublic'
               type: object
         "400":
           description: Bad Request

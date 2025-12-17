@@ -26,6 +26,7 @@ type PasswordResetInput struct {
 // openSendResetPasswordEmail sends a password reset email to the user
 //
 //	@Public
+//	@Title			Send password reset email
 //	@Summary		Send password reset email
 //	@Description	Sends a password reset email with a temporary session key
 //	@Tags			Account

@@ -29,6 +29,7 @@ type VerifyResponse struct {
 // openVerifyInvite verifies an account invitation and creates a session
 //
 //	@Public
+//	@Title			Verify account invite
 //	@Summary		Verify account invite
 //	@Description	Verifies an account invitation using the verification key and creates a user session
 //	@Tags			Account
@@ -139,6 +140,7 @@ func openVerifyInvite(res http.ResponseWriter, req *http.Request) (*VerifyRespon
 // openVerifyEmail verifies a user's email address and creates a session
 //
 //	@Public
+//	@Title			Verify email address
 //	@Summary		Verify email address
 //	@Description	Verifies a user's email address using the verification key and creates a user session
 //	@Tags			Account

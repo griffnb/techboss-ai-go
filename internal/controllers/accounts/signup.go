@@ -26,6 +26,8 @@ type SignupResponse struct {
 
 // oauthSignup handles OAuth-based signup flow
 //
+//	@Public
+//	@Title			OAuth signup
 //	@Summary		OAuth signup
 //	@Description	Completes signup process for OAuth authenticated users
 //	@Tags			Account

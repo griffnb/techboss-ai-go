@@ -18,6 +18,7 @@ type APIResponse struct {
 
 // internalAPIAccount retrieves account and organization data for internal API use
 //
+//	@Title			Get account with organization
 //	@Summary		Get account with organization
 //	@Description	Retrieves account and associated organization data by account ID
 //	@Tags			Account

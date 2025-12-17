@@ -16,6 +16,7 @@ import (
 
 // adminTestCreate creates a test account and optionally logs in as that account
 //
+//	@Title			Create test account
 //	@Summary		Create test account
 //	@Description	Creates a test account with the provided details and optionally logs in as that account
 //	@Tags			Account

@@ -17,13 +17,15 @@ import (
 
 // authDelete marks an account as deleted
 //
+//	@Public
+//	@Title			Delete account
 //	@Summary		Delete account
 //	@Description	Marks an account as deleted by setting status to USER_DELETED
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string	true	"Account ID"
-//	@Success		200	{object}	response.SuccessResponse{data=account.GEN_AccountJoinedPublic}
+//	@Success		200	{object}	response.SuccessResponse{data=account.AccountJoined}
 //	@Failure		400	{object}	response.ErrorResponse
 //	@Router			/account/{id} [delete]
 func authDelete(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined, int, error) {
@@ -105,13 +107,15 @@ func authResendInvite(_ http.ResponseWriter, req *http.Request) (*account.Accoun
 
 // authCancelInvite cancels a pending invitation
 //
+//	@Public
+//	@Title			Cancel invite
 //	@Summary		Cancel invite
 //	@Description	Cancels a pending invitation and invalidates the invite session
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string	true	"Account ID"
-//	@Success		200	{object}	response.SuccessResponse{data=account.GEN_AccountJoinedPublic}
+//	@Success		200	{object}	response.SuccessResponse{data=account.AccountJoined}
 //	@Failure		400	{object}	response.ErrorResponse
 //	@Router			/account/{id}/cancel [post]
 func authCancelInvite(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined, int, error) {

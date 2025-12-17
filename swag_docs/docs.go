@@ -388,7 +388,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/AdminAccountJoined"
+                                            "$ref": "#/definitions/account.AccountJoinedPublic"
                                         }
                                     }
                                 }
@@ -438,7 +438,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/AdminAccountJoined"
+                                            "$ref": "#/definitions/account.AccountJoinedPublic"
                                         }
                                     }
                                 }
@@ -1645,95 +1645,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "AdminAccountJoined": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "created_by_name": {
-                    "type": "string"
-                },
-                "created_by_urn": {
-                    "type": "string"
-                },
-                "deleted": {
-                    "type": "integer"
-                },
-                "disabled": {
-                    "type": "integer"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "email_verified_at_ts": {
-                    "type": "integer"
-                },
-                "external_id": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "hashed_password": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_super_user_session": {
-                    "type": "integer"
-                },
-                "last_login_ts": {
-                    "type": "integer"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "organization_id": {
-                    "type": "string"
-                },
-                "organization_name": {
-                    "type": "string"
-                },
-                "password_updated_at_ts": {
-                    "type": "integer"
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "properties": {
-                    "$ref": "#/definitions/account.Properties"
-                },
-                "role": {
-                    "type": "integer"
-                },
-                "signup_properties": {
-                    "$ref": "#/definitions/account.SignupProperties"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "test_user_type": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "updated_by_name": {
-                    "type": "string"
-                },
-                "updated_by_urn": {
-                    "type": "string"
-                },
-                "urn": {
-                    "type": "string"
-                }
-            }
-        },
         "account.Account": {
             "type": "object",
             "required": [
@@ -1763,52 +1674,12 @@ const docTemplate = `{
                 "is_super_user_session"
             ],
             "properties": {
-                "ChangeLogs": {
-                    "type": "boolean"
-                },
-                "Class": {
-                    "type": "string"
-                },
-                "Client": {
-                    "$ref": "#/definitions/Client"
-                },
-                "CreatedAtColumn": {
-                    "type": "string"
-                },
-                "IDColumn": {
-                    "type": "string"
-                },
-                "IsVersioned": {
-                    "type": "boolean"
-                },
-                "ManualCache": {
-                    "type": "boolean"
-                },
-                "PackageName": {
-                    "type": "string"
-                },
-                "SavingUser": {
-                    "$ref": "#/definitions/github.com/griffnb/core/lib/model/coremodel.Model"
-                },
-                "Standardized": {
-                    "type": "boolean"
-                },
-                "Table": {
-                    "type": "string"
-                },
-                "UpdatedAtColumn": {
-                    "type": "string"
-                },
                 "created_at": {
                     "type": "string",
                     "format": "date-time"
                 },
                 "created_by_urn": {
                     "type": "string"
-                },
-                "data": {
-                    "type": "object",
-                    "additionalProperties": {}
                 },
                 "deleted": {
                     "type": "integer"
@@ -1825,10 +1696,6 @@ const docTemplate = `{
                 "external_id": {
                     "type": "string"
                 },
-                "fieldMap": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
                 "first_name": {
                     "type": "string"
                 },
@@ -1839,12 +1706,6 @@ const docTemplate = `{
                     "type": "string",
                     "format": "uuid"
                 },
-                "isLoaded": {
-                    "type": "boolean"
-                },
-                "isSaved": {
-                    "type": "boolean"
-                },
                 "is_super_user_session": {
                     "type": "integer"
                 },
@@ -1853,10 +1714,6 @@ const docTemplate = `{
                 },
                 "last_name": {
                     "type": "string"
-                },
-                "newData": {
-                    "type": "object",
-                    "additionalProperties": {}
                 },
                 "organization_id": {
                     "type": "string",
@@ -1868,23 +1725,11 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
-                "preValues": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
                 "properties": {
                     "$ref": "#/definitions/account.Properties"
                 },
-                "readerSem": {
-                    "type": "integer",
-                    "format": "int32"
-                },
                 "role": {
                     "type": "integer"
-                },
-                "saveData": {
-                    "type": "object",
-                    "additionalProperties": {}
                 },
                 "signup_properties": {
                     "$ref": "#/definitions/account.SignupProperties"
@@ -1904,14 +1749,6 @@ const docTemplate = `{
                 },
                 "urn": {
                     "type": "string"
-                },
-                "v": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "writerSem": {
-                    "type": "integer",
-                    "format": "int32"
                 }
             }
         },
@@ -1948,42 +1785,6 @@ const docTemplate = `{
                 "updated_by_name"
             ],
             "properties": {
-                "ChangeLogs": {
-                    "type": "boolean"
-                },
-                "Class": {
-                    "type": "string"
-                },
-                "Client": {
-                    "$ref": "#/definitions/Client"
-                },
-                "CreatedAtColumn": {
-                    "type": "string"
-                },
-                "IDColumn": {
-                    "type": "string"
-                },
-                "IsVersioned": {
-                    "type": "boolean"
-                },
-                "ManualCache": {
-                    "type": "boolean"
-                },
-                "PackageName": {
-                    "type": "string"
-                },
-                "SavingUser": {
-                    "$ref": "#/definitions/github.com/griffnb/core/lib/model/coremodel.Model"
-                },
-                "Standardized": {
-                    "type": "boolean"
-                },
-                "Table": {
-                    "type": "string"
-                },
-                "UpdatedAtColumn": {
-                    "type": "string"
-                },
                 "created_at": {
                     "type": "string",
                     "format": "date-time"
@@ -1993,10 +1794,6 @@ const docTemplate = `{
                 },
                 "created_by_urn": {
                     "type": "string"
-                },
-                "data": {
-                    "type": "object",
-                    "additionalProperties": {}
                 },
                 "deleted": {
                     "type": "integer"
@@ -2013,10 +1810,6 @@ const docTemplate = `{
                 "external_id": {
                     "type": "string"
                 },
-                "fieldMap": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
                 "first_name": {
                     "type": "string"
                 },
@@ -2026,12 +1819,6 @@ const docTemplate = `{
                 "id": {
                     "type": "string",
                     "format": "uuid"
-                },
-                "isLoaded": {
-                    "type": "boolean"
-                },
-                "isSaved": {
-                    "type": "boolean"
                 },
                 "is_super_user_session": {
                     "type": "integer"
@@ -2044,10 +1831,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                },
-                "newData": {
-                    "type": "object",
-                    "additionalProperties": {}
                 },
                 "organization_id": {
                     "type": "string",
@@ -2062,23 +1845,11 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
-                "preValues": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
                 "properties": {
                     "$ref": "#/definitions/account.Properties"
                 },
-                "readerSem": {
-                    "type": "integer",
-                    "format": "int32"
-                },
                 "role": {
                     "type": "integer"
-                },
-                "saveData": {
-                    "type": "object",
-                    "additionalProperties": {}
                 },
                 "signup_properties": {
                     "$ref": "#/definitions/account.SignupProperties"
@@ -2101,14 +1872,6 @@ const docTemplate = `{
                 },
                 "urn": {
                     "type": "string"
-                },
-                "v": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "writerSem": {
-                    "type": "integer",
-                    "format": "int32"
                 }
             }
         },
@@ -2314,42 +2077,6 @@ const docTemplate = `{
                 "feature_set"
             ],
             "properties": {
-                "ChangeLogs": {
-                    "type": "boolean"
-                },
-                "Class": {
-                    "type": "string"
-                },
-                "Client": {
-                    "$ref": "#/definitions/Client"
-                },
-                "CreatedAtColumn": {
-                    "type": "string"
-                },
-                "IDColumn": {
-                    "type": "string"
-                },
-                "IsVersioned": {
-                    "type": "boolean"
-                },
-                "ManualCache": {
-                    "type": "boolean"
-                },
-                "PackageName": {
-                    "type": "string"
-                },
-                "SavingUser": {
-                    "$ref": "#/definitions/github.com/griffnb/core/lib/model/coremodel.Model"
-                },
-                "Standardized": {
-                    "type": "boolean"
-                },
-                "Table": {
-                    "type": "string"
-                },
-                "UpdatedAtColumn": {
-                    "type": "string"
-                },
                 "billing_plan_feature_set": {
                     "$ref": "#/definitions/billing_plan.FeatureSet"
                 },
@@ -2373,10 +2100,6 @@ const docTemplate = `{
                 "created_by_urn": {
                     "type": "string"
                 },
-                "data": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
                 "deleted": {
                     "type": "integer"
                 },
@@ -2398,10 +2121,6 @@ const docTemplate = `{
                 "feature_set_overrides": {
                     "$ref": "#/definitions/billing_plan.MergeableFeatureSet"
                 },
-                "fieldMap": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
                 "first_name": {
                     "type": "string"
                 },
@@ -2412,12 +2131,6 @@ const docTemplate = `{
                     "type": "string",
                     "format": "uuid"
                 },
-                "isLoaded": {
-                    "type": "boolean"
-                },
-                "isSaved": {
-                    "type": "boolean"
-                },
                 "is_super_user_session": {
                     "type": "integer"
                 },
@@ -2426,10 +2139,6 @@ const docTemplate = `{
                 },
                 "last_name": {
                     "type": "string"
-                },
-                "newData": {
-                    "type": "object",
-                    "additionalProperties": {}
                 },
                 "organization_id": {
                     "type": "string",
@@ -2441,23 +2150,11 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
-                "preValues": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
                 "properties": {
                     "$ref": "#/definitions/account.Properties"
                 },
-                "readerSem": {
-                    "type": "integer",
-                    "format": "int32"
-                },
                 "role": {
                     "type": "integer"
-                },
-                "saveData": {
-                    "type": "object",
-                    "additionalProperties": {}
                 },
                 "signup_properties": {
                     "$ref": "#/definitions/account.SignupProperties"
@@ -2477,14 +2174,6 @@ const docTemplate = `{
                 },
                 "urn": {
                     "type": "string"
-                },
-                "v": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "writerSem": {
-                    "type": "integer",
-                    "format": "int32"
                 }
             }
         },
@@ -2591,12 +2280,6 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        },
-        "account.Client": {
-            "type": "object"
-        },
-        "account.ClientPublic": {
-            "type": "object"
         },
         "account.Properties": {
             "type": "object",
@@ -2822,18 +2505,6 @@ const docTemplate = `{
         "billing_plan.MergeableFeatureSetPublic": {
             "type": "object"
         },
-        "github.Model": {
-            "type": "object"
-        },
-        "github.ModelPublic": {
-            "type": "object"
-        },
-        "organization.Client": {
-            "type": "object"
-        },
-        "organization.ClientPublic": {
-            "type": "object"
-        },
         "organization.MetaData": {
             "type": "object",
             "properties": {
@@ -2887,42 +2558,6 @@ const docTemplate = `{
                 "feature_set_overrides"
             ],
             "properties": {
-                "ChangeLogs": {
-                    "type": "boolean"
-                },
-                "Class": {
-                    "type": "string"
-                },
-                "Client": {
-                    "$ref": "#/definitions/Client"
-                },
-                "CreatedAtColumn": {
-                    "type": "string"
-                },
-                "IDColumn": {
-                    "type": "string"
-                },
-                "IsVersioned": {
-                    "type": "boolean"
-                },
-                "ManualCache": {
-                    "type": "boolean"
-                },
-                "PackageName": {
-                    "type": "string"
-                },
-                "SavingUser": {
-                    "$ref": "#/definitions/github.com/griffnb/core/lib/model/coremodel.Model"
-                },
-                "Standardized": {
-                    "type": "boolean"
-                },
-                "Table": {
-                    "type": "string"
-                },
-                "UpdatedAtColumn": {
-                    "type": "string"
-                },
                 "billing_plan_price_id": {
                     "type": "string",
                     "format": "uuid"
@@ -2933,10 +2568,6 @@ const docTemplate = `{
                 },
                 "created_by_urn": {
                     "type": "string"
-                },
-                "data": {
-                    "type": "object",
-                    "additionalProperties": {}
                 },
                 "deleted": {
                     "type": "integer"
@@ -2956,19 +2587,9 @@ const docTemplate = `{
                 "feature_set_overrides": {
                     "$ref": "#/definitions/billing_plan.FeatureSet"
                 },
-                "fieldMap": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
                 "id": {
                     "type": "string",
                     "format": "uuid"
-                },
-                "isLoaded": {
-                    "type": "boolean"
-                },
-                "isSaved": {
-                    "type": "boolean"
                 },
                 "meta_data": {
                     "$ref": "#/definitions/organization.MetaData"
@@ -2976,24 +2597,8 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "newData": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
-                "preValues": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
                 "properties": {
                     "$ref": "#/definitions/organization.Properties"
-                },
-                "readerSem": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "saveData": {
-                    "type": "object",
-                    "additionalProperties": {}
                 },
                 "status": {
                     "type": "integer"
@@ -3013,14 +2618,6 @@ const docTemplate = `{
                 },
                 "urn": {
                     "type": "string"
-                },
-                "v": {
-                    "type": "integer",
-                    "format": "int32"
-                },
-                "writerSem": {
-                    "type": "integer",
-                    "format": "int32"
                 }
             }
         },
@@ -3105,7 +2702,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "success": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "default": false
                 }
             }
         },
@@ -3114,7 +2712,8 @@ const docTemplate = `{
             "properties": {
                 "data": {},
                 "success": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "default": true
                 }
             }
         }
