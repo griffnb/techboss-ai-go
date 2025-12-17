@@ -14,6 +14,19 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/services/account_service"
 )
 
+// adminTestCreate creates a test account and optionally logs in as that account
+//
+//	@Summary		Create test account
+//	@Description	Creates a test account with the provided details and optionally logs in as that account
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		account_service.TestUserInput	true	"Test user details"
+//	@Param			login_as	query	string	false	"Set to login as the created user"
+//	@Success		200	{object}	response.SuccessResponse{data=account.Account}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Failure		500	{object}	response.ErrorResponse
+//	@Router			/admin/testUser [post]
 func adminTestCreate(res http.ResponseWriter, req *http.Request) (*account.Account, int, error) {
 	userSession := request.GetReqSession(req)
 

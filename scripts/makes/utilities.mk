@@ -10,14 +10,18 @@ deadcode: ## Run deadcode to find unused code
 
 .PHONY: swagger-docs
 swagger-docs: ## Swagger docs generation script, # generates swagger docs, install the forked version of swaggo from griffnb then do go install ./cmd/swag, then run this script
-	
+	@swag init -g "main.go" -d "./cmd/server,./internal/controllers,./internal/models" --parseInternal -pd -o "./swag_docs"
 
 .PHONY: swagger
 swagger: ## Serve swagger docs at http://localhost:1323/swagger/index.html
+	@swag init -g "main.go" -d "./cmd/server,./internal/controllers,./internal/models" --parseInternal -pd -o "./swag_docs"
 	@echo "Serving swagger docs at http://localhost:1323/swagger/index.html"
 	@echo "Press Ctrl+C to stop"
-	@swag init -g "main.go" -d "./cmd/server,./internal/controllers,./internal/models" --parseInternal -pd -o "./swag_docs"
-	@SYS_ENV=$(SYS_ENV) CONFIG_FILE=$(CONFIG_FILE) REGION=$(REGION) go run ./cmd/swagger
+	@SYS_ENV=$(SYS_ENV) CONFIG_FILE=$(CONFIG_FILE) REGION=$(REGION) go run ./cmd/swagger && open -a "Google Chrome" http://localhost:1323/swagger/index.html
+
+.PHONY: swagger-format
+swagger-format: ## Format swagger docs
+	@swag fmt -d "./cmd/server,./internal/controllers,./internal/models"
 
 
 

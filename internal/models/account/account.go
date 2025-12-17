@@ -1,4 +1,4 @@
-//go:generate core_gen model Account -skip=load
+//go:generate core_gen model Account -skip=load -add=swaggo
 package account
 
 import (

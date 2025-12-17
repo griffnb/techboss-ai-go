@@ -1,4 +1,4 @@
-//go:generate core_gen controller Account -modelPackage=account
+//go:generate core_gen controller Account -modelPackage=account -add=swaggo
 package accounts
 
 import (

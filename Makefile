@@ -30,3 +30,22 @@ docker-up-local: ## Start Docker services, be sure to setup /etc/hosts entry for
 	sudo ifconfig lo0 alias 127.10.0.1/8
 	ifconfig lo0 | grep 127.10.0.1
 	docker compose -f infra/docker-compose-local.yml up
+
+
+.PHONY: code-gen-ts
+code-gen-ts: ## Create TypeScript models (Usage: make code-gen-ts ModelName [package_name=package])
+	@bash -c '\
+		MODEL_NAME="$(filter-out $@,$(MAKECMDGOALS))"; \
+		PACKAGE_NAME=$$(grep "^module " go.mod | sed "s/module //"); \
+		if [ -z "$$MODEL_NAME" ]; then \
+			echo "Error: Model name required. Usage: make code-gen-ts ModelName"; \
+			exit 1; \
+		fi; \
+		PKG="$(package_name)"; \
+		if [ -z "$$PKG" ]; then \
+			PKG=""; \
+		fi; \
+		GOPACKAGE=$$PACKAGE_NAME core_gen typescript "$$MODEL_NAME" "-modelPackage=$$PKG"; \
+	'
+%:
+	@:

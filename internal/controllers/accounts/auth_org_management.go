@@ -15,6 +15,17 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/services/account_service"
 )
 
+// authDelete marks an account as deleted
+//
+//	@Summary		Delete account
+//	@Description	Marks an account as deleted by setting status to USER_DELETED
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path	string	true	"Account ID"
+//	@Success		200	{object}	response.SuccessResponse{data=account.GEN_AccountJoinedPublic}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Router			/account/{id} [delete]
 func authDelete(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined, int, error) {
 	//if helpers.IsSuperUpdate(req) {
 	//	return helpers.PublicCustomErrorV2[*account.AccountJoinedSession]("not allowed to update as super user", http.StatusBadRequest)
@@ -42,6 +53,18 @@ func authDelete(_ http.ResponseWriter, req *http.Request) (*account.AccountJoine
 	return response.Success[*account.AccountJoined](accountObj)
 }
 
+// authResendInvite resends an invitation email to an account
+//
+//	@Public
+//	@Summary		Resend invite
+//	@Description	Resends invitation email to a pending account
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path	uuid	true	"Account ID"
+//	@Success		200	{object}	response.SuccessResponse{data=account.AccountJoined}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Router			/account/{id}/resend [post]
 func authResendInvite(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined, int, error) {
 	//if helpers.IsSuperUpdate(req) {
 	//	return helpers.PublicCustomErrorV2[*account.AccountJoinedSession]("not allowed to update as super user", http.StatusBadRequest)
@@ -80,6 +103,17 @@ func authResendInvite(_ http.ResponseWriter, req *http.Request) (*account.Accoun
 	return response.Success(accountToInvite)
 }
 
+// authCancelInvite cancels a pending invitation
+//
+//	@Summary		Cancel invite
+//	@Description	Cancels a pending invitation and invalidates the invite session
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path	string	true	"Account ID"
+//	@Success		200	{object}	response.SuccessResponse{data=account.GEN_AccountJoinedPublic}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Router			/account/{id}/cancel [post]
 func authCancelInvite(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined, int, error) {
 	//if helpers.IsSuperUpdate(req) {
 	//	return helpers.PublicCustomErrorV2[*account.AccountJoined]("not allowed to update as super user", http.StatusBadRequest)

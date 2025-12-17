@@ -26,7 +26,19 @@ type VerifyResponse struct {
 	RedirectURL string `json:"redirect_url,omitempty"`
 }
 
-// @link {models}/src/models/account/services/_verify.ts:verifyInvite
+// openVerifyInvite verifies an account invitation and creates a session
+//
+//	@Public
+//	@Summary		Verify account invite
+//	@Description	Verifies an account invitation using the verification key and creates a user session
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body	VerifyInput	true	"Verification details"
+//	@Success		200	{object}	response.SuccessResponse{data=VerifyResponse}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Failure		404	{object}	response.ErrorResponse
+//	@Router			/verify/invite [post]
 func openVerifyInvite(res http.ResponseWriter, req *http.Request) (*VerifyResponse, int, error) {
 	data, err := request.GetJSONPostAs[*VerifyInput](req)
 	if err != nil {
@@ -124,7 +136,19 @@ func openVerifyInvite(res http.ResponseWriter, req *http.Request) (*VerifyRespon
 	return response.Success(successResponse)
 }
 
-// @link {models}/src/models/account/services/_verify.ts:verifyAccount
+// openVerifyEmail verifies a user's email address and creates a session
+//
+//	@Public
+//	@Summary		Verify email address
+//	@Description	Verifies a user's email address using the verification key and creates a user session
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body	VerifyInput	true	"Verification details"
+//	@Success		200	{object}	response.SuccessResponse{data=VerifyResponse}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Failure		404	{object}	response.ErrorResponse
+//	@Router			/verify/email [post]
 func openVerifyEmail(res http.ResponseWriter, req *http.Request) (*VerifyResponse, int, error) {
 	data, err := request.GetJSONPostAs[*VerifyInput](req)
 	if err != nil {

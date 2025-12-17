@@ -23,6 +23,20 @@ type PasswordResetInput struct {
 	Hash  string `json:"hash"`
 }
 
+// openSendResetPasswordEmail sends a password reset email to the user
+//
+//	@Public
+//	@Summary		Send password reset email
+//	@Description	Sends a password reset email with a temporary session key
+//	@Tags			accounts
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body	PasswordResetInput	true	"Email and verification hash"
+//	@Success		200	{object}	response.SuccessResponse{data=bool}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Failure		403	{object}	response.ErrorResponse
+//	@Failure		404	{object}	response.ErrorResponse
+//	@Router			/password/reset/send [post]
 func openSendResetPasswordEmail(
 	_ http.ResponseWriter,
 	req *http.Request,
@@ -86,6 +100,20 @@ type ResetPasswordInput struct {
 	ConfirmPassword string `json:"password_confirmation"`
 }
 
+// openResetPassword resets the user's password using a reset key
+//
+//	@Public
+//	@Summary		Reset password
+//	@Description	Resets the user's password using the reset key from email
+//	@Tags			accounts
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body	ResetPasswordInput	true	"Password reset details"
+//	@Success		200	{object}	response.SuccessResponse{data=bool}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Failure		403	{object}	response.ErrorResponse
+//	@Failure		404	{object}	response.ErrorResponse
+//	@Router			/password/reset [post]
 func openResetPassword(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
 	data, err := request.GetJSONPostAs[*ResetPasswordInput](req)
 	if err != nil {
@@ -145,11 +173,22 @@ type CheckKeyResponse struct {
 	Valid bool `json:"valid"`
 }
 
-func openCheckKey(_ http.ResponseWriter, req *http.Request) (interface{}, int, error) {
+// openCheckKey validates if a reset key is still valid
+//
+//	@Summary		Check reset key validity
+//	@Description	Validates whether a password reset key is still valid and active
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Param			key	query	string	true	"Reset key to validate"
+//	@Success		200	{object}	response.SuccessResponse{data=CheckKeyResponse}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Router			/password/check [get]
+func openCheckKey(_ http.ResponseWriter, req *http.Request) (*CheckKeyResponse, int, error) {
 	key := req.URL.Query().Get("key")
 
 	if tools.Empty(key) {
-		return response.PublicBadRequestError[bool]()
+		return response.PublicBadRequestError[*CheckKeyResponse]()
 	}
 
 	sessionObj := session.Load(key)
@@ -161,7 +200,7 @@ func openCheckKey(_ http.ResponseWriter, req *http.Request) (interface{}, int, e
 	accountObj, err := account.Get(req.Context(), sessionObj.User.ID())
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return response.PublicBadRequestError[bool]()
+		return response.PublicBadRequestError[*CheckKeyResponse]()
 	}
 	if tools.Empty(accountObj) {
 		log.ErrorContext(errors.Errorf("account not found for key: %s account:%s", key, sessionObj.User.ID()), req.Context())

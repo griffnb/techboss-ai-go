@@ -25,6 +25,18 @@ type PasswordInput struct {
 	PasswordConfirmation string `json:"password_confirmation"`
 }
 
+// updatePassword allows users to update their password
+//
+//	@Public
+//	@Summary		Update password
+//	@Description	Updates the user's password after verifying current password
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body	PasswordInput	true	"Password update details"
+//	@Success		200	{object}	response.SuccessResponse{data=bool}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Router			/auth/password [put]
 func updatePassword(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
 	//if helpers.IsSuperUpdate(req) {
 	//	return response.PublicCustomError[*account.Account]("not allowed to update as super user", http.StatusBadRequest)
@@ -73,8 +85,18 @@ type SetPasswordInput struct {
 	PasswordConfirmation string `json:"password_confirmation"`
 }
 
-// this is for setting a password for the first time on an existing account rather than
-// updating an existing password
+// setPassword sets a password for the first time on an existing account
+//
+//	@Public
+//	@Summary		Set password for new account
+//	@Description	Sets a password for the first time on an existing account using invite verification
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body	SetPasswordInput	true	"Password setup details"
+//	@Success		200	{object}	response.SuccessResponse{data=account.Account}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Router			/auth/password/set [post]
 func setPassword(_ http.ResponseWriter, req *http.Request) (*account.Account, int, error) {
 	//if helpers.IsSuperUpdate(req) {
 	//	return response.PublicCustomErrorV2[*account.Account]("not allowed to update as super user", http.StatusBadRequest)
@@ -132,6 +154,19 @@ type ResendVerifyEmailPayload struct {
 	CFToken string `json:"cf_token"`
 }
 
+// authResendVerifyEmail resends the verification email to the user
+//
+//	@Public
+//	@Summary		Resend verification email
+//	@Description	Resends the email verification link to the user's email address
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body	ResendVerifyEmailPayload	true	"Cloudflare token"
+//	@Success		200	{object}	response.SuccessResponse{data=bool}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Failure		429	{object}	response.ErrorResponse
+//	@Router			/auth/verify/resend [post]
 func authResendVerifyEmail(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
 	//if helpers.IsSuperUpdate(req) {
 	//	return response.PublicCustomError[bool]("not allowed to update as super user", http.StatusBadRequest)
@@ -189,6 +224,18 @@ type UpdatePrimaryEmailAddressPayload struct {
 	CFToken string `json:"cf_token"`
 }
 
+// updatePrimaryEmailAddress updates the user's primary email address
+//
+//	@Public
+//	@Summary		Update primary email
+//	@Description	Updates the user's primary email address for unverified accounts
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body	UpdatePrimaryEmailAddressPayload	true	"Email update details"
+//	@Success		200	{object}	response.SuccessResponse{data=bool}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Router			/auth/email [put]
 func updatePrimaryEmailAddress(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
 	if helpers.IsSuperUpdate(req) {
 		return response.PublicCustomError[bool]("not allowed to update as super user", http.StatusBadRequest)

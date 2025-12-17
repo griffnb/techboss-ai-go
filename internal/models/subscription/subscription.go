@@ -1,4 +1,4 @@
-//go:generate core_gen model Subscription
+//go:generate core_gen model Subscription  -add=swaggo
 package subscription
 
 import (
@@ -30,7 +30,7 @@ type DBColumns struct {
 	base.Structure
 	OrganizationID       *fields.UUIDField                                         `column:"organization_id"        type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
 	BillingPlanPriceID   *fields.UUIDField                                         `column:"billing_plan_price_id"  type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
-	Level                *fields.IntField                                          `column:"level"                  type:"int"      default:"0"`
+	Level                *fields.IntField                                          `column:"level"                  type:"smallint" default:"0"`
 	BillingProvider      *fields.IntConstantField[BillingProvider]                 `column:"billing_provider"       type:"smallint" default:"0"    index:"true"`
 	StripeCustomerID     *fields.StringField                                       `column:"stripe_customer_id"     type:"text"     default:""     index:"true"`
 	StripeSubscriptionID *fields.StringField                                       `column:"stripe_subscription_id" type:"text"     default:""     index:"true"`

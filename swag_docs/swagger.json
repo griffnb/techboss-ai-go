@@ -1,0 +1,3055 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/account": {
+            "get": {
+                "description": "List Account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "List Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "search by q",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 100,
+                        "description": "limit results",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 0,
+                        "description": "offset results",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "created_at desc",
+                        "description": "sort results e.g. 'created_at desc'",
+                        "name": "order",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filters, see readme",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/account.AccountJoinedPublic"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/account/": {
+            "post": {
+                "description": "Create Account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Create Account",
+                "parameters": [
+                    {
+                        "description": "Account Data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/account.AccountPublic"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/account.AccountPublic"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/account/check": {
+            "post": {
+                "description": "Checks whether an email address is already registered",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Check existing email",
+                "parameters": [
+                    {
+                        "description": "Email to check",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ExistingCheck"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/accounts.ExistingResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/account/{id}": {
+            "get": {
+                "description": "Get Account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Get Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/account.AccountJoinedPublic"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update Account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Update Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Account Data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/account.AccountPublic"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/account.AccountPublic"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Marks an account as deleted by setting status to USER_DELETED",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Delete account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/AdminAccountJoined"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/account/{id}/cancel": {
+            "post": {
+                "description": "Cancels a pending invitation and invalidates the invite session",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Cancel invite",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/AdminAccountJoined"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/account/{id}/resend": {
+            "post": {
+                "description": "Resends invitation email to a pending account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Resend invite",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/account.AccountJoinedPublic"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/account": {
+            "get": {
+                "description": "List Account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "List Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "search by q",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 100,
+                        "description": "limit results",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 0,
+                        "description": "offset results",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "created_at desc",
+                        "description": "sort results e.g. 'created_at desc'",
+                        "name": "order",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filters, see readme",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/account.AccountJoined"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/account/": {
+            "post": {
+                "description": "Create Account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Create Account",
+                "parameters": [
+                    {
+                        "description": "Account Data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/account.Account"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/account.Account"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/account/count": {
+            "get": {
+                "description": "Count Account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Count Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "search by q",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filters, see readme",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/account/{id}": {
+            "get": {
+                "description": "Get Account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Get Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/account.AccountJoined"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update Account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Update Account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Account Data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/account.Account"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/account.Account"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/testUser": {
+            "post": {
+                "description": "Creates a test account with the provided details and optionally logs in as that account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Create test account",
+                "parameters": [
+                    {
+                        "description": "Test user details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/account_service.TestUserInput"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Set to login as the created user",
+                        "name": "login_as",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/account.Account"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/email": {
+            "put": {
+                "description": "Updates the user's primary email address for unverified accounts",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Update primary email",
+                "parameters": [
+                    {
+                        "description": "Email update details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.UpdatePrimaryEmailAddressPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/password": {
+            "put": {
+                "description": "Updates the user's password after verifying current password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Update password",
+                "parameters": [
+                    {
+                        "description": "Password update details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.PasswordInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/password/set": {
+            "post": {
+                "description": "Sets a password for the first time on an existing account using invite verification",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Set password for new account",
+                "parameters": [
+                    {
+                        "description": "Password setup details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.SetPasswordInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/account.AccountPublic"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/verify/resend": {
+            "post": {
+                "description": "Resends the email verification link to the user's email address",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Resend verification email",
+                "parameters": [
+                    {
+                        "description": "Cloudflare token",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ResendVerifyEmailPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/me": {
+            "get": {
+                "description": "Retrieves the authenticated user's account details with joined data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Get current user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/account.AccountWithFeaturesPublic"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/password/check": {
+            "get": {
+                "description": "Validates whether a password reset key is still valid and active",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Check reset key validity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Reset key to validate",
+                        "name": "key",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/accounts.CheckKeyResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/password/reset": {
+            "post": {
+                "description": "Resets the user's password using the reset key from email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Reset password",
+                "parameters": [
+                    {
+                        "description": "Password reset details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.ResetPasswordInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/password/reset/send": {
+            "post": {
+                "description": "Sends a password reset email with a temporary session key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Send password reset email",
+                "parameters": [
+                    {
+                        "description": "Email and verification hash",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.PasswordResetInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/signup": {
+            "post": {
+                "description": "Creates a new account with email and password or completes invited user signup",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Standard signup",
+                "parameters": [
+                    {
+                        "description": "Signup data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/accounts.SignupResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/signup/oauth": {
+            "post": {
+                "description": "Completes signup process for OAuth authenticated users",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "OAuth signup",
+                "parameters": [
+                    {
+                        "description": "Signup data with OAuth token",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/accounts.SignupResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/verify/email": {
+            "post": {
+                "description": "Verifies a user's email address using the verification key and creates a user session",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Verify email address",
+                "parameters": [
+                    {
+                        "description": "Verification details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.VerifyInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/accounts.VerifyResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/verify/invite": {
+            "post": {
+                "description": "Verifies an account invitation using the verification key and creates a user session",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Verify account invite",
+                "parameters": [
+                    {
+                        "description": "Verification details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/accounts.VerifyInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/accounts.VerifyResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "AdminAccountJoined": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by_name": {
+                    "type": "string"
+                },
+                "created_by_urn": {
+                    "type": "string"
+                },
+                "deleted": {
+                    "type": "integer"
+                },
+                "disabled": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "email_verified_at_ts": {
+                    "type": "integer"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "hashed_password": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_super_user_session": {
+                    "type": "integer"
+                },
+                "last_login_ts": {
+                    "type": "integer"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organization_id": {
+                    "type": "string"
+                },
+                "organization_name": {
+                    "type": "string"
+                },
+                "password_updated_at_ts": {
+                    "type": "integer"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "properties": {
+                    "$ref": "#/definitions/account.Properties"
+                },
+                "role": {
+                    "type": "integer"
+                },
+                "signup_properties": {
+                    "$ref": "#/definitions/account.SignupProperties"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "test_user_type": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "updated_by_name": {
+                    "type": "string"
+                },
+                "updated_by_urn": {
+                    "type": "string"
+                },
+                "urn": {
+                    "type": "string"
+                }
+            }
+        },
+        "account.Account": {
+            "type": "object",
+            "required": [
+                "id",
+                "urn",
+                "created_by_urn",
+                "updated_by_urn",
+                "status",
+                "deleted",
+                "disabled",
+                "updated_at",
+                "created_at",
+                "first_name",
+                "last_name",
+                "email",
+                "phone",
+                "external_id",
+                "test_user_type",
+                "organization_id",
+                "role",
+                "properties",
+                "signup_properties",
+                "hashed_password",
+                "password_updated_at_ts",
+                "email_verified_at_ts",
+                "last_login_ts",
+                "is_super_user_session"
+            ],
+            "properties": {
+                "ChangeLogs": {
+                    "type": "boolean"
+                },
+                "Class": {
+                    "type": "string"
+                },
+                "Client": {
+                    "$ref": "#/definitions/Client"
+                },
+                "CreatedAtColumn": {
+                    "type": "string"
+                },
+                "IDColumn": {
+                    "type": "string"
+                },
+                "IsVersioned": {
+                    "type": "boolean"
+                },
+                "ManualCache": {
+                    "type": "boolean"
+                },
+                "PackageName": {
+                    "type": "string"
+                },
+                "SavingUser": {
+                    "$ref": "#/definitions/github.com/griffnb/core/lib/model/coremodel.Model"
+                },
+                "Standardized": {
+                    "type": "boolean"
+                },
+                "Table": {
+                    "type": "string"
+                },
+                "UpdatedAtColumn": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by_urn": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "deleted": {
+                    "type": "integer"
+                },
+                "disabled": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "email_verified_at_ts": {
+                    "type": "integer"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "fieldMap": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "hashed_password": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "isLoaded": {
+                    "type": "boolean"
+                },
+                "isSaved": {
+                    "type": "boolean"
+                },
+                "is_super_user_session": {
+                    "type": "integer"
+                },
+                "last_login_ts": {
+                    "type": "integer"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "newData": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "organization_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "password_updated_at_ts": {
+                    "type": "integer"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "preValues": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "properties": {
+                    "$ref": "#/definitions/account.Properties"
+                },
+                "readerSem": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "role": {
+                    "type": "integer"
+                },
+                "saveData": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "signup_properties": {
+                    "$ref": "#/definitions/account.SignupProperties"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "test_user_type": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_by_urn": {
+                    "type": "string"
+                },
+                "urn": {
+                    "type": "string"
+                },
+                "v": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "writerSem": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "account.AccountJoined": {
+            "type": "object",
+            "required": [
+                "id",
+                "urn",
+                "created_by_urn",
+                "updated_by_urn",
+                "status",
+                "deleted",
+                "disabled",
+                "updated_at",
+                "created_at",
+                "first_name",
+                "last_name",
+                "email",
+                "phone",
+                "external_id",
+                "test_user_type",
+                "organization_id",
+                "role",
+                "properties",
+                "signup_properties",
+                "hashed_password",
+                "password_updated_at_ts",
+                "email_verified_at_ts",
+                "last_login_ts",
+                "is_super_user_session",
+                "name",
+                "organization_name",
+                "created_by_name",
+                "updated_by_name"
+            ],
+            "properties": {
+                "ChangeLogs": {
+                    "type": "boolean"
+                },
+                "Class": {
+                    "type": "string"
+                },
+                "Client": {
+                    "$ref": "#/definitions/Client"
+                },
+                "CreatedAtColumn": {
+                    "type": "string"
+                },
+                "IDColumn": {
+                    "type": "string"
+                },
+                "IsVersioned": {
+                    "type": "boolean"
+                },
+                "ManualCache": {
+                    "type": "boolean"
+                },
+                "PackageName": {
+                    "type": "string"
+                },
+                "SavingUser": {
+                    "$ref": "#/definitions/github.com/griffnb/core/lib/model/coremodel.Model"
+                },
+                "Standardized": {
+                    "type": "boolean"
+                },
+                "Table": {
+                    "type": "string"
+                },
+                "UpdatedAtColumn": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by_name": {
+                    "type": "string"
+                },
+                "created_by_urn": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "deleted": {
+                    "type": "integer"
+                },
+                "disabled": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "email_verified_at_ts": {
+                    "type": "integer"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "fieldMap": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "hashed_password": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "isLoaded": {
+                    "type": "boolean"
+                },
+                "isSaved": {
+                    "type": "boolean"
+                },
+                "is_super_user_session": {
+                    "type": "integer"
+                },
+                "last_login_ts": {
+                    "type": "integer"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "newData": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "organization_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "organization_name": {
+                    "type": "string"
+                },
+                "password_updated_at_ts": {
+                    "type": "integer"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "preValues": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "properties": {
+                    "$ref": "#/definitions/account.Properties"
+                },
+                "readerSem": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "role": {
+                    "type": "integer"
+                },
+                "saveData": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "signup_properties": {
+                    "$ref": "#/definitions/account.SignupProperties"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "test_user_type": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_by_name": {
+                    "type": "string"
+                },
+                "updated_by_urn": {
+                    "type": "string"
+                },
+                "urn": {
+                    "type": "string"
+                },
+                "v": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "writerSem": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "account.AccountJoinedPublic": {
+            "type": "object",
+            "required": [
+                "id",
+                "urn",
+                "created_by_urn",
+                "updated_by_urn",
+                "status",
+                "deleted",
+                "disabled",
+                "updated_at",
+                "created_at",
+                "first_name",
+                "last_name",
+                "email",
+                "phone",
+                "external_id",
+                "test_user_type",
+                "organization_id",
+                "role",
+                "is_super_user_session"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by_urn": {
+                    "type": "string"
+                },
+                "deleted": {
+                    "type": "integer"
+                },
+                "disabled": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "is_super_user_session": {
+                    "type": "integer"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "organization_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "test_user_type": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_by_urn": {
+                    "type": "string"
+                },
+                "urn": {
+                    "type": "string"
+                }
+            }
+        },
+        "account.AccountPublic": {
+            "type": "object",
+            "required": [
+                "id",
+                "urn",
+                "created_by_urn",
+                "updated_by_urn",
+                "status",
+                "deleted",
+                "disabled",
+                "updated_at",
+                "created_at",
+                "first_name",
+                "last_name",
+                "email",
+                "phone",
+                "external_id",
+                "test_user_type",
+                "organization_id",
+                "role",
+                "is_super_user_session"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by_urn": {
+                    "type": "string"
+                },
+                "deleted": {
+                    "type": "integer"
+                },
+                "disabled": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "is_super_user_session": {
+                    "type": "integer"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "organization_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "test_user_type": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_by_urn": {
+                    "type": "string"
+                },
+                "urn": {
+                    "type": "string"
+                }
+            }
+        },
+        "account.AccountWithFeatures": {
+            "type": "object",
+            "required": [
+                "id",
+                "urn",
+                "created_by_urn",
+                "updated_by_urn",
+                "status",
+                "deleted",
+                "disabled",
+                "updated_at",
+                "created_at",
+                "first_name",
+                "last_name",
+                "email",
+                "phone",
+                "external_id",
+                "test_user_type",
+                "organization_id",
+                "role",
+                "properties",
+                "signup_properties",
+                "hashed_password",
+                "password_updated_at_ts",
+                "email_verified_at_ts",
+                "last_login_ts",
+                "is_super_user_session",
+                "billing_plan_level",
+                "billing_plan_price",
+                "billing_plan_id",
+                "billing_plan_name",
+                "billing_plan_feature_set",
+                "feature_set_overrides",
+                "feature_set"
+            ],
+            "properties": {
+                "ChangeLogs": {
+                    "type": "boolean"
+                },
+                "Class": {
+                    "type": "string"
+                },
+                "Client": {
+                    "$ref": "#/definitions/Client"
+                },
+                "CreatedAtColumn": {
+                    "type": "string"
+                },
+                "IDColumn": {
+                    "type": "string"
+                },
+                "IsVersioned": {
+                    "type": "boolean"
+                },
+                "ManualCache": {
+                    "type": "boolean"
+                },
+                "PackageName": {
+                    "type": "string"
+                },
+                "SavingUser": {
+                    "$ref": "#/definitions/github.com/griffnb/core/lib/model/coremodel.Model"
+                },
+                "Standardized": {
+                    "type": "boolean"
+                },
+                "Table": {
+                    "type": "string"
+                },
+                "UpdatedAtColumn": {
+                    "type": "string"
+                },
+                "billing_plan_feature_set": {
+                    "$ref": "#/definitions/billing_plan.FeatureSet"
+                },
+                "billing_plan_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "billing_plan_level": {
+                    "type": "integer"
+                },
+                "billing_plan_name": {
+                    "type": "string"
+                },
+                "billing_plan_price": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by_urn": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "deleted": {
+                    "type": "integer"
+                },
+                "disabled": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "email_verified_at_ts": {
+                    "type": "integer"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "feature_set": {
+                    "$ref": "#/definitions/billing_plan.FeatureSet"
+                },
+                "feature_set_overrides": {
+                    "$ref": "#/definitions/billing_plan.MergeableFeatureSet"
+                },
+                "fieldMap": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "hashed_password": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "isLoaded": {
+                    "type": "boolean"
+                },
+                "isSaved": {
+                    "type": "boolean"
+                },
+                "is_super_user_session": {
+                    "type": "integer"
+                },
+                "last_login_ts": {
+                    "type": "integer"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "newData": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "organization_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "password_updated_at_ts": {
+                    "type": "integer"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "preValues": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "properties": {
+                    "$ref": "#/definitions/account.Properties"
+                },
+                "readerSem": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "role": {
+                    "type": "integer"
+                },
+                "saveData": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "signup_properties": {
+                    "$ref": "#/definitions/account.SignupProperties"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "test_user_type": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_by_urn": {
+                    "type": "string"
+                },
+                "urn": {
+                    "type": "string"
+                },
+                "v": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "writerSem": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "account.AccountWithFeaturesPublic": {
+            "type": "object",
+            "required": [
+                "id",
+                "urn",
+                "created_by_urn",
+                "updated_by_urn",
+                "status",
+                "deleted",
+                "disabled",
+                "updated_at",
+                "created_at",
+                "first_name",
+                "last_name",
+                "email",
+                "phone",
+                "external_id",
+                "test_user_type",
+                "organization_id",
+                "role",
+                "is_super_user_session",
+                "billing_plan_level",
+                "billing_plan_price",
+                "billing_plan_id",
+                "billing_plan_name",
+                "feature_set"
+            ],
+            "properties": {
+                "billing_plan_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "billing_plan_level": {
+                    "type": "integer"
+                },
+                "billing_plan_name": {
+                    "type": "string"
+                },
+                "billing_plan_price": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by_urn": {
+                    "type": "string"
+                },
+                "deleted": {
+                    "type": "integer"
+                },
+                "disabled": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "feature_set": {
+                    "$ref": "#/definitions/billing_plan.FeatureSetPublic"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "is_super_user_session": {
+                    "type": "integer"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "organization_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "test_user_type": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_by_urn": {
+                    "type": "string"
+                },
+                "urn": {
+                    "type": "string"
+                }
+            }
+        },
+        "account.Client": {
+            "type": "object"
+        },
+        "account.ClientPublic": {
+            "type": "object"
+        },
+        "account.Properties": {
+            "type": "object",
+            "properties": {
+                "external_user_info": {},
+                "invite_key": {
+                    "type": "string"
+                },
+                "invite_ts": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "last_seen": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "verify_email_key": {
+                    "type": "string"
+                }
+            }
+        },
+        "account.PropertiesPublic": {
+            "type": "object"
+        },
+        "account.SignupProperties": {
+            "type": "object",
+            "required": [
+                "is_oauth"
+            ],
+            "properties": {
+                "is_oauth": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "account.SignupPropertiesPublic": {
+            "type": "object"
+        },
+        "account_service.TestUserInput": {
+            "type": "object",
+            "properties": {
+                "organization_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "accounts.APIResponse": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "$ref": "#/definitions/account.Account"
+                },
+                "organization": {
+                    "$ref": "#/definitions/organization.Organization"
+                }
+            }
+        },
+        "accounts.CheckKeyResponse": {
+            "type": "object",
+            "properties": {
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "accounts.ExistingCheck": {
+            "type": "object",
+            "properties": {
+                "cf_token": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "accounts.ExistingResponse": {
+            "type": "object",
+            "properties": {
+                "exists": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "accounts.PasswordInput": {
+            "type": "object",
+            "properties": {
+                "current_password": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "password_confirmation": {
+                    "type": "string"
+                }
+            }
+        },
+        "accounts.PasswordResetInput": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                }
+            }
+        },
+        "accounts.ResendVerifyEmailPayload": {
+            "type": "object",
+            "properties": {
+                "cf_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "accounts.ResetPasswordInput": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "password_confirmation": {
+                    "type": "string"
+                },
+                "resetKey": {
+                    "type": "string"
+                }
+            }
+        },
+        "accounts.SetPasswordInput": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "password_confirmation": {
+                    "type": "string"
+                },
+                "verify": {
+                    "type": "string"
+                }
+            }
+        },
+        "accounts.SignupResponse": {
+            "type": "object",
+            "properties": {
+                "redirect_url": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "verification_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "accounts.UpdatePrimaryEmailAddressPayload": {
+            "type": "object",
+            "properties": {
+                "cf_token": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "accounts.VerifyInput": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "verify": {
+                    "type": "string"
+                }
+            }
+        },
+        "accounts.VerifyResponse": {
+            "type": "object",
+            "properties": {
+                "redirect_url": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "billing_plan.FeatureSet": {
+            "type": "object",
+            "properties": {
+                "advanced_analytics": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "custom_branding": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "priority_support": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "billing_plan.FeatureSetPublic": {
+            "type": "object",
+            "properties": {
+                "advanced_analytics": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "billing_plan.MergeableFeatureSet": {
+            "type": "object"
+        },
+        "billing_plan.MergeableFeatureSetPublic": {
+            "type": "object"
+        },
+        "github.Model": {
+            "type": "object"
+        },
+        "github.ModelPublic": {
+            "type": "object"
+        },
+        "organization.Client": {
+            "type": "object"
+        },
+        "organization.ClientPublic": {
+            "type": "object"
+        },
+        "organization.MetaData": {
+            "type": "object",
+            "properties": {
+                "onboard_answers": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "vector_store_id": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "organization.MetaDataPublic": {
+            "type": "object",
+            "properties": {
+                "onboard_answers": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "vector_store_id": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "organization.Organization": {
+            "type": "object",
+            "required": [
+                "id",
+                "urn",
+                "created_by_urn",
+                "updated_by_urn",
+                "status",
+                "deleted",
+                "disabled",
+                "updated_at",
+                "created_at",
+                "name",
+                "external_id",
+                "stripe_id",
+                "billing_plan_price_id",
+                "properties",
+                "meta_data",
+                "email_domains",
+                "subdomain",
+                "feature_set_overrides"
+            ],
+            "properties": {
+                "ChangeLogs": {
+                    "type": "boolean"
+                },
+                "Class": {
+                    "type": "string"
+                },
+                "Client": {
+                    "$ref": "#/definitions/Client"
+                },
+                "CreatedAtColumn": {
+                    "type": "string"
+                },
+                "IDColumn": {
+                    "type": "string"
+                },
+                "IsVersioned": {
+                    "type": "boolean"
+                },
+                "ManualCache": {
+                    "type": "boolean"
+                },
+                "PackageName": {
+                    "type": "string"
+                },
+                "SavingUser": {
+                    "$ref": "#/definitions/github.com/griffnb/core/lib/model/coremodel.Model"
+                },
+                "Standardized": {
+                    "type": "boolean"
+                },
+                "Table": {
+                    "type": "string"
+                },
+                "UpdatedAtColumn": {
+                    "type": "string"
+                },
+                "billing_plan_price_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by_urn": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "deleted": {
+                    "type": "integer"
+                },
+                "disabled": {
+                    "type": "integer"
+                },
+                "email_domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "feature_set_overrides": {
+                    "$ref": "#/definitions/billing_plan.FeatureSet"
+                },
+                "fieldMap": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "isLoaded": {
+                    "type": "boolean"
+                },
+                "isSaved": {
+                    "type": "boolean"
+                },
+                "meta_data": {
+                    "$ref": "#/definitions/organization.MetaData"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "newData": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "preValues": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "properties": {
+                    "$ref": "#/definitions/organization.Properties"
+                },
+                "readerSem": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "saveData": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "stripe_id": {
+                    "type": "string"
+                },
+                "subdomain": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_by_urn": {
+                    "type": "string"
+                },
+                "urn": {
+                    "type": "string"
+                },
+                "v": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "writerSem": {
+                    "type": "integer",
+                    "format": "int32"
+                }
+            }
+        },
+        "organization.OrganizationPublic": {
+            "type": "object",
+            "required": [
+                "id",
+                "urn",
+                "created_by_urn",
+                "updated_by_urn",
+                "status",
+                "deleted",
+                "disabled",
+                "updated_at",
+                "created_at",
+                "name",
+                "billing_plan_price_id",
+                "properties",
+                "meta_data"
+            ],
+            "properties": {
+                "billing_plan_price_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by_urn": {
+                    "type": "string"
+                },
+                "deleted": {
+                    "type": "integer"
+                },
+                "disabled": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "meta_data": {
+                    "$ref": "#/definitions/organization.MetaDataPublic"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "properties": {
+                    "$ref": "#/definitions/organization.PropertiesPublic"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_by_urn": {
+                    "type": "string"
+                },
+                "urn": {
+                    "type": "string"
+                }
+            }
+        },
+        "organization.Properties": {
+            "type": "object",
+            "properties": {
+                "billing_email": {
+                    "type": "string"
+                }
+            }
+        },
+        "organization.PropertiesPublic": {
+            "type": "object"
+        },
+        "response.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "response.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        }
+    }
+}
