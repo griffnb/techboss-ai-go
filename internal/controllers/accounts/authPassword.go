@@ -33,9 +33,9 @@ type PasswordInput struct {
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body	PasswordInput	true	"Password update details"
-//	@Success		200	{object}	response.SuccessResponse{data=bool}
-//	@Failure		400	{object}	response.ErrorResponse
+//	@Param			body	body		PasswordInput	true	"Password update details"
+//	@Success		200		{object}	response.SuccessResponse{data=bool}
+//	@Failure		400		{object}	response.ErrorResponse
 //	@Router			/auth/password [put]
 func updatePassword(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
 	//if helpers.IsSuperUpdate(req) {
@@ -93,9 +93,9 @@ type SetPasswordInput struct {
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body	SetPasswordInput	true	"Password setup details"
-//	@Success		200	{object}	response.SuccessResponse{data=account.Account}
-//	@Failure		400	{object}	response.ErrorResponse
+//	@Param			body	body		SetPasswordInput	true	"Password setup details"
+//	@Success		200		{object}	response.SuccessResponse{data=account.Account}
+//	@Failure		400		{object}	response.ErrorResponse
 //	@Router			/auth/password/set [post]
 func setPassword(_ http.ResponseWriter, req *http.Request) (*account.Account, int, error) {
 	//if helpers.IsSuperUpdate(req) {
@@ -162,10 +162,10 @@ type ResendVerifyEmailPayload struct {
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body	ResendVerifyEmailPayload	true	"Cloudflare token"
-//	@Success		200	{object}	response.SuccessResponse{data=bool}
-//	@Failure		400	{object}	response.ErrorResponse
-//	@Failure		429	{object}	response.ErrorResponse
+//	@Param			body	body		ResendVerifyEmailPayload	true	"Cloudflare token"
+//	@Success		200		{object}	response.SuccessResponse{data=bool}
+//	@Failure		400		{object}	response.ErrorResponse
+//	@Failure		429		{object}	response.ErrorResponse
 //	@Router			/auth/verify/resend [post]
 func authResendVerifyEmail(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
 	//if helpers.IsSuperUpdate(req) {
@@ -232,9 +232,9 @@ type UpdatePrimaryEmailAddressPayload struct {
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body	UpdatePrimaryEmailAddressPayload	true	"Email update details"
-//	@Success		200	{object}	response.SuccessResponse{data=bool}
-//	@Failure		400	{object}	response.ErrorResponse
+//	@Param			body	body		UpdatePrimaryEmailAddressPayload	true	"Email update details"
+//	@Success		200		{object}	response.SuccessResponse{data=bool}
+//	@Failure		400		{object}	response.ErrorResponse
 //	@Router			/auth/email [put]
 func updatePrimaryEmailAddress(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
 	if helpers.IsSuperUpdate(req) {

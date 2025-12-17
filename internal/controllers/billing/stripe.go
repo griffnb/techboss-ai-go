@@ -24,7 +24,7 @@ type CheckoutSuccessPost struct {
 	PromoCode          string `json:"promo_code"`
 }
 
-// @link {models}/src/models/billing_plan/services/_checkout.ts:checkoutSuccess
+// @link	{models}/src/models/billing_plan/services/_checkout.ts:checkoutSuccess
 func authStripeCheckoutSuccess(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
 	accountObj := helpers.GetLoadedUser(req)
 	checkoutSuccess, err := request.GetJSONPostAs[*CheckoutSuccessPost](req)
@@ -61,7 +61,7 @@ type Checkout struct {
 	PromotionCode string `json:"promotion_code"`
 }
 
-// @link {models}/src/models/billing_plan/services/_checkout.ts:startStripeCheckout
+// @link	{models}/src/models/billing_plan/services/_checkout.ts:startStripeCheckout
 func authStripeCheckout(_ http.ResponseWriter, req *http.Request) (*stripe_wrapper.StripeCheckout, int, error) {
 	accountObj := helpers.GetLoadedUser(req)
 

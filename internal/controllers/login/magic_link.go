@@ -16,7 +16,8 @@ import (
 )
 
 // Logs in with a magic link session
-// @link {models}/src/models/account/services/_link.ts:loginLink
+//
+//	@link	{models}/src/models/account/services/_link.ts:loginLink
 func loginMagicLink(res http.ResponseWriter, req *http.Request) (*TokenResponse, int, error) {
 	tokenInput, err := request.GetJSONPostAs[*TokenInput](req)
 	if err != nil {
@@ -109,7 +110,7 @@ type SendLinkInput struct {
 	RedirectURL   string `json:"redirect_url"`
 }
 
-// @link {models}/src/models/account/services/_link.ts:sendLink
+//	@link	{models}/src/models/account/services/_link.ts:sendLink
 
 type SendMagicLinkResponse struct {
 	Email     string `json:"email"                public:"view"`

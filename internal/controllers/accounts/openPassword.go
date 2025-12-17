@@ -31,11 +31,11 @@ type PasswordResetInput struct {
 //	@Tags			accounts
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body	PasswordResetInput	true	"Email and verification hash"
-//	@Success		200	{object}	response.SuccessResponse{data=bool}
-//	@Failure		400	{object}	response.ErrorResponse
-//	@Failure		403	{object}	response.ErrorResponse
-//	@Failure		404	{object}	response.ErrorResponse
+//	@Param			body	body		PasswordResetInput	true	"Email and verification hash"
+//	@Success		200		{object}	response.SuccessResponse{data=bool}
+//	@Failure		400		{object}	response.ErrorResponse
+//	@Failure		403		{object}	response.ErrorResponse
+//	@Failure		404		{object}	response.ErrorResponse
 //	@Router			/password/reset/send [post]
 func openSendResetPasswordEmail(
 	_ http.ResponseWriter,
@@ -108,11 +108,11 @@ type ResetPasswordInput struct {
 //	@Tags			accounts
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body	ResetPasswordInput	true	"Password reset details"
-//	@Success		200	{object}	response.SuccessResponse{data=bool}
-//	@Failure		400	{object}	response.ErrorResponse
-//	@Failure		403	{object}	response.ErrorResponse
-//	@Failure		404	{object}	response.ErrorResponse
+//	@Param			body	body		ResetPasswordInput	true	"Password reset details"
+//	@Success		200		{object}	response.SuccessResponse{data=bool}
+//	@Failure		400		{object}	response.ErrorResponse
+//	@Failure		403		{object}	response.ErrorResponse
+//	@Failure		404		{object}	response.ErrorResponse
 //	@Router			/password/reset [post]
 func openResetPassword(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
 	data, err := request.GetJSONPostAs[*ResetPasswordInput](req)
@@ -180,7 +180,7 @@ type CheckKeyResponse struct {
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			key	query	string	true	"Reset key to validate"
+//	@Param			key	query		string	true	"Reset key to validate"
 //	@Success		200	{object}	response.SuccessResponse{data=CheckKeyResponse}
 //	@Failure		400	{object}	response.ErrorResponse
 //	@Router			/password/check [get]

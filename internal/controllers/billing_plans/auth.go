@@ -46,7 +46,7 @@ type PlanWithPrices struct {
 	Prices []*billing_plan_price.BillingPlanPrice `json:"prices"`
 }
 
-// @link {models}/src/models/billing_plan/services/_checkout.ts:getPlans
+// @link	{models}/src/models/billing_plan/services/_checkout.ts:getPlans
 func authPlans(_ http.ResponseWriter, req *http.Request) (*PlanResponse, int, error) {
 	billingPlanObjs, err := billing_plan.GetAllActivePlans(req.Context())
 	if err != nil {

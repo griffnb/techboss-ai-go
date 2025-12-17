@@ -31,11 +31,11 @@ type SignupResponse struct {
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body	object	true	"Signup data with OAuth token"
-//	@Success		200	{object}	response.SuccessResponse{data=SignupResponse}
-//	@Failure		400	{object}	response.ErrorResponse
-//	@Failure		404	{object}	response.ErrorResponse
-//	@Failure		409	{object}	response.ErrorResponse
+//	@Param			body	body		object	true	"Signup data with OAuth token"
+//	@Success		200		{object}	response.SuccessResponse{data=SignupResponse}
+//	@Failure		400		{object}	response.ErrorResponse
+//	@Failure		404		{object}	response.ErrorResponse
+//	@Failure		409		{object}	response.ErrorResponse
 //	@Router			/signup/oauth [post]
 func oauthSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, int, error) {
 	data := request.GetJSONPostMap(req)
@@ -142,10 +142,10 @@ func oauthSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, i
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body	object	true	"Signup data"
-//	@Success		200	{object}	response.SuccessResponse{data=SignupResponse}
-//	@Failure		400	{object}	response.ErrorResponse
-//	@Failure		409	{object}	response.ErrorResponse
+//	@Param			body	body		object	true	"Signup data"
+//	@Success		200		{object}	response.SuccessResponse{data=SignupResponse}
+//	@Failure		400		{object}	response.ErrorResponse
+//	@Failure		409		{object}	response.ErrorResponse
 //	@Router			/signup [post]
 func openSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, int, error) {
 	data := request.GetJSONPostMap(req)
@@ -246,9 +246,9 @@ type ExistingResponse struct {
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body	ExistingCheck	true	"Email to check"
-//	@Success		200	{object}	response.SuccessResponse{data=ExistingResponse}
-//	@Failure		400	{object}	response.ErrorResponse
+//	@Param			body	body		ExistingCheck	true	"Email to check"
+//	@Success		200		{object}	response.SuccessResponse{data=ExistingResponse}
+//	@Failure		400		{object}	response.ErrorResponse
 //	@Router			/account/check [post]
 func openCheckExisting(_ http.ResponseWriter, req *http.Request) (*ExistingResponse, int, error) {
 	data, err := request.GetJSONPostAs[*ExistingCheck](req)

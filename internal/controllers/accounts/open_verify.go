@@ -34,10 +34,10 @@ type VerifyResponse struct {
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body	VerifyInput	true	"Verification details"
-//	@Success		200	{object}	response.SuccessResponse{data=VerifyResponse}
-//	@Failure		400	{object}	response.ErrorResponse
-//	@Failure		404	{object}	response.ErrorResponse
+//	@Param			body	body		VerifyInput	true	"Verification details"
+//	@Success		200		{object}	response.SuccessResponse{data=VerifyResponse}
+//	@Failure		400		{object}	response.ErrorResponse
+//	@Failure		404		{object}	response.ErrorResponse
 //	@Router			/verify/invite [post]
 func openVerifyInvite(res http.ResponseWriter, req *http.Request) (*VerifyResponse, int, error) {
 	data, err := request.GetJSONPostAs[*VerifyInput](req)
@@ -144,10 +144,10 @@ func openVerifyInvite(res http.ResponseWriter, req *http.Request) (*VerifyRespon
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body	VerifyInput	true	"Verification details"
-//	@Success		200	{object}	response.SuccessResponse{data=VerifyResponse}
-//	@Failure		400	{object}	response.ErrorResponse
-//	@Failure		404	{object}	response.ErrorResponse
+//	@Param			body	body		VerifyInput	true	"Verification details"
+//	@Success		200		{object}	response.SuccessResponse{data=VerifyResponse}
+//	@Failure		400		{object}	response.ErrorResponse
+//	@Failure		404		{object}	response.ErrorResponse
 //	@Router			/verify/email [post]
 func openVerifyEmail(res http.ResponseWriter, req *http.Request) (*VerifyResponse, int, error) {
 	data, err := request.GetJSONPostAs[*VerifyInput](req)

@@ -17,7 +17,7 @@ type CurrentSubscriptionResponse struct {
 	BillingPlanPrice *billing_plan_price.BillingPlanPrice `json:"billing_plan_price"`
 }
 
-// @link {models}/src/models/subscription/services/_subscription.ts:currentSubscription
+// @link	{models}/src/models/subscription/services/_subscription.ts:currentSubscription
 func authCurrent(_ http.ResponseWriter, req *http.Request) (*CurrentSubscriptionResponse, int, error) {
 	accountObj := helpers.GetLoadedUser(req)
 

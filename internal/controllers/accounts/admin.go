@@ -21,11 +21,11 @@ import (
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		account_service.TestUserInput	true	"Test user details"
-//	@Param			login_as	query	string	false	"Set to login as the created user"
-//	@Success		200	{object}	response.SuccessResponse{data=account.Account}
-//	@Failure		400	{object}	response.ErrorResponse
-//	@Failure		500	{object}	response.ErrorResponse
+//	@Param			body		body		account_service.TestUserInput	true	"Test user details"
+//	@Param			login_as	query		string							false	"Set to login as the created user"
+//	@Success		200			{object}	response.SuccessResponse{data=account.Account}
+//	@Failure		400			{object}	response.ErrorResponse
+//	@Failure		500			{object}	response.ErrorResponse
 //	@Router			/admin/testUser [post]
 func adminTestCreate(res http.ResponseWriter, req *http.Request) (*account.Account, int, error) {
 	userSession := request.GetReqSession(req)

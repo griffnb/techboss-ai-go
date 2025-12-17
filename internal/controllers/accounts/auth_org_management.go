@@ -22,7 +22,7 @@ import (
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path	string	true	"Account ID"
+//	@Param			id	path		string	true	"Account ID"
 //	@Success		200	{object}	response.SuccessResponse{data=account.GEN_AccountJoinedPublic}
 //	@Failure		400	{object}	response.ErrorResponse
 //	@Router			/account/{id} [delete]
@@ -61,7 +61,7 @@ func authDelete(_ http.ResponseWriter, req *http.Request) (*account.AccountJoine
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path	uuid	true	"Account ID"
+//	@Param			id	path		uuid	true	"Account ID"
 //	@Success		200	{object}	response.SuccessResponse{data=account.AccountJoined}
 //	@Failure		400	{object}	response.ErrorResponse
 //	@Router			/account/{id}/resend [post]
@@ -110,7 +110,7 @@ func authResendInvite(_ http.ResponseWriter, req *http.Request) (*account.Accoun
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path	string	true	"Account ID"
+//	@Param			id	path		string	true	"Account ID"
 //	@Success		200	{object}	response.SuccessResponse{data=account.GEN_AccountJoinedPublic}
 //	@Failure		400	{object}	response.ErrorResponse
 //	@Router			/account/{id}/cancel [post]

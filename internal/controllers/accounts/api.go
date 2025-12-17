@@ -23,7 +23,7 @@ type APIResponse struct {
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path	string	true	"Account ID"
+//	@Param			id	path		string	true	"Account ID"
 //	@Success		200	{object}	response.SuccessResponse{data=APIResponse}
 //	@Failure		400	{object}	response.ErrorResponse
 //	@Router			/account/{id} [get]
