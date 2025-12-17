@@ -1410,6 +1410,7 @@ paths:
       summary: List Account
       tags:
       - Account
+      - Admin
   /admin/account/:
     post:
       consumes:
@@ -1449,6 +1450,7 @@ paths:
       summary: Create Account
       tags:
       - Account
+      - Admin
   /admin/account/{id}:
     get:
       consumes:
@@ -1487,6 +1489,7 @@ paths:
       summary: Get Account
       tags:
       - Account
+      - Admin
     put:
       consumes:
       - application/json
@@ -1530,6 +1533,7 @@ paths:
       summary: Update Account
       tags:
       - Account
+      - Admin
   /admin/account/count:
     get:
       consumes:
@@ -1572,6 +1576,7 @@ paths:
       summary: Count Account
       tags:
       - Account
+      - Admin
   /admin/testUser:
     post:
       consumes:
@@ -1613,6 +1618,36 @@ paths:
       tags:
       - Account
       - Admin
+  /api/account/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves account and associated organization data by account ID
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/accounts.APIResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get account with organization
+      tags:
+      - Account
   /auth/email:
     put:
       consumes:
@@ -1835,7 +1870,7 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
       summary: Reset password
       tags:
-      - accounts
+      - Account
   /password/reset/send:
     post:
       consumes:
@@ -1874,7 +1909,7 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
       summary: Send password reset email
       tags:
-      - accounts
+      - Account
   /signup:
     post:
       consumes:

@@ -494,7 +494,8 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Account"
+                    "Account",
+                    "Admin"
                 ],
                 "summary": "List Account",
                 "parameters": [
@@ -588,7 +589,8 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Account"
+                    "Account",
+                    "Admin"
                 ],
                 "summary": "Create Account",
                 "parameters": [
@@ -652,7 +654,8 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Account"
+                    "Account",
+                    "Admin"
                 ],
                 "summary": "Count Account",
                 "parameters": [
@@ -720,7 +723,8 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Account"
+                    "Account",
+                    "Admin"
                 ],
                 "summary": "Get Account",
                 "parameters": [
@@ -780,7 +784,8 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Account"
+                    "Account",
+                    "Admin"
                 ],
                 "summary": "Update Account",
                 "parameters": [
@@ -899,6 +904,56 @@
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/account/{id}": {
+            "get": {
+                "description": "Retrieves account and associated organization data by account ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Get account with organization",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/accounts.APIResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1221,7 +1276,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "accounts"
+                    "Account"
                 ],
                 "summary": "Reset password",
                 "parameters": [
@@ -1285,7 +1340,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "accounts"
+                    "Account"
                 ],
                 "summary": "Send password reset email",
                 "parameters": [

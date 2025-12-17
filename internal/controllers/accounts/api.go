@@ -26,7 +26,7 @@ type APIResponse struct {
 //	@Param			id	path		string	true	"Account ID"
 //	@Success		200	{object}	response.SuccessResponse{data=APIResponse}
 //	@Failure		400	{object}	response.ErrorResponse
-//	@Router			/account/{id} [get]
+//	@Router			/api/account/{id} [get]
 func internalAPIAccount(_ http.ResponseWriter, req *http.Request) (*APIResponse, int, error) {
 	id := chi.URLParam(req, "id")
 

@@ -505,7 +505,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Account"
+                    "Account",
+                    "Admin"
                 ],
                 "summary": "List Account",
                 "parameters": [
@@ -599,7 +600,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Account"
+                    "Account",
+                    "Admin"
                 ],
                 "summary": "Create Account",
                 "parameters": [
@@ -663,7 +665,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Account"
+                    "Account",
+                    "Admin"
                 ],
                 "summary": "Count Account",
                 "parameters": [
@@ -731,7 +734,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Account"
+                    "Account",
+                    "Admin"
                 ],
                 "summary": "Get Account",
                 "parameters": [
@@ -791,7 +795,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Account"
+                    "Account",
+                    "Admin"
                 ],
                 "summary": "Update Account",
                 "parameters": [
@@ -910,6 +915,56 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/account/{id}": {
+            "get": {
+                "description": "Retrieves account and associated organization data by account ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Get account with organization",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/accounts.APIResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1232,7 +1287,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "accounts"
+                    "Account"
                 ],
                 "summary": "Reset password",
                 "parameters": [
@@ -1296,7 +1351,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "accounts"
+                    "Account"
                 ],
                 "summary": "Send password reset email",
                 "parameters": [
