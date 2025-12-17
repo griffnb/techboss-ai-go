@@ -28,7 +28,7 @@ type PasswordResetInput struct {
 //	@Public
 //	@Summary		Send password reset email
 //	@Description	Sends a password reset email with a temporary session key
-//	@Tags			accounts
+//	@Tags			Account
 //	@Accept			json
 //	@Produce		json
 //	@Param			body	body		PasswordResetInput	true	"Email and verification hash"
@@ -105,7 +105,7 @@ type ResetPasswordInput struct {
 //	@Public
 //	@Summary		Reset password
 //	@Description	Resets the user's password using the reset key from email
-//	@Tags			accounts
+//	@Tags			Account
 //	@Accept			json
 //	@Produce		json
 //	@Param			body	body		ResetPasswordInput	true	"Password reset details"

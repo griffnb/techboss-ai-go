@@ -862,7 +862,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Account"
+                    "Account",
+                    "Admin"
                 ],
                 "summary": "Create test account",
                 "parameters": [

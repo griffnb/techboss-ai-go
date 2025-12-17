@@ -17,7 +17,8 @@ swagger: ## Serve swagger docs at http://localhost:1323/swagger/index.html
 	@swag init -g "main.go" -d "./cmd/server,./internal/controllers,./internal/models" --parseInternal -pd -o "./swag_docs"
 	@echo "Serving swagger docs at http://localhost:1323/swagger/index.html"
 	@echo "Press Ctrl+C to stop"
-	@SYS_ENV=$(SYS_ENV) CONFIG_FILE=$(CONFIG_FILE) REGION=$(REGION) go run ./cmd/swagger && open -a "Google Chrome" http://localhost:1323/swagger/index.html
+	@open -a "Google Chrome" http://localhost:1323/swagger/index.html
+	@SYS_ENV=$(SYS_ENV) CONFIG_FILE=$(CONFIG_FILE) REGION=$(REGION) go run ./cmd/swagger 
 
 .PHONY: swagger-format
 swagger-format: ## Format swagger docs

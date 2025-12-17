@@ -1612,6 +1612,7 @@ paths:
       summary: Create test account
       tags:
       - Account
+      - Admin
   /auth/email:
     put:
       consumes:
