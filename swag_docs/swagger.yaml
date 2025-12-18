@@ -78,6 +78,7 @@ definitions:
     - email_verified_at_ts
     - last_login_ts
     - is_super_user_session
+    title: Account
     type: object
   account.AccountJoined:
     properties:
@@ -170,6 +171,7 @@ definitions:
     - organization_name
     - created_by_name
     - updated_by_name
+    title: AccountJoined
     type: object
   account.AccountJoinedPublic:
     properties:
@@ -232,6 +234,7 @@ definitions:
     - organization_id
     - role
     - is_super_user_session
+    title: AccountJoinedPublic
     type: object
   account.AccountPublic:
     properties:
@@ -294,6 +297,7 @@ definitions:
     - organization_id
     - role
     - is_super_user_session
+    title: AccountPublic
     type: object
   account.AccountWithFeatures:
     properties:
@@ -396,6 +400,7 @@ definitions:
     - billing_plan_feature_set
     - feature_set_overrides
     - feature_set
+    title: AccountWithFeatures
     type: object
   account.AccountWithFeaturesPublic:
     properties:
@@ -474,6 +479,7 @@ definitions:
     - billing_plan_id
     - billing_plan_name
     - feature_set
+    title: AccountWithFeaturesPublic
     type: object
   account.Properties:
     properties:
@@ -488,8 +494,10 @@ definitions:
         type: integer
       verify_email_key:
         type: string
+    title: AccountProperties
     type: object
   account.PropertiesPublic:
+    title: AccountPropertiesPublic
     type: object
   account.SignupProperties:
     properties:
@@ -498,8 +506,10 @@ definitions:
         type: integer
     required:
     - is_oauth
+    title: AccountSignupProperties
     type: object
   account.SignupPropertiesPublic:
+    title: AccountSignupPropertiesPublic
     type: object
   account_service.TestUserInput:
     properties:
@@ -610,16 +620,20 @@ definitions:
       priority_support:
         format: int64
         type: integer
+    title: BillingPlanFeatureSet
     type: object
   billing_plan.FeatureSetPublic:
     properties:
       advanced_analytics:
         format: int64
         type: integer
+    title: BillingPlanFeatureSetPublic
     type: object
   billing_plan.MergeableFeatureSet:
+    title: BillingPlanMergeableFeatureSet
     type: object
   billing_plan.MergeableFeatureSetPublic:
+    title: BillingPlanMergeableFeatureSetPublic
     type: object
   organization.MetaData:
     properties:
@@ -630,6 +644,7 @@ definitions:
         additionalProperties:
           type: string
         type: object
+    title: OrganizationMetaData
     type: object
   organization.MetaDataPublic:
     properties:
@@ -640,6 +655,7 @@ definitions:
         additionalProperties:
           type: string
         type: object
+    title: OrganizationMetaDataPublic
     type: object
   organization.Organization:
     properties:
@@ -704,6 +720,7 @@ definitions:
     - email_domains
     - subdomain
     - feature_set_overrides
+    title: Organization
     type: object
   organization.OrganizationPublic:
     properties:
@@ -751,13 +768,16 @@ definitions:
     - billing_plan_price_id
     - properties
     - meta_data
+    title: OrganizationPublic
     type: object
   organization.Properties:
     properties:
       billing_email:
         type: string
+    title: OrganizationProperties
     type: object
   organization.PropertiesPublic:
+    title: OrganizationPropertiesPublic
     type: object
   response.ErrorResponse:
     properties:
@@ -1072,6 +1092,340 @@ paths:
       summary: Check existing email
       tags:
       - Account
+  /account/email:
+    put:
+      consumes:
+      - application/json
+      description: Updates the user's primary email address for unverified accounts
+      parameters:
+      - description: Email update details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.UpdatePrimaryEmailAddressPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update primary email
+      tags:
+      - Account
+  /account/me:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the authenticated user's account details with joined
+        data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/account.AccountWithFeaturesPublic'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get current user
+      tags:
+      - Account
+  /account/password:
+    put:
+      consumes:
+      - application/json
+      description: Updates the user's password after verifying current password
+      parameters:
+      - description: Password update details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.PasswordInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update password
+      tags:
+      - Account
+  /account/password/check:
+    get:
+      consumes:
+      - application/json
+      description: Validates whether a password reset key is still valid and active
+      parameters:
+      - description: Reset key to validate
+        in: query
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/accounts.CheckKeyResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Check reset key validity
+      tags:
+      - Account
+  /account/password/reset:
+    post:
+      consumes:
+      - application/json
+      description: Resets the user's password using the reset key from email
+      parameters:
+      - description: Password reset details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.ResetPasswordInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Reset password
+      tags:
+      - Account
+  /account/password/reset/send:
+    post:
+      consumes:
+      - application/json
+      description: Sends a password reset email with a temporary session key
+      parameters:
+      - description: Email and verification hash
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.PasswordResetInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Send password reset email
+      tags:
+      - Account
+  /account/password/set:
+    post:
+      consumes:
+      - application/json
+      description: Sets a password for the first time on an existing account using
+        invite verification
+      parameters:
+      - description: Password setup details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.SetPasswordInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/account.AccountPublic'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Set password for new account
+      tags:
+      - Account
+  /account/verify/email:
+    post:
+      consumes:
+      - application/json
+      description: Verifies a user's email address using the verification key and
+        creates a user session
+      parameters:
+      - description: Verification details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.VerifyInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/accounts.VerifyResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Verify email address
+      tags:
+      - Account
+  /account/verify/invite:
+    post:
+      consumes:
+      - application/json
+      description: Verifies an account invitation using the verification key and creates
+        a user session
+      parameters:
+      - description: Verification details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.VerifyInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/accounts.VerifyResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Verify account invite
+      tags:
+      - Account
+  /account/verify/resend:
+    post:
+      consumes:
+      - application/json
+      description: Resends the email verification link to the user's email address
+      parameters:
+      - description: Cloudflare token
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/accounts.ResendVerifyEmailPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Resend verification email
+      tags:
+      - Account
   /admin/account:
     get:
       consumes:
@@ -1300,7 +1654,7 @@ paths:
       tags:
       - Account
       - Admin
-  /admin/testUser:
+  /admin/account/testUser:
     post:
       consumes:
       - application/json
@@ -1369,268 +1723,6 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: Get account with organization
-      tags:
-      - Account
-  /auth/email:
-    put:
-      consumes:
-      - application/json
-      description: Updates the user's primary email address for unverified accounts
-      parameters:
-      - description: Email update details
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.UpdatePrimaryEmailAddressPayload'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  type: boolean
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Update primary email
-      tags:
-      - Account
-  /auth/password:
-    put:
-      consumes:
-      - application/json
-      description: Updates the user's password after verifying current password
-      parameters:
-      - description: Password update details
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.PasswordInput'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  type: boolean
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Update password
-      tags:
-      - Account
-  /auth/password/set:
-    post:
-      consumes:
-      - application/json
-      description: Sets a password for the first time on an existing account using
-        invite verification
-      parameters:
-      - description: Password setup details
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.SetPasswordInput'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/account.AccountPublic'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Set password for new account
-      tags:
-      - Account
-  /auth/verify/resend:
-    post:
-      consumes:
-      - application/json
-      description: Resends the email verification link to the user's email address
-      parameters:
-      - description: Cloudflare token
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.ResendVerifyEmailPayload'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  type: boolean
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "429":
-          description: Too Many Requests
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Resend verification email
-      tags:
-      - Account
-  /me:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves the authenticated user's account details with joined
-        data
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/account.AccountWithFeaturesPublic'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Get current user
-      tags:
-      - Account
-  /password/check:
-    get:
-      consumes:
-      - application/json
-      description: Validates whether a password reset key is still valid and active
-      parameters:
-      - description: Reset key to validate
-        in: query
-        name: key
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/accounts.CheckKeyResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Check reset key validity
-      tags:
-      - Account
-  /password/reset:
-    post:
-      consumes:
-      - application/json
-      description: Resets the user's password using the reset key from email
-      parameters:
-      - description: Password reset details
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.ResetPasswordInput'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  type: boolean
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Reset password
-      tags:
-      - Account
-  /password/reset/send:
-    post:
-      consumes:
-      - application/json
-      description: Sends a password reset email with a temporary session key
-      parameters:
-      - description: Email and verification hash
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.PasswordResetInput'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  type: boolean
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Send password reset email
       tags:
       - Account
   /signup:
@@ -1706,78 +1798,6 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: OAuth signup
-      tags:
-      - Account
-  /verify/email:
-    post:
-      consumes:
-      - application/json
-      description: Verifies a user's email address using the verification key and
-        creates a user session
-      parameters:
-      - description: Verification details
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.VerifyInput'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/accounts.VerifyResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Verify email address
-      tags:
-      - Account
-  /verify/invite:
-    post:
-      consumes:
-      - application/json
-      description: Verifies an account invitation using the verification key and creates
-        a user session
-      parameters:
-      - description: Verification details
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/accounts.VerifyInput'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/accounts.VerifyResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Verify account invite
       tags:
       - Account
 swagger: "2.0"

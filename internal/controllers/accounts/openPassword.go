@@ -37,7 +37,7 @@ type PasswordResetInput struct {
 //	@Failure		400		{object}	response.ErrorResponse
 //	@Failure		403		{object}	response.ErrorResponse
 //	@Failure		404		{object}	response.ErrorResponse
-//	@Router			/password/reset/send [post]
+//	@Router			/account/password/reset/send [post]
 func openSendResetPasswordEmail(
 	_ http.ResponseWriter,
 	req *http.Request,
@@ -114,7 +114,7 @@ type ResetPasswordInput struct {
 //	@Failure		400		{object}	response.ErrorResponse
 //	@Failure		403		{object}	response.ErrorResponse
 //	@Failure		404		{object}	response.ErrorResponse
-//	@Router			/password/reset [post]
+//	@Router			/account/password/reset [post]
 func openResetPassword(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
 	data, err := request.GetJSONPostAs[*ResetPasswordInput](req)
 	if err != nil {
@@ -184,7 +184,7 @@ type CheckKeyResponse struct {
 //	@Param			key	query		string	true	"Reset key to validate"
 //	@Success		200	{object}	response.SuccessResponse{data=CheckKeyResponse}
 //	@Failure		400	{object}	response.ErrorResponse
-//	@Router			/password/check [get]
+//	@Router			/account/password/check [get]
 func openCheckKey(_ http.ResponseWriter, req *http.Request) (*CheckKeyResponse, int, error) {
 	key := req.URL.Query().Get("key")
 

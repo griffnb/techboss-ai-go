@@ -36,7 +36,7 @@ type PasswordInput struct {
 //	@Param			body	body		PasswordInput	true	"Password update details"
 //	@Success		200		{object}	response.SuccessResponse{data=bool}
 //	@Failure		400		{object}	response.ErrorResponse
-//	@Router			/auth/password [put]
+//	@Router			/account/password [put]
 func updatePassword(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
 	//if helpers.IsSuperUpdate(req) {
 	//	return response.PublicCustomError[*account.Account]("not allowed to update as super user", http.StatusBadRequest)
@@ -96,7 +96,7 @@ type SetPasswordInput struct {
 //	@Param			body	body		SetPasswordInput	true	"Password setup details"
 //	@Success		200		{object}	response.SuccessResponse{data=account.Account}
 //	@Failure		400		{object}	response.ErrorResponse
-//	@Router			/auth/password/set [post]
+//	@Router			/account/password/set [post]
 func setPassword(_ http.ResponseWriter, req *http.Request) (*account.Account, int, error) {
 	//if helpers.IsSuperUpdate(req) {
 	//	return response.PublicCustomErrorV2[*account.Account]("not allowed to update as super user", http.StatusBadRequest)
@@ -166,7 +166,7 @@ type ResendVerifyEmailPayload struct {
 //	@Success		200		{object}	response.SuccessResponse{data=bool}
 //	@Failure		400		{object}	response.ErrorResponse
 //	@Failure		429		{object}	response.ErrorResponse
-//	@Router			/auth/verify/resend [post]
+//	@Router			/account/verify/resend [post]
 func authResendVerifyEmail(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
 	//if helpers.IsSuperUpdate(req) {
 	//	return response.PublicCustomError[bool]("not allowed to update as super user", http.StatusBadRequest)
@@ -235,7 +235,7 @@ type UpdatePrimaryEmailAddressPayload struct {
 //	@Param			body	body		UpdatePrimaryEmailAddressPayload	true	"Email update details"
 //	@Success		200		{object}	response.SuccessResponse{data=bool}
 //	@Failure		400		{object}	response.ErrorResponse
-//	@Router			/auth/email [put]
+//	@Router			/account/email [put]
 func updatePrimaryEmailAddress(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
 	if helpers.IsSuperUpdate(req) {
 		return response.PublicCustomError[bool]("not allowed to update as super user", http.StatusBadRequest)

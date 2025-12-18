@@ -39,7 +39,7 @@ type VerifyResponse struct {
 //	@Success		200		{object}	response.SuccessResponse{data=VerifyResponse}
 //	@Failure		400		{object}	response.ErrorResponse
 //	@Failure		404		{object}	response.ErrorResponse
-//	@Router			/verify/invite [post]
+//	@Router			/account/verify/invite [post]
 func openVerifyInvite(res http.ResponseWriter, req *http.Request) (*VerifyResponse, int, error) {
 	data, err := request.GetJSONPostAs[*VerifyInput](req)
 	if err != nil {
@@ -150,7 +150,7 @@ func openVerifyInvite(res http.ResponseWriter, req *http.Request) (*VerifyRespon
 //	@Success		200		{object}	response.SuccessResponse{data=VerifyResponse}
 //	@Failure		400		{object}	response.ErrorResponse
 //	@Failure		404		{object}	response.ErrorResponse
-//	@Router			/verify/email [post]
+//	@Router			/account/verify/email [post]
 func openVerifyEmail(res http.ResponseWriter, req *http.Request) (*VerifyResponse, int, error) {
 	data, err := request.GetJSONPostAs[*VerifyInput](req)
 	if err != nil {

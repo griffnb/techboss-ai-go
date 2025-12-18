@@ -20,7 +20,7 @@ import (
 //	@Produce		json
 //	@Success		200	{object}	response.SuccessResponse{data=account.AccountWithFeatures}
 //	@Failure		400	{object}	response.ErrorResponse
-//	@Router			/me [get]
+//	@Router			/account/me [get]
 func authMe(_ http.ResponseWriter, req *http.Request) (*account.AccountWithFeatures, int, error) {
 	userSession := req.Context().Value(router.SessionContextKey("session")).(*session.Session)
 	accountObj, err := account.GetAccountWithFeatures(req.Context(), userSession.User.ID())
