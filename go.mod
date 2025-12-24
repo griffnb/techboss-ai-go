@@ -6,7 +6,7 @@ toolchain go1.24.11
 
 replace github.com/shopspring/decimal v1.3.1 => github.com/griffnb/decimal v1.0.2
 
-replace github.com/griffnb/core/lib v0.0.15 => /Users/griffnb/projects/core/lib
+//replace github.com/griffnb/core/lib v0.0.15 => /Users/griffnb/projects/core/lib
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.40.0
@@ -21,7 +21,7 @@ require (
 )
 
 require (
-	github.com/griffnb/core/lib v0.0.15
+	github.com/griffnb/core/lib v0.0.25
 	github.com/openai/openai-go/v3 v3.10.0
 	github.com/slack-go/slack v0.16.0
 	github.com/stripe/stripe-go/v83 v83.2.1
