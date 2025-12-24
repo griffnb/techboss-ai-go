@@ -111,8 +111,15 @@ jobs:
       - uses: actions/setup-go@v5
         with:
             go-version-file: go.mod     
-      - name: Install Deps
+      - name: Authenticate to GitHub and Install Deps
+        env:
+          GOPRIVATE: github.com/CrowdShield/*
         run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.CI_DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          git config --global url."git@github.com:".insteadOf "https://github.com/"
           go mod download
       - name: Start LocalStack
         uses: LocalStack/setup-localstack@v0.2.3
