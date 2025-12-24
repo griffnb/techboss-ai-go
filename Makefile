@@ -32,20 +32,13 @@ docker-up-local: ## Start Docker services, be sure to setup /etc/hosts entry for
 	docker compose -f infra/docker-compose-local.yml up
 
 
-.PHONY: code-gen-ts
-code-gen-ts: ## Create TypeScript models (Usage: make code-gen-ts ModelName [package_name=package])
-	@bash -c '\
-		MODEL_NAME="$(filter-out $@,$(MAKECMDGOALS))"; \
-		PACKAGE_NAME=$$(grep "^module " go.mod | sed "s/module //"); \
-		if [ -z "$$MODEL_NAME" ]; then \
-			echo "Error: Model name required. Usage: make code-gen-ts ModelName"; \
-			exit 1; \
-		fi; \
-		PKG="$(package_name)"; \
-		if [ -z "$$PKG" ]; then \
-			PKG=""; \
-		fi; \
-		GOPACKAGE=$$PACKAGE_NAME core_gen typescript "$$MODEL_NAME" "-modelPackage=$$PKG"; \
-	'
-%:
-	@:
+.PHONY: claude
+claude: ## Create Claude PR - Usage: make claude BRANCH=feature-name TASK="description"
+	@if [ -z "$(TASK)" ]; then \
+		echo "❌ Error: TASK is required"; \
+		echo "Usage: make claude BRANCH=my-feature TASK=\"Add user authentication\""; \
+		exit 1; \
+	fi; \
+	BASE_BRANCH=$${BRANCH:-development}; \
+	./scripts/claude-pr.sh "$(TASK)" "$$BASE_BRANCH"
+	

@@ -22,6 +22,7 @@ import (
 //	@Summary		List Account
 //	@Description	List Account
 //	@Tags			Account
+//	@Tags			CRUD
 //	@Accept			json
 //	@Produce		json
 //	@Param			q	query		string	false	"search by q"
@@ -65,6 +66,7 @@ func authIndex(_ http.ResponseWriter, req *http.Request) ([]*account.AccountJoin
 //		@Summary		Get Account
 //		@Description	Get Account
 //		@Tags			Account
+//		@Tags			CRUD
 //		@Accept			json
 //		@Produce		json
 //		@Param			id	path		string	true	"Account ID"
@@ -95,6 +97,7 @@ func authGet(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined, 
 //		@Summary		Create Account
 //		@Description	Create Account
 //		@Tags			Account
+//		@Tags			CRUD
 //		@Accept			json
 //		@Produce		json
 //		@Param			data	body		account.Account	true	"Account Data"
@@ -126,6 +129,7 @@ func authCreate(_ http.ResponseWriter, req *http.Request) (*account.Account, int
 //		@Summary		Update Account
 //		@Description	Update Account
 //		@Tags			Account
+//		@Tags			CRUD
 //		@Accept			json
 //		@Produce		json
 //	 @Param 			id	path		string	true	"Account ID"

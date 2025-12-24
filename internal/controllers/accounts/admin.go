@@ -21,6 +21,7 @@ import (
 //	@Description	Creates a test account with the provided details and optionally logs in as that account
 //	@Tags			Account
 //	@Tags			Admin
+//	@Tags			Store
 //	@Accept			json
 //	@Produce		json
 //	@Param			body		body		account_service.TestUserInput	true	"Test user details"

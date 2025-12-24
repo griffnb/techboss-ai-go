@@ -17,14 +17,13 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/models/admin"
 )
 
-func adminLogInAs(res http.ResponseWriter, req *http.Request) {
+func adminLogInAs(res http.ResponseWriter, req *http.Request) (*TokenResponse, int, error) {
 	id := chi.URLParam(req, "id")
-
 	accountObj, err := account.Get(req.Context(), types.UUID(id))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
-		response.ErrorWrapper(res, req, err.Error(), http.StatusBadRequest)
-		return
+		return response.AdminBadRequestError[*TokenResponse](err)
+
 	}
 
 	userSession := session.New(tools.ParseStringI(req.Context().Value("ip"))).WithUser(accountObj)
@@ -37,7 +36,7 @@ func adminLogInAs(res http.ResponseWriter, req *http.Request) {
 	SendSessionCookie(res, environment.GetConfig().Server.SessionKey, userSession.Key)
 	SendOrgCookie(res, accountObj.OrganizationID.Get().String())
 
-	response.JSONDataResponseWrapper(res, req, &TokenResponse{
+	return response.Success(&TokenResponse{
 		Token: userSession.Key,
 	})
 }

@@ -299,109 +299,6 @@ definitions:
     - is_super_user_session
     title: AccountPublic
     type: object
-  account.AccountWithFeatures:
-    properties:
-      billing_plan_feature_set:
-        $ref: '#/definitions/billing_plan.FeatureSet'
-      billing_plan_id:
-        format: uuid
-        type: string
-      billing_plan_level:
-        type: integer
-      billing_plan_name:
-        type: string
-      billing_plan_price:
-        type: integer
-      created_at:
-        format: date-time
-        type: string
-      created_by_urn:
-        type: string
-      deleted:
-        type: integer
-      disabled:
-        type: integer
-      email:
-        type: string
-      email_verified_at_ts:
-        type: integer
-      external_id:
-        type: string
-      feature_set:
-        $ref: '#/definitions/billing_plan.FeatureSet'
-      feature_set_overrides:
-        $ref: '#/definitions/billing_plan.MergeableFeatureSet'
-      first_name:
-        type: string
-      hashed_password:
-        type: string
-      id:
-        format: uuid
-        type: string
-      is_super_user_session:
-        type: integer
-      last_login_ts:
-        type: integer
-      last_name:
-        type: string
-      organization_id:
-        format: uuid
-        type: string
-      password_updated_at_ts:
-        type: integer
-      phone:
-        type: string
-      properties:
-        $ref: '#/definitions/account.Properties'
-      role:
-        type: integer
-      signup_properties:
-        $ref: '#/definitions/account.SignupProperties'
-      status:
-        type: integer
-      test_user_type:
-        type: integer
-      updated_at:
-        format: date-time
-        type: string
-      updated_by_urn:
-        type: string
-      urn:
-        type: string
-    required:
-    - id
-    - urn
-    - created_by_urn
-    - updated_by_urn
-    - status
-    - deleted
-    - disabled
-    - updated_at
-    - created_at
-    - first_name
-    - last_name
-    - email
-    - phone
-    - external_id
-    - test_user_type
-    - organization_id
-    - role
-    - properties
-    - signup_properties
-    - hashed_password
-    - password_updated_at_ts
-    - email_verified_at_ts
-    - last_login_ts
-    - is_super_user_session
-    - billing_plan_level
-    - billing_plan_price
-    - billing_plan_id
-    - billing_plan_name
-    - billing_plan_feature_set
-    - feature_set_overrides
-    - feature_set
-    title: AccountWithFeatures
-    type: object
   account.AccountWithFeaturesPublic:
     properties:
       billing_plan_id:
@@ -496,9 +393,6 @@ definitions:
         type: string
     title: AccountProperties
     type: object
-  account.PropertiesPublic:
-    title: AccountPropertiesPublic
-    type: object
   account.SignupProperties:
     properties:
       is_oauth:
@@ -507,9 +401,6 @@ definitions:
     required:
     - is_oauth
     title: AccountSignupProperties
-    type: object
-  account.SignupPropertiesPublic:
-    title: AccountSignupPropertiesPublic
     type: object
   account_service.TestUserInput:
     properties:
@@ -629,12 +520,6 @@ definitions:
         type: integer
     title: BillingPlanFeatureSetPublic
     type: object
-  billing_plan.MergeableFeatureSet:
-    title: BillingPlanMergeableFeatureSet
-    type: object
-  billing_plan.MergeableFeatureSetPublic:
-    title: BillingPlanMergeableFeatureSetPublic
-    type: object
   organization.MetaData:
     properties:
       onboard_answers:
@@ -645,17 +530,6 @@ definitions:
           type: string
         type: object
     title: OrganizationMetaData
-    type: object
-  organization.MetaDataPublic:
-    properties:
-      onboard_answers:
-        additionalProperties: {}
-        type: object
-      vector_store_id:
-        additionalProperties:
-          type: string
-        type: object
-    title: OrganizationMetaDataPublic
     type: object
   organization.Organization:
     properties:
@@ -722,62 +596,11 @@ definitions:
     - feature_set_overrides
     title: Organization
     type: object
-  organization.OrganizationPublic:
-    properties:
-      billing_plan_price_id:
-        format: uuid
-        type: string
-      created_at:
-        format: date-time
-        type: string
-      created_by_urn:
-        type: string
-      deleted:
-        type: integer
-      disabled:
-        type: integer
-      id:
-        format: uuid
-        type: string
-      meta_data:
-        $ref: '#/definitions/organization.MetaDataPublic'
-      name:
-        type: string
-      properties:
-        $ref: '#/definitions/organization.PropertiesPublic'
-      status:
-        type: integer
-      updated_at:
-        format: date-time
-        type: string
-      updated_by_urn:
-        type: string
-      urn:
-        type: string
-    required:
-    - id
-    - urn
-    - created_by_urn
-    - updated_by_urn
-    - status
-    - deleted
-    - disabled
-    - updated_at
-    - created_at
-    - name
-    - billing_plan_price_id
-    - properties
-    - meta_data
-    title: OrganizationPublic
-    type: object
   organization.Properties:
     properties:
       billing_email:
         type: string
     title: OrganizationProperties
-    type: object
-  organization.PropertiesPublic:
-    title: OrganizationPropertiesPublic
     type: object
   response.ErrorResponse:
     properties:
@@ -858,6 +681,7 @@ paths:
       summary: List Account
       tags:
       - Account
+      - CRUD
   /account/:
     post:
       consumes:
@@ -897,6 +721,7 @@ paths:
       summary: Create Account
       tags:
       - Account
+      - CRUD
   /account/{id}:
     delete:
       consumes:
@@ -964,6 +789,7 @@ paths:
       summary: Get Account
       tags:
       - Account
+      - CRUD
     put:
       consumes:
       - application/json
@@ -1007,6 +833,7 @@ paths:
       summary: Update Account
       tags:
       - Account
+      - CRUD
   /account/{id}/cancel:
     post:
       consumes:
@@ -1487,7 +1314,8 @@ paths:
       summary: List Account
       tags:
       - Account
-      - Admin
+      - AdminOnly
+      - CRUD
   /admin/account/:
     post:
       consumes:
@@ -1527,7 +1355,8 @@ paths:
       summary: Create Account
       tags:
       - Account
-      - Admin
+      - AdminOnly
+      - CRUD
   /admin/account/{id}:
     get:
       consumes:
@@ -1566,7 +1395,8 @@ paths:
       summary: Get Account
       tags:
       - Account
-      - Admin
+      - AdminOnly
+      - CRUD
     put:
       consumes:
       - application/json
@@ -1610,7 +1440,8 @@ paths:
       summary: Update Account
       tags:
       - Account
-      - Admin
+      - AdminOnly
+      - CRUD
   /admin/account/count:
     get:
       consumes:
@@ -1653,7 +1484,8 @@ paths:
       summary: Count Account
       tags:
       - Account
-      - Admin
+      - AdminOnly
+      - CRUD
   /admin/account/testUser:
     post:
       consumes:
@@ -1695,6 +1527,7 @@ paths:
       tags:
       - Account
       - Admin
+      - Store
   /api/account/{id}:
     get:
       consumes:

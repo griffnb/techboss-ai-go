@@ -25,7 +25,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Account"
+                    "Account",
+                    "CRUD"
                 ],
                 "summary": "List Account",
                 "parameters": [
@@ -119,7 +120,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Account"
+                    "Account",
+                    "CRUD"
                 ],
                 "summary": "Create Account",
                 "parameters": [
@@ -784,7 +786,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Account"
+                    "Account",
+                    "CRUD"
                 ],
                 "summary": "Get Account",
                 "parameters": [
@@ -844,7 +847,8 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Account"
+                    "Account",
+                    "CRUD"
                 ],
                 "summary": "Update Account",
                 "parameters": [
@@ -1055,7 +1059,8 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Account",
-                    "Admin"
+                    "AdminOnly",
+                    "CRUD"
                 ],
                 "summary": "List Account",
                 "parameters": [
@@ -1150,7 +1155,8 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Account",
-                    "Admin"
+                    "AdminOnly",
+                    "CRUD"
                 ],
                 "summary": "Create Account",
                 "parameters": [
@@ -1215,7 +1221,8 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Account",
-                    "Admin"
+                    "AdminOnly",
+                    "CRUD"
                 ],
                 "summary": "Count Account",
                 "parameters": [
@@ -1284,7 +1291,8 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Account",
-                    "Admin"
+                    "Admin",
+                    "Store"
                 ],
                 "summary": "Create test account",
                 "parameters": [
@@ -1349,7 +1357,8 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Account",
-                    "Admin"
+                    "AdminOnly",
+                    "CRUD"
                 ],
                 "summary": "Get Account",
                 "parameters": [
@@ -1410,7 +1419,8 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "Account",
-                    "Admin"
+                    "AdminOnly",
+                    "CRUD"
                 ],
                 "summary": "Update Account",
                 "parameters": [
@@ -2045,143 +2055,6 @@ const docTemplate = `{
                 }
             }
         },
-        "account.AccountWithFeatures": {
-            "type": "object",
-            "title": "AccountWithFeatures",
-            "required": [
-                "id",
-                "urn",
-                "created_by_urn",
-                "updated_by_urn",
-                "status",
-                "deleted",
-                "disabled",
-                "updated_at",
-                "created_at",
-                "first_name",
-                "last_name",
-                "email",
-                "phone",
-                "external_id",
-                "test_user_type",
-                "organization_id",
-                "role",
-                "properties",
-                "signup_properties",
-                "hashed_password",
-                "password_updated_at_ts",
-                "email_verified_at_ts",
-                "last_login_ts",
-                "is_super_user_session",
-                "billing_plan_level",
-                "billing_plan_price",
-                "billing_plan_id",
-                "billing_plan_name",
-                "billing_plan_feature_set",
-                "feature_set_overrides",
-                "feature_set"
-            ],
-            "properties": {
-                "billing_plan_feature_set": {
-                    "$ref": "#/definitions/billing_plan.FeatureSet"
-                },
-                "billing_plan_id": {
-                    "type": "string",
-                    "format": "uuid"
-                },
-                "billing_plan_level": {
-                    "type": "integer"
-                },
-                "billing_plan_name": {
-                    "type": "string"
-                },
-                "billing_plan_price": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "created_by_urn": {
-                    "type": "string"
-                },
-                "deleted": {
-                    "type": "integer"
-                },
-                "disabled": {
-                    "type": "integer"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "email_verified_at_ts": {
-                    "type": "integer"
-                },
-                "external_id": {
-                    "type": "string"
-                },
-                "feature_set": {
-                    "$ref": "#/definitions/billing_plan.FeatureSet"
-                },
-                "feature_set_overrides": {
-                    "$ref": "#/definitions/billing_plan.MergeableFeatureSet"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "hashed_password": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string",
-                    "format": "uuid"
-                },
-                "is_super_user_session": {
-                    "type": "integer"
-                },
-                "last_login_ts": {
-                    "type": "integer"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "organization_id": {
-                    "type": "string",
-                    "format": "uuid"
-                },
-                "password_updated_at_ts": {
-                    "type": "integer"
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "properties": {
-                    "$ref": "#/definitions/account.Properties"
-                },
-                "role": {
-                    "type": "integer"
-                },
-                "signup_properties": {
-                    "$ref": "#/definitions/account.SignupProperties"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "test_user_type": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "updated_by_urn": {
-                    "type": "string"
-                },
-                "urn": {
-                    "type": "string"
-                }
-            }
-        },
         "account.AccountWithFeaturesPublic": {
             "type": "object",
             "title": "AccountWithFeaturesPublic",
@@ -2308,10 +2181,6 @@ const docTemplate = `{
                 }
             }
         },
-        "account.PropertiesPublic": {
-            "type": "object",
-            "title": "AccountPropertiesPublic"
-        },
         "account.SignupProperties": {
             "type": "object",
             "title": "AccountSignupProperties",
@@ -2324,10 +2193,6 @@ const docTemplate = `{
                     "format": "int64"
                 }
             }
-        },
-        "account.SignupPropertiesPublic": {
-            "type": "object",
-            "title": "AccountSignupPropertiesPublic"
         },
         "account_service.TestUserInput": {
             "type": "object",
@@ -2511,33 +2376,9 @@ const docTemplate = `{
                 }
             }
         },
-        "billing_plan.MergeableFeatureSet": {
-            "type": "object",
-            "title": "BillingPlanMergeableFeatureSet"
-        },
-        "billing_plan.MergeableFeatureSetPublic": {
-            "type": "object",
-            "title": "BillingPlanMergeableFeatureSetPublic"
-        },
         "organization.MetaData": {
             "type": "object",
             "title": "OrganizationMetaData",
-            "properties": {
-                "onboard_answers": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
-                "vector_store_id": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "organization.MetaDataPublic": {
-            "type": "object",
-            "title": "OrganizationMetaDataPublic",
             "properties": {
                 "onboard_answers": {
                     "type": "object",
@@ -2638,70 +2479,6 @@ const docTemplate = `{
                 }
             }
         },
-        "organization.OrganizationPublic": {
-            "type": "object",
-            "title": "OrganizationPublic",
-            "required": [
-                "id",
-                "urn",
-                "created_by_urn",
-                "updated_by_urn",
-                "status",
-                "deleted",
-                "disabled",
-                "updated_at",
-                "created_at",
-                "name",
-                "billing_plan_price_id",
-                "properties",
-                "meta_data"
-            ],
-            "properties": {
-                "billing_plan_price_id": {
-                    "type": "string",
-                    "format": "uuid"
-                },
-                "created_at": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "created_by_urn": {
-                    "type": "string"
-                },
-                "deleted": {
-                    "type": "integer"
-                },
-                "disabled": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "string",
-                    "format": "uuid"
-                },
-                "meta_data": {
-                    "$ref": "#/definitions/organization.MetaDataPublic"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "properties": {
-                    "$ref": "#/definitions/organization.PropertiesPublic"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "updated_by_urn": {
-                    "type": "string"
-                },
-                "urn": {
-                    "type": "string"
-                }
-            }
-        },
         "organization.Properties": {
             "type": "object",
             "title": "OrganizationProperties",
@@ -2710,10 +2487,6 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        },
-        "organization.PropertiesPublic": {
-            "type": "object",
-            "title": "OrganizationPropertiesPublic"
         },
         "response.ErrorResponse": {
             "type": "object",

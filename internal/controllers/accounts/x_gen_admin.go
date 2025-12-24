@@ -23,7 +23,8 @@ import (
 //		@Summary		List Account
 //		@Description	List Account
 //		@Tags			Account
-//		@Tags			Admin
+//		@Tags			AdminOnly
+//		@Tags			CRUD
 //		@Accept			json
 //		@Produce		json
 //		@Param			q	query		string	false	"search by q"
@@ -66,7 +67,8 @@ func adminIndex(_ http.ResponseWriter, req *http.Request) ([]*account.AccountJoi
 //		@Summary		Get Account
 //		@Description	Get Account
 //		@Tags			Account
-//		@Tags			Admin
+//		@Tags			AdminOnly
+//		@Tags			CRUD
 //		@Accept			json
 //		@Produce		json
 //		@Param			id	path		string	true	"Account ID"
@@ -94,7 +96,8 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined,
 //		@Summary		Create Account
 //		@Description	Create Account
 //		@Tags			Account
-//		@Tags			Admin
+//		@Tags			AdminOnly
+//		@Tags			CRUD
 //		@Accept			json
 //		@Produce		json
 //		@Param			data	body		account.Account	true	"Account Data"
@@ -125,7 +128,8 @@ func adminCreate(_ http.ResponseWriter, req *http.Request) (*account.Account, in
 //		@Summary		Update Account
 //		@Description	Update Account
 //		@Tags			Account
-//		@Tags			Admin
+//		@Tags			AdminOnly
+//		@Tags			CRUD
 //		@Accept			json
 //		@Produce		json
 //	 @Param 			id	path		string	true	"Account ID"
@@ -166,7 +170,8 @@ func adminUpdate(_ http.ResponseWriter, req *http.Request) (*account.AccountJoin
 //		@Summary		Count Account
 //		@Description	Count Account
 //		@Tags			Account
-//		@Tags			Admin
+//		@Tags			AdminOnly
+//		@Tags			CRUD
 //		@Accept			json
 //		@Produce		json
 //		@Param			q	query		string	false	"search by q"
