@@ -11,6 +11,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func (this *Account) IsEmailVerified() bool {
+	return this.Status.Get() != STATUS_PENDING_EMAIL_VERIFICATION
+}
+
 // GetName Safely gets the name from a join or combined first and last name
 func (this *Account) GetName() string {
 	return fmt.Sprintf("%s %s", this.FirstName.Get(), this.LastName.Get())

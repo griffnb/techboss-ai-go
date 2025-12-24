@@ -24,7 +24,21 @@ type SignupResponse struct {
 	VerificationToken string `public:"view" json:"verification_token,omitempty"`
 }
 
-// @link {models}/src/models/account/services/_signup.ts:23
+// oauthSignup handles OAuth-based signup flow
+//
+//	@Public
+//	@Title			OAuth signup
+//	@Summary		OAuth signup
+//	@Description	Completes signup process for OAuth authenticated users
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		object	true	"Signup data with OAuth token"
+//	@Success		200		{object}	response.SuccessResponse{data=SignupResponse}
+//	@Failure		400		{object}	response.ErrorResponse
+//	@Failure		404		{object}	response.ErrorResponse
+//	@Failure		409		{object}	response.ErrorResponse
+//	@Router			/signup/oauth [post]
 func oauthSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, int, error) {
 	data := request.GetJSONPostMap(req)
 	token := tools.ParseStringI(data["token"])
@@ -123,8 +137,18 @@ func oauthSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, i
 	return response.Success(successResponse)
 }
 
-// @link {models}/src/models/account/services/_signup.ts:23
-// @link {models}/src/models/account/services/_signup.ts:29
+// openSignup handles standard email/password signup flow
+//
+//	@Summary		Standard signup
+//	@Description	Creates a new account with email and password or completes invited user signup
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		object	true	"Signup data"
+//	@Success		200		{object}	response.SuccessResponse{data=SignupResponse}
+//	@Failure		400		{object}	response.ErrorResponse
+//	@Failure		409		{object}	response.ErrorResponse
+//	@Router			/signup [post]
 func openSignup(res http.ResponseWriter, req *http.Request) (*SignupResponse, int, error) {
 	data := request.GetJSONPostMap(req)
 	var accountObj *account.Account
@@ -217,7 +241,17 @@ type ExistingResponse struct {
 	Exists bool `json:"exists"`
 }
 
-// @link {models}/src/models/account/services/_signup.ts:checkExisting
+// openCheckExisting checks if an email already exists in the system
+//
+//	@Summary		Check existing email
+//	@Description	Checks whether an email address is already registered
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		ExistingCheck	true	"Email to check"
+//	@Success		200		{object}	response.SuccessResponse{data=ExistingResponse}
+//	@Failure		400		{object}	response.ErrorResponse
+//	@Router			/account/check [post]
 func openCheckExisting(_ http.ResponseWriter, req *http.Request) (*ExistingResponse, int, error) {
 	data, err := request.GetJSONPostAs[*ExistingCheck](req)
 	if err != nil {

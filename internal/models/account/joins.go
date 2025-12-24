@@ -21,6 +21,8 @@ type PlanJoins struct {
 	// Only on with AddPlans to join
 	BillingPlanLevel      *fields.IntField                                       `public:"view" json:"billing_plan_level"       type:"smallint"`
 	BillingPlanPrice      *fields.DecimalField                                   `public:"view" json:"billing_plan_price"       type:"numeric"`
+	BillingPlanID         *fields.UUIDField                                      `public:"view" json:"billing_plan_id"          type:"uuid"`
+	BillingPlanName       *fields.StringField                                    `public:"view" json:"billing_plan_name"        type:"text"`
 	BillingPlanFeatureSet *fields.StructField[*billing_plan.FeatureSet]          `              json:"billing_plan_feature_set" type:"jsonb"`
 	FeatureSetOverrides   *fields.StructField[*billing_plan.MergeableFeatureSet] `              json:"feature_set_overrides"    type:"jsonb"    default:"{}"`
 	FeatureSet            *fields.StructField[*billing_plan.FeatureSet]          `public:"view" json:"feature_set"              type:"jsonb"`
@@ -28,13 +30,13 @@ type PlanJoins struct {
 
 func AddPlans(options *model.Options) *model.Options {
 	options.WithPrependJoins([]string{
-		"LEFT JOIN organization_subscription_plans ON organization_subscription_plans.id = families.organization_subscription_plan_id",
+		"LEFT JOIN billing_plan_prices ON billing_plan_prices.id = organizations.billing_plan_price_id",
+		"LEFT JOIN billing_plans ON billing_plans.id = billing_plan_prices.billing_plan_id",
 	}...)
 	options.WithIncludeFields([]string{
 		"billing_plans.name AS billing_plan_name",
 		"billing_plans.id AS billing_plan_id",
-		"billing_plans.internal_id AS billing_plan_internal_id",
-		"billing_plans.price AS billing_plan_price",
+		"billing_plan_prices.price AS billing_plan_price_price",
 		"billing_plans.feature_set AS billing_plan_feature_set",
 		"billing_plans.properties AS billing_plan_properties",
 		"billing_plans.level AS billing_plan_level",

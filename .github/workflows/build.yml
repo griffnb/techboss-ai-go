@@ -1,0 +1,54 @@
+# Build Server Artifact
+#
+# This workflow builds the Go backend server binary and uploads it as an artifact
+# that can be downloaded by other repositories (e.g., ui-the-schwartz) to run
+# the backend server in their workflows.
+#
+# Artifacts uploaded:
+# - server binary: Compiled Go executable from ./cmd/server
+# - unit_test.json: Configuration file needed to run the server
+#
+# The artifact is named "server-{branch-name}" to allow branch-specific downloads.
+# Other repositories use download-artifact@v4 to retrieve and run this server.
+
+name: Build Server
+
+on:
+  push:
+    branches:
+      - '**'
+
+concurrency:
+  group: build-${{github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v5
+        with:
+            go-version-file: go.mod
+
+      - name: Build server binary
+        run: go build -o server ./cmd/server
+
+      - name: Sanitize branch name for artifact
+        id: sanitize
+        run: echo "branch_name=$(echo '${{ github.ref_name }}' | sed 's/\//__/g')" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-${{ steps.sanitize.outputs.branch_name }}
+          path: |
+            ./server
+            ./infra/unit_test.json
+          retention-days: 7
+          compression-level: 6

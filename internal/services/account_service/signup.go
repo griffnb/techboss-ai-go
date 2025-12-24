@@ -9,12 +9,15 @@ import (
 	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/core/lib/model/coremodel"
 	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/griffnb/techboss-ai-go/internal/models/account"
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"
 	"github.com/griffnb/techboss-ai-go/internal/services/email_sender"
+	"github.com/griffnb/techboss-ai-go/internal/services/organization_service"
+	"github.com/pkg/errors"
 )
 
-func EmailVerified(_ context.Context, accountObj *account.Account, savingUser coremodel.Model) error {
+func EmailVerified(ctx context.Context, accountObj *account.Account, savingUser coremodel.Model) error {
 	accountObj.EmailVerifiedAtTS.Set(time.Now().Unix())
 	// Check if organization exists for whitelisted domain
 	org, err := IsWhitelistedDomain(accountObj)
@@ -26,9 +29,16 @@ func EmailVerified(_ context.Context, accountObj *account.Account, savingUser co
 		// Add to organization
 		accountObj.OrganizationID.Set(org.ID())
 		accountObj.Status.Set(account.STATUS_ACTIVE)
+		accountObj.Role.Set(constants.ROLE_USER)
 	} else {
 		// They need to setup their organization
 		accountObj.Status.Set(account.STATUS_PENDING_ONBOARD)
+		org, err := organization_service.CreateDefaultOrganization(ctx, accountObj, savingUser)
+		if err != nil {
+			return err
+		}
+		accountObj.OrganizationID.Set(org.ID())
+		accountObj.Role.Set(constants.ROLE_ORG_OWNER)
 	}
 
 	err = accountObj.Save(savingUser)
@@ -78,4 +88,30 @@ func IsWhitelistedDomain(accountObj *account.Account) (*organization.Organizatio
 	}
 
 	return nil, nil
+}
+
+func UpdatePrimaryEmailAddressForUnverified(ctx context.Context, accountObj *account.Account, emailAddress string) error {
+	if tools.Empty(accountObj) {
+		return errors.New("account object is empty")
+	}
+
+	if tools.Empty(emailAddress) {
+		return errors.New("email address is empty")
+	}
+
+	exists, err := account.Exists(ctx, emailAddress)
+	if err != nil {
+		return errors.Wrap(err, "failed to check if email address exists")
+	}
+	if exists {
+		return errors.New("email address already exists")
+	}
+
+	accountObj.Email.Set(emailAddress)
+	err = accountObj.Save(accountObj.ToSavingUser())
+	if err != nil {
+		return errors.Wrap(err, "failed to save account object with new email address")
+	}
+
+	return nil
 }

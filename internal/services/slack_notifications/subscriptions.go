@@ -9,7 +9,6 @@ import (
 	"github.com/griffnb/core/lib/slack"
 	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
-	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"
 	"github.com/griffnb/techboss-ai-go/internal/models/subscription"
 	"github.com/pkg/errors"
@@ -39,7 +38,7 @@ func SubscriptionStarted(_ context.Context, org *organization.Organization, sub 
 	client := slack.NewWebhook(webhookURL)
 
 	// Format the billing cycle
-	billingCycle := formatBillingCycle(sub.BillingCycle.Get())
+	billingCycle := sub.BillingCycle.Get().ToStripe()
 
 	// Format the amount
 	amount := sub.Amount.Get().StringFixed(2)
@@ -61,7 +60,7 @@ func SubscriptionStarted(_ context.Context, org *organization.Organization, sub 
 			},
 			{
 				Title: "Plan ID",
-				Value: sub.PriceOrPlanID.Get(),
+				Value: sub.StripePriceID.Get(),
 				Short: true,
 			},
 			{
@@ -71,7 +70,7 @@ func SubscriptionStarted(_ context.Context, org *organization.Organization, sub 
 			},
 			{
 				Title: "Subscription ID",
-				Value: sub.SubscriptionID.Get(),
+				Value: sub.StripeSubscriptionID.Get(),
 				Short: true,
 			},
 		},
@@ -108,7 +107,7 @@ func SubscriptionCanceled(_ context.Context, org *organization.Organization, sub
 	client := slack.NewWebhook(webhookURL)
 
 	// Format the billing cycle
-	billingCycle := formatBillingCycle(sub.BillingCycle.Get())
+	billingCycle := sub.BillingCycle.Get().ToStripe()
 
 	// Format the amount
 	amount := sub.Amount.Get().StringFixed(2)
@@ -136,7 +135,7 @@ func SubscriptionCanceled(_ context.Context, org *organization.Organization, sub
 			},
 			{
 				Title: "Plan ID",
-				Value: sub.PriceOrPlanID.Get(),
+				Value: sub.StripePriceID.Get(),
 				Short: true,
 			},
 			{
@@ -151,7 +150,7 @@ func SubscriptionCanceled(_ context.Context, org *organization.Organization, sub
 			},
 			{
 				Title: "Subscription ID",
-				Value: sub.SubscriptionID.Get(),
+				Value: sub.StripeSubscriptionID.Get(),
 				Short: false,
 			},
 		},
@@ -188,7 +187,7 @@ func SubscriptionResumed(_ context.Context, org *organization.Organization, sub 
 	client := slack.NewWebhook(webhookURL)
 
 	// Format the billing cycle
-	billingCycle := formatBillingCycle(sub.BillingCycle.Get())
+	billingCycle := sub.BillingCycle.Get().ToStripe()
 
 	// Format the amount
 	amount := sub.Amount.Get().StringFixed(2)
@@ -210,7 +209,7 @@ func SubscriptionResumed(_ context.Context, org *organization.Organization, sub 
 			},
 			{
 				Title: "Plan ID",
-				Value: sub.PriceOrPlanID.Get(),
+				Value: sub.StripePriceID.Get(),
 				Short: true,
 			},
 			{
@@ -220,7 +219,7 @@ func SubscriptionResumed(_ context.Context, org *organization.Organization, sub 
 			},
 			{
 				Title: "Subscription ID",
-				Value: sub.SubscriptionID.Get(),
+				Value: sub.StripeSubscriptionID.Get(),
 				Short: true,
 			},
 		},
@@ -236,18 +235,4 @@ func SubscriptionResumed(_ context.Context, org *organization.Organization, sub 
 	}
 
 	return nil
-}
-
-// formatBillingCycle converts the billing cycle constant to a human-readable string
-func formatBillingCycle(cycle billing_plan.BillingCycle) string {
-	switch cycle {
-	case billing_plan.BILLING_CYCLE_MONTHLY:
-		return "month"
-	case billing_plan.BILLING_CYCLE_QUARTERLY:
-		return "quarter"
-	case billing_plan.BILLING_CYCLE_ANNUALLY:
-		return "year"
-	default:
-		return "unknown"
-	}
 }

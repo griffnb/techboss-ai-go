@@ -15,7 +15,7 @@ const ROUTE string = "billing"
 func Setup(coreRouter *router.CoreRouter) {
 	coreRouter.AddMainRoute(tools.BuildString("/", ROUTE), func(r chi.Router) {
 		r.Group(func(authR chi.Router) {
-			authR.Post("/checkout/plan/{id}/stripe", helpers.RoleHandler(helpers.RoleHandlerMap{
+			authR.Post("/checkout/price/{id}/stripe", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_ORG_ADMIN: response.StandardPublicRequestWrapper(authStripeCheckout),
 			}))
 
@@ -31,9 +31,9 @@ func Setup(coreRouter *router.CoreRouter) {
 				constants.ROLE_ORG_ADMIN: response.StandardPublicRequestWrapper(authResume),
 			}))
 
-			//authR.Get("/portal", helpers.RoleHandler(helpers.RoleHandlerMap{
-			//	constants.ROLE_ORG_ADMIN: response.StandardRequestWrapper(authPortal),
-			//}))
+			authR.Post("/change", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ORG_ADMIN: response.StandardPublicRequestWrapper(authChangePlan),
+			}))
 		})
 
 		r.Group(func(openR chi.Router) {

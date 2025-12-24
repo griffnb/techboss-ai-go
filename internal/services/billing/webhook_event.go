@@ -3,6 +3,7 @@ package billing
 import (
 	"context"
 
+	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/models/subscription"
 	"github.com/pkg/errors"
@@ -16,7 +17,7 @@ type WebhookEventService struct {
 // This file contains additional helper functions for the Subscription model
 
 func (this *WebhookEventService) ProcessActive(ctx context.Context, stripeSub *stripe.Subscription) error {
-	subObj, err := subscription.GetBySubscriptionID(ctx, stripeSub.ID)
+	subObj, err := subscription.GetByStripeSubscriptionID(ctx, stripeSub.ID)
 	if err != nil {
 		return err
 	}
@@ -29,7 +30,7 @@ func (this *WebhookEventService) ProcessActive(ctx context.Context, stripeSub *s
 }
 
 func (this *WebhookEventService) ProcessCanceled(ctx context.Context, stripeSub *stripe.Subscription) error {
-	subObj, err := subscription.GetBySubscriptionID(ctx, stripeSub.ID)
+	subObj, err := subscription.GetByStripeSubscriptionID(ctx, stripeSub.ID)
 	if err != nil {
 		return err
 	}
@@ -42,7 +43,7 @@ func (this *WebhookEventService) ProcessCanceled(ctx context.Context, stripeSub 
 }
 
 func (this *WebhookEventService) ProcessPaused(ctx context.Context, stripeSub *stripe.Subscription) error {
-	subObj, err := subscription.GetBySubscriptionID(ctx, stripeSub.ID)
+	subObj, err := subscription.GetByStripeSubscriptionID(ctx, stripeSub.ID)
 	if err != nil {
 		return err
 	}
@@ -55,7 +56,7 @@ func (this *WebhookEventService) ProcessPaused(ctx context.Context, stripeSub *s
 }
 
 func (this *WebhookEventService) ProcessUnpaid(ctx context.Context, stripeSub *stripe.Subscription) error {
-	subObj, err := subscription.GetBySubscriptionID(ctx, stripeSub.ID)
+	subObj, err := subscription.GetByStripeSubscriptionID(ctx, stripeSub.ID)
 	if err != nil {
 		return err
 	}
@@ -72,7 +73,9 @@ func (this *WebhookEventService) ProcessUnpaid(ctx context.Context, stripeSub *s
 }
 
 func (this *WebhookEventService) ProcessTrialStarted(ctx context.Context, stripeSub *stripe.Subscription) error {
-	subObj, err := subscription.GetBySubscriptionID(ctx, stripeSub.ID)
+	log.Debugf("-----Processing trial started for subscription %s ----- ", stripeSub.ID)
+
+	subObj, err := subscription.GetByStripeSubscriptionID(ctx, stripeSub.ID)
 	if err != nil {
 		return err
 	}
@@ -90,20 +93,27 @@ func ProcessStripeEvent(ctx context.Context, event stripe.Event) error {
 	if err != nil {
 		return err
 	}
-	subObj := service.Subscription
 
-	if subObj.IsNew() {
-		err := mergeBillingInfo(subObj, stripeSub)
-		if err != nil {
-			return err
+	// Succeeded
+	if !tools.Empty(service.Subscription) {
+		subObj := service.Subscription
+		if subObj.BillingInfo.IsEmpty() {
+			err := mergeBillingInfo(ctx, subObj, stripeSub)
+			if err != nil {
+				return err
+			}
+
 		}
-	}
 
-	return subObj.Save(nil)
+		// Need to save it here
+		return subObj.Save(nil)
+
+	}
+	return nil
 }
 
-func mergeBillingInfo(subObj *subscription.Subscription, stripeSub *stripe.Subscription) error {
-	subInfo, err := Client().GetSubscriptionInfo(stripeSub)
+func mergeBillingInfo(ctx context.Context, subObj *subscription.Subscription, stripeSub *stripe.Subscription) error {
+	subInfo, err := Client().GetSubscriptionInfo(ctx, stripeSub)
 	if err != nil {
 		return err
 	}

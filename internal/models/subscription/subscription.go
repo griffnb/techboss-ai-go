@@ -1,4 +1,4 @@
-//go:generate core_gen model Subscription
+//go:generate core_gen model Subscription  -add=swaggo
 package subscription
 
 import (
@@ -9,7 +9,7 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/common"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/base"
-	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
+	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan_price"
 	_ "github.com/griffnb/techboss-ai-go/internal/models/subscription/migrations"
 )
 
@@ -28,25 +28,23 @@ type Structure struct {
 
 type DBColumns struct {
 	base.Structure
-	OrganizationID  *fields.UUIDField                                   `column:"organization_id"  type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
-	BillingPlanID   *fields.UUIDField                                   `column:"billing_plan_id"  type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
-	Level           *fields.IntField                                    `column:"level"            type:"int"      default:"0"`
-	BillingProvider *fields.IntConstantField[BillingProvider]           `column:"billing_provider" type:"smallint" default:"0"    index:"true"`
-	SubscriptionID  *fields.StringField                                 `column:"subscription_id"  type:"text"     default:""`
-	PriceOrPlanID   *fields.StringField                                 `column:"price_or_plan_id" type:"text"     default:""`
-	StartTS         *fields.IntField                                    `column:"start_ts"         type:"bigint"   default:"0"                             public:"view"`
-	EndTS           *fields.IntField                                    `column:"end_ts"           type:"bigint"   default:"0"                             public:"view"`
-	NextBillingTS   *fields.IntField                                    `column:"next_billing_ts"  type:"bigint"   default:"0"                             public:"view"`
-	BillingCycle    *fields.IntConstantField[billing_plan.BillingCycle] `column:"billing_cycle"    type:"smallint" default:"0"`
-	Amount          *fields.DecimalField                                `column:"amount"           type:"numeric"  default:"0"                             public:"view" scale:"4" precision:"10"`
-	CouponCode      *fields.StringField                                 `column:"coupon_code"      type:"text"     default:""                              public:"view"`
-	BillingInfo     *fields.StructField[*BillingInfo]                   `column:"billing_info"     type:"jsonb"    default:"{}"                            public:"view"`
-	MetaData        *fields.StructField[*MetaData]                      `column:"meta_data"        type:"jsonb"    default:"{}"                            public:"view"`
-}
-
-type JoinData struct {
-	CreatedByName *fields.StringField `json:"created_by_name" type:"text"`
-	UpdatedByName *fields.StringField `json:"updated_by_name" type:"text"`
+	OrganizationID       *fields.UUIDField                                         `column:"organization_id"        type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
+	BillingPlanPriceID   *fields.UUIDField                                         `column:"billing_plan_price_id"  type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
+	Level                *fields.IntField                                          `column:"level"                  type:"smallint" default:"0"`
+	BillingProvider      *fields.IntConstantField[BillingProvider]                 `column:"billing_provider"       type:"smallint" default:"0"    index:"true"`
+	StripeCustomerID     *fields.StringField                                       `column:"stripe_customer_id"     type:"text"     default:""     index:"true"`
+	StripeSubscriptionID *fields.StringField                                       `column:"stripe_subscription_id" type:"text"     default:""     index:"true"`
+	StripePriceID        *fields.StringField                                       `column:"stripe_price_id"        type:"text"     default:""     index:"true"`
+	StartTS              *fields.IntField                                          `column:"start_ts"               type:"bigint"   default:"0"                             public:"view"`
+	EndTS                *fields.IntField                                          `column:"end_ts"                 type:"bigint"   default:"0"                             public:"view"`
+	NextBillingTS        *fields.IntField                                          `column:"next_billing_ts"        type:"bigint"   default:"0"                             public:"view"`
+	TrialEndTS           *fields.IntField                                          `column:"trial_end_ts"           type:"bigint"   default:"0"                             public:"view"`
+	InTrial              *fields.IntField                                          `column:"in_trial"               type:"smallint" default:"0"`
+	BillingCycle         *fields.IntConstantField[billing_plan_price.BillingCycle] `column:"billing_cycle"          type:"smallint" default:"0"`
+	Amount               *fields.DecimalField                                      `column:"amount"                 type:"numeric"  default:"0"                             public:"view" scale:"4" precision:"10"`
+	CouponCode           *fields.StringField                                       `column:"coupon_code"            type:"text"     default:""                              public:"view"`
+	BillingInfo          *fields.StructField[*BillingInfo]                         `column:"billing_info"           type:"jsonb"    default:"{}"                            public:"view"`
+	MetaData             *fields.StructField[*MetaData]                            `column:"meta_data"              type:"jsonb"    default:"{}"                            public:"view"`
 }
 
 // Subscription - Database model

@@ -41,7 +41,7 @@ func CreateTestUser(ctx context.Context, input *TestUserInput, savingUser coremo
 		return nil, err
 	}
 
-	org, err := organization_service.CreateOrganization(ctx, accountObj)
+	org, err := organization_service.CreateDefaultOrganization(ctx, accountObj, savingUser)
 	if err != nil {
 		return nil, err
 	}

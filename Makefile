@@ -30,3 +30,15 @@ docker-up-local: ## Start Docker services, be sure to setup /etc/hosts entry for
 	sudo ifconfig lo0 alias 127.10.0.1/8
 	ifconfig lo0 | grep 127.10.0.1
 	docker compose -f infra/docker-compose-local.yml up
+
+
+.PHONY: claude
+claude: ## Create Claude PR - Usage: make claude BRANCH=feature-name TASK="description"
+	@if [ -z "$(TASK)" ]; then \
+		echo "❌ Error: TASK is required"; \
+		echo "Usage: make claude BRANCH=my-feature TASK=\"Add user authentication\""; \
+		exit 1; \
+	fi; \
+	BASE_BRANCH=$${BRANCH:-development}; \
+	./scripts/claude-pr.sh "$(TASK)" "$$BASE_BRANCH"
+	

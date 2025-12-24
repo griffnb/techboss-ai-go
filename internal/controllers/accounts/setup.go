@@ -1,4 +1,4 @@
-//go:generate core_gen controller Account -modelPackage=account
+//go:generate core_gen controller Account -modelPackage=account -add=swaggo
 package accounts
 
 import (
@@ -72,10 +72,35 @@ func Setup(coreRouter *router.CoreRouter) {
 		})
 		r.Group(func(authR chi.Router) {
 			authR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authCreate),
+				constants.ROLE_ORG_ADMIN: response.StandardPublicRequestWrapper(authCreate),
 			}))
 			authR.Put("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authUpdate),
+				constants.ROLE_ORG_ADMIN: response.StandardPublicRequestWrapper(authUpdate),
+			}))
+
+			authR.Post("/updatePassword", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(updatePassword),
+			}))
+
+			authR.Post("/setPassword", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(setPassword),
+			}))
+
+			authR.Delete("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ORG_ADMIN: response.StandardPublicRequestWrapper(authDelete),
+			}))
+
+			authR.Post("/{id}/invite", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ORG_ADMIN: response.StandardPublicRequestWrapper(authResendInvite),
+			}))
+			authR.Post("/{id}/invite/cancel", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ORG_ADMIN: response.StandardPublicRequestWrapper(authCancelInvite),
+			}))
+			authR.Put("/resendVerifyEmail", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authResendVerifyEmail),
+			}))
+			authR.Put("/updatePrimaryEmail", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(updatePrimaryEmailAddress),
 			}))
 		})
 
@@ -96,6 +121,12 @@ func Setup(coreRouter *router.CoreRouter) {
 			openR.Post("/verify/email", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_UNAUTHORIZED: response.StandardPublicRequestWrapper(openVerifyEmail),
 			}))
+
+			openR.Post(
+				"/sendResetPassword",
+				response.StandardPublicRequestWrapper(openSendResetPasswordEmail),
+			)
+			openR.Post("/resetPassword", response.StandardPublicRequestWrapper(openResetPassword))
 		})
 	})
 }

@@ -4,16 +4,26 @@ import (
 	"context"
 
 	"github.com/griffnb/core/lib/model"
+	"github.com/griffnb/core/lib/types"
 )
 
-type mocker interface {
-	GetByExternalID(ctx context.Context, externalID string) (*Organization, error)
+type Mocker struct {
+	// Standard Functions
+	Get              func(ctx context.Context, id types.UUID) (*Organization, error)
+	GetJoined        func(ctx context.Context, id types.UUID) (*OrganizationJoined, error)
+	FindAll          func(ctx context.Context, options *model.Options) ([]*Organization, error)
+	FindAllJoined    func(ctx context.Context, options *model.Options) ([]*OrganizationJoined, error)
+	FindFirst        func(ctx context.Context, options *model.Options) (*Organization, error)
+	FindFirstJoined  func(ctx context.Context, options *model.Options) (*OrganizationJoined, error)
+	FindResultsCount func(ctx context.Context, options *model.Options) (int64, error)
+
+	GetByExternalID func(ctx context.Context, externalID string) (*Organization, error)
 }
 
 // GetByExternalID finds an organization by its external ID (e.g., Stripe organization ID).
 // Returns the first non-disabled organization matching the external ID.
 func GetByExternalID(ctx context.Context, externalID string) (*Organization, error) {
-	mocker, ok := model.GetMocker[mocker](ctx, PACKAGE)
+	mocker, ok := model.GetMocker[*Mocker](ctx, PACKAGE)
 	if ok {
 		return mocker.GetByExternalID(ctx, externalID)
 	}
