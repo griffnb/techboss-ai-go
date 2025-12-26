@@ -160,9 +160,13 @@ func (c *APIClient) TerminateSandbox(ctx context.Context, sandboxInfo *SandboxIn
 		return errors.New("sandboxInfo or sandbox is nil")
 	}
 
-	// TODO: Implement syncToS3 logic when storage.go is implemented
-	if syncToS3 {
-		log.Printf("Warning: syncToS3 requested but not yet implemented")
+	// Sync to S3 before termination if requested
+	if syncToS3 && sandboxInfo.Config.S3Config != nil {
+		_, err := c.SyncVolumeToS3(ctx, sandboxInfo)
+		if err != nil {
+			// Log error but don't fail termination
+			log.Printf("Warning: failed to sync volume to S3 before termination: %v", err)
+		}
 	}
 
 	err := sandboxInfo.Sandbox.Terminate(ctx)
