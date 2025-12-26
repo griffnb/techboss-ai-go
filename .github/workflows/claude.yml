@@ -144,4 +144,6 @@ jobs:
 
         with:
             use_bedrock: "true"
-            github_token: ${{ secrets.GITHUB_TOKEN }} 
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            claude_args: |
+              --dangerously-skip-permissions
