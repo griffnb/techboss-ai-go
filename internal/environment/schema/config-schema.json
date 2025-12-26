@@ -226,6 +226,18 @@
     "internal_api_key": {
       "type": "string"
     },
+    "modal": {
+      "additionalProperties": false,
+      "properties": {
+        "token_id": {
+          "type": "string"
+        },
+        "token_secret": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "oauth": {
       "additionalProperties": false,
       "properties": {
@@ -392,9 +404,6 @@
       "type": "object"
     }
   },
-  "required": [
-    "encryption"
-  ],
   "title": "Server Configuration",
   "type": "object"
 }
