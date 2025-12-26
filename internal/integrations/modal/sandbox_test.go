@@ -434,3 +434,229 @@ func TestCreateSandbox(t *testing.T) {
 		})
 	})
 }
+
+// TestTerminateSandbox tests sandbox termination
+func TestTerminateSandbox(t *testing.T) {
+	skipIfNotConfigured(t)
+
+	client := modal.Client()
+	ctx := context.Background()
+
+	t.Run("Terminate sandbox successfully", func(t *testing.T) {
+		// Arrange - Create a sandbox first
+		accountID := types.UUID("test-terminate-123")
+		config := &modal.SandboxConfig{
+			AccountID: accountID,
+			Image: &modal.ImageConfig{
+				BaseImage: "alpine:3.21",
+			},
+			VolumeName:      "test-volume-terminate",
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+
+		sandboxInfo, err := client.CreateSandbox(ctx, config)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, sandboxInfo)
+		assert.Equal(t, modal.SandboxStatusRunning, sandboxInfo.Status)
+
+		// Act - Terminate the sandbox
+		err = client.TerminateSandbox(ctx, sandboxInfo, false)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, modal.SandboxStatusTerminated, sandboxInfo.Status)
+	})
+
+	t.Run("Terminate with syncToS3 parameter accepted", func(t *testing.T) {
+		// Arrange - Create a sandbox
+		accountID := types.UUID("test-terminate-sync-456")
+		config := &modal.SandboxConfig{
+			AccountID: accountID,
+			Image: &modal.ImageConfig{
+				BaseImage: "alpine:3.21",
+			},
+			VolumeName:      "test-volume-terminate-sync",
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+
+		sandboxInfo, err := client.CreateSandbox(ctx, config)
+		assert.NoError(t, err)
+		assert.Equal(t, modal.SandboxStatusRunning, sandboxInfo.Status)
+
+		// Act - Terminate with syncToS3 = true (placeholder for Task 4)
+		err = client.TerminateSandbox(ctx, sandboxInfo, true)
+
+		// Assert - Should accept the parameter without error (sync logic not yet implemented)
+		assert.NoError(t, err)
+		assert.Equal(t, modal.SandboxStatusTerminated, sandboxInfo.Status)
+	})
+
+	t.Run("Terminate already terminated sandbox", func(t *testing.T) {
+		// Arrange - Create and terminate a sandbox
+		accountID := types.UUID("test-terminate-twice-789")
+		config := &modal.SandboxConfig{
+			AccountID: accountID,
+			Image: &modal.ImageConfig{
+				BaseImage: "alpine:3.21",
+			},
+			VolumeName:      "test-volume-terminate-twice",
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+
+		sandboxInfo, err := client.CreateSandbox(ctx, config)
+		assert.NoError(t, err)
+
+		// First termination
+		err = client.TerminateSandbox(ctx, sandboxInfo, false)
+		assert.NoError(t, err)
+		assert.Equal(t, modal.SandboxStatusTerminated, sandboxInfo.Status)
+
+		// Act - Try to terminate again
+		err = client.TerminateSandbox(ctx, sandboxInfo, false)
+
+		// Assert - Modal SDK handles this gracefully without error
+		// The sandbox is already terminated, so this is idempotent
+		assert.NoError(t, err)
+		assert.Equal(t, modal.SandboxStatusTerminated, sandboxInfo.Status)
+	})
+
+	t.Run("Terminate with nil sandboxInfo", func(t *testing.T) {
+		// Act
+		err := client.TerminateSandbox(ctx, nil, false)
+
+		// Assert
+		assert.Error(t, err)
+	})
+
+	t.Run("Terminate with nil sandbox object", func(t *testing.T) {
+		// Arrange
+		sandboxInfo := &modal.SandboxInfo{
+			SandboxID: "fake-id",
+			Sandbox:   nil, // Nil sandbox
+			Config:    nil,
+			CreatedAt: time.Now(),
+			Status:    modal.SandboxStatusRunning,
+		}
+
+		// Act
+		err := client.TerminateSandbox(ctx, sandboxInfo, false)
+
+		// Assert
+		assert.Error(t, err)
+	})
+}
+
+// TestGetSandboxStatus tests retrieving sandbox status
+func TestGetSandboxStatus(t *testing.T) {
+	skipIfNotConfigured(t)
+
+	client := modal.Client()
+	ctx := context.Background()
+
+	t.Run("Get status of running sandbox", func(t *testing.T) {
+		// Arrange - Create a sandbox
+		accountID := types.UUID("test-status-running-123")
+		config := &modal.SandboxConfig{
+			AccountID: accountID,
+			Image: &modal.ImageConfig{
+				BaseImage: "alpine:3.21",
+			},
+			VolumeName:      "test-volume-status",
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+
+		sandboxInfo, err := client.CreateSandbox(ctx, config)
+		defer func() {
+			if sandboxInfo != nil && sandboxInfo.Sandbox != nil {
+				_ = client.TerminateSandbox(ctx, sandboxInfo, false)
+			}
+		}()
+		assert.NoError(t, err)
+		assert.Equal(t, modal.SandboxStatusRunning, sandboxInfo.Status)
+
+		// Act - Get status using SandboxInfo
+		status, err := client.GetSandboxStatusFromInfo(ctx, sandboxInfo)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, modal.SandboxStatusRunning, status)
+	})
+
+	t.Run("Get status after termination", func(t *testing.T) {
+		// Arrange - Create and terminate a sandbox
+		accountID := types.UUID("test-status-terminated-456")
+		config := &modal.SandboxConfig{
+			AccountID: accountID,
+			Image: &modal.ImageConfig{
+				BaseImage: "alpine:3.21",
+			},
+			VolumeName:      "test-volume-status-terminated",
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+
+		sandboxInfo, err := client.CreateSandbox(ctx, config)
+		assert.NoError(t, err)
+
+		// Terminate the sandbox
+		err = client.TerminateSandbox(ctx, sandboxInfo, false)
+		assert.NoError(t, err)
+		assert.Equal(t, modal.SandboxStatusTerminated, sandboxInfo.Status)
+
+		// Act - Get status after termination using SandboxInfo
+		status, err := client.GetSandboxStatusFromInfo(ctx, sandboxInfo)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, modal.SandboxStatusTerminated, status)
+	})
+
+	t.Run("Get status with nil sandboxInfo", func(t *testing.T) {
+		// Act
+		status, err := client.GetSandboxStatusFromInfo(ctx, nil)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Equal(t, modal.SandboxStatus(""), status)
+	})
+
+	t.Run("Get status with nil sandbox object", func(t *testing.T) {
+		// Arrange
+		sandboxInfo := &modal.SandboxInfo{
+			SandboxID: "fake-id",
+			Sandbox:   nil,
+			Config:    nil,
+			CreatedAt: time.Now(),
+			Status:    modal.SandboxStatusRunning,
+		}
+
+		// Act
+		status, err := client.GetSandboxStatusFromInfo(ctx, sandboxInfo)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Equal(t, modal.SandboxStatus(""), status)
+	})
+
+	t.Run("GetSandboxStatus with ID only returns error", func(t *testing.T) {
+		// Act - Test the ID-based method (which is not fully implemented)
+		status, err := client.GetSandboxStatus(ctx, "some-id")
+
+		// Assert - Should return error indicating SandboxInfo is needed
+		assert.Error(t, err)
+		assert.Equal(t, modal.SandboxStatus(""), status)
+	})
+
+	t.Run("GetSandboxStatus with empty ID returns error", func(t *testing.T) {
+		// Act
+		status, err := client.GetSandboxStatus(ctx, "")
+
+		// Assert
+		assert.Error(t, err)
+		assert.Equal(t, modal.SandboxStatus(""), status)
+	})
+}

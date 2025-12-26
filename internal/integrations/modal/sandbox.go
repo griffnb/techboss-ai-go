@@ -2,7 +2,6 @@
 package modal
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"log"
@@ -59,57 +58,6 @@ const (
 	SandboxStatusTerminated SandboxStatus = "terminated"
 	SandboxStatusError      SandboxStatus = "error"
 )
-
-func (this *APIClient) BuildSandbox(ctx context.Context, accountID types.UUID) (*modal.Sandbox, error) {
-	app, err := this.client.Apps.FromName(ctx, "app-"+accountID.String(), &modal.AppFromNameParams{CreateIfMissing: true})
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get or create App for account %s", accountID)
-	}
-
-	image := this.client.Images.FromRegistry("alpine:3.21", nil).DockerfileCommands([]string{
-		"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep",
-		"RUN curl -fsSL https://claude.ai/install.sh | bash",
-		"ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0",
-	}, nil)
-
-	// standard volume
-	volume, err := this.client.Volumes.FromName(ctx, fmt.Sprintf("volume-%s", accountID), &modal.VolumeFromNameParams{
-		CreateIfMissing: true,
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create Volume for account %s", accountID)
-	}
-
-	bucketSecret, err := this.client.Secrets.FromName(ctx, "s3-bucket", nil)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get Secret for account %s", accountID)
-	}
-
-	// S3 bucket mount
-	keyPrefix := fmt.Sprintf("docs/%s/", accountID)
-	cloudBucketMount, err := this.client.CloudBucketMounts.New("tb-prod-agent-docs", &modal.CloudBucketMountParams{
-		Secret:    bucketSecret,
-		KeyPrefix: &keyPrefix,
-		ReadOnly:  true,
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create Cloud Bucket Mount for account %s", accountID)
-	}
-
-	sb, err := this.client.Sandboxes.Create(ctx, app, image, &modal.SandboxCreateParams{
-		Volumes: map[string]*modal.Volume{
-			"/mnt/volume": volume,
-		},
-		CloudBucketMounts: map[string]*modal.CloudBucketMount{
-			"/mnt/s3-bucket": cloudBucketMount,
-		},
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create writer Sandbox for account %s", accountID)
-	}
-
-	return sb, nil
-}
 
 // CreateSandbox creates a new Modal sandbox with the given configuration.
 func (c *APIClient) CreateSandbox(ctx context.Context, config *SandboxConfig) (*SandboxInfo, error) {
@@ -226,161 +174,43 @@ func (c *APIClient) TerminateSandbox(ctx context.Context, sandboxInfo *SandboxIn
 	return nil
 }
 
-func (this *APIClient) ExecClaude(
-	ctx context.Context,
-	sb *modal.Sandbox,
-	prompt string,
-) (*modal.ContainerProcess, error) {
-	secrets, err := this.client.Secrets.FromMap(ctx, map[string]string{
-		"ANTHROPIC_API_KEY":       "sk-xxxx",
-		"AWS_BEDROCK_API_KEY":     "ABSKxxxx",
-		"CLAUDE_CODE_USE_BEDROCK": "1",
-		"AWS_REGION":              "us-east-1", // or your preferred region
-	}, nil)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get secrets for Sandbox %s", sb.SandboxID)
+// GetSandboxStatus returns the current status of a sandbox.
+func (c *APIClient) GetSandboxStatus(_ context.Context, sandboxID string) (SandboxStatus, error) {
+	if sandboxID == "" {
+		return "", errors.New("sandboxID cannot be empty")
 	}
 
-	cmd := []string{"claude", "-c", "-p", prompt, "--dangerously-skip-permissions", "--output-format", "stream-json", "--verbose"}
+	// Note: This implementation has a limitation - we need the SandboxInfo to query status
+	// For now, we'll use a simple approach based on the cached status in SandboxInfo
+	// In a real implementation, you would either:
+	// 1. Store SandboxInfo in a cache/database and retrieve it by sandboxID
+	// 2. Use Modal API to lookup sandbox by ID (if such API exists)
+	//
+	// For Task 3, we'll use the approach where the caller must maintain SandboxInfo
+	// and we'll query the sandbox's status via Poll()
 
-	claude, err := sb.Exec(ctx, cmd, &modal.SandboxExecParams{
-		PTY:     true, // Adding a PTY is important, since Claude requires it!
-		Secrets: []*modal.Secret{secrets},
-		Workdir: "/repo",
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to execute command in Sandbox %s", sb.SandboxID)
-	}
-
-	return claude, nil
+	return "", errors.New("GetSandboxStatus requires SandboxInfo - use GetSandboxStatusFromInfo instead")
 }
 
-func sandbox() {
-	ctx := context.Background()
-	mc, err := modal.NewClient()
+// GetSandboxStatusFromInfo returns the current status of a sandbox using SandboxInfo.
+func (c *APIClient) GetSandboxStatusFromInfo(ctx context.Context, sandboxInfo *SandboxInfo) (SandboxStatus, error) {
+	if sandboxInfo == nil || sandboxInfo.Sandbox == nil {
+		return "", errors.New("sandboxInfo or sandbox is nil")
+	}
+
+	// Use Poll to check if sandbox is still running
+	exitCode, err := sandboxInfo.Sandbox.Poll(ctx)
 	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
+		return SandboxStatusError, errors.Wrapf(err, "failed to poll sandbox %s", sandboxInfo.SandboxID)
 	}
 
-	app, err := mc.Apps.FromName(ctx, "libmodal-example", &modal.AppFromNameParams{CreateIfMissing: true})
-	if err != nil {
-		log.Fatalf("Failed to get or create App: %v", err)
+	// If Poll returns nil, sandbox is still running
+	if exitCode == nil {
+		sandboxInfo.Status = SandboxStatusRunning
+		return SandboxStatusRunning, nil
 	}
 
-	image := mc.Images.FromRegistry("alpine:3.21", nil).DockerfileCommands([]string{
-		"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep",
-		"RUN curl -fsSL https://claude.ai/install.sh | bash",
-		"ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0",
-	}, nil)
-
-	// standard volume
-	volume, err := mc.Volumes.FromName(ctx, "libmodal-example-volume", &modal.VolumeFromNameParams{
-		CreateIfMissing: true,
-	})
-	if err != nil {
-		log.Fatalf("Failed to create Volume: %v", err)
-	}
-
-	secret, err := mc.Secrets.FromName(ctx, "libmodal-aws-bucket-secret", nil)
-	if err != nil {
-		log.Fatalf("Failed to get Secret: %v", err)
-	}
-
-	// S3 bucket mount
-	keyPrefix := "data/"
-	cloudBucketMount, err := mc.CloudBucketMounts.New("my-s3-bucket", &modal.CloudBucketMountParams{
-		Secret:    secret,
-		KeyPrefix: &keyPrefix,
-		ReadOnly:  true,
-	})
-	if err != nil {
-		log.Fatalf("Failed to create Cloud Bucket Mount: %v", err)
-	}
-
-	sb, err := mc.Sandboxes.Create(ctx, app, image, &modal.SandboxCreateParams{
-		Command: []string{
-			"sh",
-			"-c",
-			"echo 'Hello from writer Sandbox!' > /mnt/volume/message.txt",
-		},
-		Volumes: map[string]*modal.Volume{
-			"/mnt/volume": volume,
-		},
-		CloudBucketMounts: map[string]*modal.CloudBucketMount{
-			"/mnt/s3-bucket": cloudBucketMount,
-		},
-	})
-	if err != nil {
-		log.Fatalf("Failed to create writer Sandbox: %v", err)
-	}
-
-	fmt.Printf("Writer Sandbox: %s\n", sb.SandboxID)
-	defer func() {
-		if err := sb.Terminate(context.Background()); err != nil {
-			log.Fatalf("Failed to terminate Sandbox %s: %v", sb.SandboxID, err)
-		}
-	}()
-
-	claudeCmd := []string{
-		"claude",
-		"-p",
-		"Summarize what this repository is about. Don't modify any code or files.",
-	}
-
-	fmt.Println("\nRunning command:", claudeCmd)
-
-	claudeSecret, err := mc.Secrets.FromName(ctx, "libmodal-anthropic-secret", &modal.SecretFromNameParams{
-		RequiredKeys: []string{"ANTHROPIC_API_KEY"},
-	})
-	if err != nil {
-		log.Fatalf("Failed to get secret: %v", err)
-	}
-
-	claude, err := sb.Exec(ctx, claudeCmd, &modal.SandboxExecParams{
-		PTY:     true, // Adding a PTY is important, since Claude requires it!
-		Secrets: []*modal.Secret{claudeSecret},
-		Workdir: "/repo",
-	})
-	if err != nil {
-		log.Fatalf("Failed to execute claude command: %v", err)
-	}
-
-	scanner := bufio.NewScanner(claude.Stdout)
-	for scanner.Scan() {
-		//line := scanner.Text()
-
-		// Write the line to the response
-		//_, err := fmt.Fprintf(responseWriter, "%s\n", line)
-		//if err != nil {
-		//	return errors.Wrap(err, "failed to write streaming response")
-		//}
-		//
-		//// Flush the response
-		//flusher.Flush()
-		//
-		//// Check if the stream is done
-		//if line == "data: [DONE]" {
-		//	break
-		//}
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatalf("Error reading claude output: %v", err)
-	}
-
-	_, err = claude.Wait(ctx)
-	if err != nil {
-		log.Fatalf("Claude command failed: %v", err)
-	}
-
-	credentials, err := sb.CreateConnectToken(ctx, &modal.SandboxCreateConnectTokenParams{UserMetadata: "user_id=xxxx"})
-	if err != nil {
-		log.Fatalf("Failed to create connect token: %v", err)
-	}
-	fmt.Printf("Writer connect token: %s\n", credentials.Token)
-	exitCode, err := sb.Wait(ctx)
-	if err != nil {
-		log.Fatalf("Failed to wait for writer Sandbox: %v", err)
-	}
-	fmt.Printf("Writer finished with exit code: %d\n", exitCode)
+	// If Poll returns an exit code, sandbox has terminated
+	sandboxInfo.Status = SandboxStatusTerminated
+	return SandboxStatusTerminated, nil
 }
