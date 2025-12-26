@@ -1,7 +1,9 @@
 package modal_test
 
 import (
+	"bytes"
 	"context"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -9,6 +11,7 @@ import (
 	"github.com/griffnb/core/lib/testtools/assert"
 	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
+	"github.com/pkg/errors"
 )
 
 // TestClaudeExecConfig tests ClaudeExecConfig structure
@@ -436,4 +439,250 @@ func TestExecClaudeRefactored(t *testing.T) {
 		assert.Error(t, err)
 		assert.True(t, strings.Contains(err.Error(), "sandboxInfo") || strings.Contains(err.Error(), "sandbox"))
 	})
+}
+
+// TestStreamClaudeOutput tests streaming Claude output to HTTP response writer
+func TestStreamClaudeOutput(t *testing.T) {
+	skipIfNotConfigured(t)
+
+	client := modal.Client()
+	ctx := context.Background()
+
+	t.Run("StreamClaudeOutput streams to ResponseWriter", func(t *testing.T) {
+		// Arrange - Create sandbox with Claude CLI installed
+		accountID := types.UUID("test-claude-stream-123")
+		sandboxConfig := &modal.SandboxConfig{
+			AccountID: accountID,
+			Image: &modal.ImageConfig{
+				BaseImage: "alpine:3.21",
+				DockerfileCommands: []string{
+					"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep aws-cli",
+					"RUN curl -fsSL https://claude.ai/install.sh | bash",
+					"ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0",
+				},
+			},
+			VolumeName:      "test-volume-claude-stream",
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+
+		sandboxInfo, err := client.CreateSandbox(ctx, sandboxConfig)
+		defer func() {
+			if sandboxInfo != nil && sandboxInfo.Sandbox != nil {
+				_ = client.TerminateSandbox(ctx, sandboxInfo, false)
+			}
+		}()
+		assert.NoError(t, err)
+
+		// Execute Claude with simple prompt
+		claudeConfig := &modal.ClaudeExecConfig{
+			Prompt: "echo 'Hello from Claude stream test'",
+		}
+
+		claudeProcess, err := client.ExecClaude(ctx, sandboxInfo, claudeConfig)
+		assert.NoError(t, err)
+
+		// Create response recorder as ResponseWriter
+		recorder := &responseRecorder{
+			header: make(http.Header),
+			body:   &bytes.Buffer{},
+		}
+
+		// Act - Stream Claude output
+		err = client.StreamClaudeOutput(ctx, claudeProcess, recorder)
+
+		// Assert
+		assert.NoError(t, err)
+
+		// Verify SSE headers were set
+		assert.Equal(t, "text/event-stream", recorder.header.Get("Content-Type"))
+		assert.Equal(t, "no-cache", recorder.header.Get("Cache-Control"))
+		assert.Equal(t, "keep-alive", recorder.header.Get("Connection"))
+
+		// Verify output was written
+		output := recorder.body.String()
+		assert.True(t, len(output) > 0, "output should not be empty")
+
+		// Verify [DONE] event was sent
+		assert.True(t, strings.Contains(output, "data: [DONE]"), "output should contain [DONE] event")
+	})
+
+	t.Run("StreamClaudeOutput with nil process returns error", func(t *testing.T) {
+		// Arrange
+		recorder := &responseRecorder{
+			header: make(http.Header),
+			body:   &bytes.Buffer{},
+		}
+
+		// Act
+		err := client.StreamClaudeOutput(ctx, nil, recorder)
+
+		// Assert
+		assert.Error(t, err)
+	})
+
+	t.Run("StreamClaudeOutput with nil ResponseWriter returns error", func(t *testing.T) {
+		// Arrange
+		claudeProcess := &modal.ClaudeProcess{
+			Process:   nil,
+			Config:    &modal.ClaudeExecConfig{Prompt: "test"},
+			StartedAt: time.Now(),
+		}
+
+		// Act
+		err := client.StreamClaudeOutput(ctx, claudeProcess, nil)
+
+		// Assert
+		assert.Error(t, err)
+	})
+
+	t.Run("Streaming handles Claude errors", func(t *testing.T) {
+		// Arrange - Create sandbox with Claude CLI installed
+		accountID := types.UUID("test-claude-stream-error-456")
+		sandboxConfig := &modal.SandboxConfig{
+			AccountID: accountID,
+			Image: &modal.ImageConfig{
+				BaseImage: "alpine:3.21",
+				DockerfileCommands: []string{
+					"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep aws-cli",
+					"RUN curl -fsSL https://claude.ai/install.sh | bash",
+					"ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0",
+				},
+			},
+			VolumeName:      "test-volume-claude-error",
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+
+		sandboxInfo, err := client.CreateSandbox(ctx, sandboxConfig)
+		defer func() {
+			if sandboxInfo != nil && sandboxInfo.Sandbox != nil {
+				_ = client.TerminateSandbox(ctx, sandboxInfo, false)
+			}
+		}()
+		assert.NoError(t, err)
+
+		// Execute Claude with a command that will likely produce error output
+		// (invalid prompt or config that causes Claude to exit with error)
+		claudeConfig := &modal.ClaudeExecConfig{
+			Prompt: "invalid command that might fail",
+		}
+
+		claudeProcess, err := client.ExecClaude(ctx, sandboxInfo, claudeConfig)
+		assert.NoError(t, err)
+
+		// Create response recorder
+		recorder := &responseRecorder{
+			header: make(http.Header),
+			body:   &bytes.Buffer{},
+		}
+
+		// Act - Stream Claude output (even if error, should stream gracefully)
+		err = client.StreamClaudeOutput(ctx, claudeProcess, recorder)
+
+		// Assert - Should complete without error even if Claude had issues
+		// The streaming itself should succeed, errors are streamed as output
+		assert.NoError(t, err)
+
+		// Verify output was written
+		output := recorder.body.String()
+		assert.True(t, len(output) > 0, "output should not be empty")
+
+		// Verify [DONE] event was sent
+		assert.True(t, strings.Contains(output, "data: [DONE]"), "output should contain [DONE] event")
+	})
+}
+
+// TestStreamClaudeOutputWithCancellation tests streaming with context cancellation
+func TestStreamClaudeOutputWithCancellation(t *testing.T) {
+	skipIfNotConfigured(t)
+
+	client := modal.Client()
+
+	t.Run("Streaming handles context cancellation", func(t *testing.T) {
+		// Arrange - Create sandbox with Claude CLI installed
+		accountID := types.UUID("test-claude-cancel-789")
+		sandboxConfig := &modal.SandboxConfig{
+			AccountID: accountID,
+			Image: &modal.ImageConfig{
+				BaseImage: "alpine:3.21",
+				DockerfileCommands: []string{
+					"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep aws-cli",
+					"RUN curl -fsSL https://claude.ai/install.sh | bash",
+					"ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0",
+				},
+			},
+			VolumeName:      "test-volume-claude-cancel",
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+
+		ctx := context.Background()
+		sandboxInfo, err := client.CreateSandbox(ctx, sandboxConfig)
+		defer func() {
+			if sandboxInfo != nil && sandboxInfo.Sandbox != nil {
+				_ = client.TerminateSandbox(ctx, sandboxInfo, false)
+			}
+		}()
+		assert.NoError(t, err)
+
+		// Execute Claude with simple prompt
+		claudeConfig := &modal.ClaudeExecConfig{
+			Prompt: "echo 'test cancellation'",
+		}
+
+		claudeProcess, err := client.ExecClaude(ctx, sandboxInfo, claudeConfig)
+		assert.NoError(t, err)
+
+		// Create response recorder
+		recorder := &responseRecorder{
+			header: make(http.Header),
+			body:   &bytes.Buffer{},
+		}
+
+		// Create cancellable context
+		cancelCtx, cancel := context.WithCancel(ctx)
+
+		// Cancel immediately to simulate mid-stream cancellation
+		cancel()
+
+		// Act - Stream with cancelled context
+		_ = client.StreamClaudeOutput(cancelCtx, claudeProcess, recorder)
+
+		// Assert - Should handle cancellation gracefully
+		// May complete normally if process finished before cancel, or may have partial output
+		// Either way, should not panic or leave resources hanging
+		// We don't assert on error here since it depends on timing
+		// The important thing is that it doesn't panic and cleanup happens
+
+		// Verify cleanup happens (sandbox can still be terminated)
+		err = client.TerminateSandbox(ctx, sandboxInfo, false)
+		assert.NoError(t, err)
+	})
+}
+
+// responseRecorder is a simple implementation of http.ResponseWriter and http.Flusher for testing
+type responseRecorder struct {
+	header http.Header
+	body   *bytes.Buffer
+}
+
+func (r *responseRecorder) Header() http.Header {
+	return r.header
+}
+
+func (r *responseRecorder) Write(data []byte) (int, error) {
+	n, err := r.body.Write(data)
+	if err != nil {
+		return n, errors.Wrapf(err, "failed to write to response buffer")
+	}
+	return n, nil
+}
+
+func (r *responseRecorder) WriteHeader(_ int) {
+	// No-op for this simple recorder
+}
+
+func (r *responseRecorder) Flush() {
+	// No-op for this simple recorder, but satisfies http.Flusher interface
 }

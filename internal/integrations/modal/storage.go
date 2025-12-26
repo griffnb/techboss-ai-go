@@ -15,7 +15,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// SyncStats contains statistics about sync operation.
+// SyncStats contains statistics about S3 sync operations.
+// It tracks the number of files processed, bytes transferred, operation duration,
+// and any non-fatal errors encountered during the sync.
 type SyncStats struct {
 	FilesProcessed   int           // Number of files synced
 	BytesTransferred int64         // Total bytes transferred
@@ -24,6 +26,9 @@ type SyncStats struct {
 }
 
 // InitVolumeFromS3 copies files from S3 bucket to volume on sandbox startup.
+// It uses the cp command to recursively copy files from the S3 mount to the volume.
+// This is typically called after sandbox creation to restore previous work state.
+// Returns SyncStats with files processed count and duration. Handles empty S3 gracefully.
 func (c *APIClient) InitVolumeFromS3(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error) {
 	if sandboxInfo == nil || sandboxInfo.Sandbox == nil {
 		return nil, errors.New("sandboxInfo or sandbox is nil")
@@ -101,6 +106,9 @@ func (c *APIClient) InitVolumeFromS3(ctx context.Context, sandboxInfo *SandboxIn
 }
 
 // SyncVolumeToS3 copies files from volume to S3 bucket with timestamp versioning.
+// It generates a new timestamp-based path in S3 (docs/{account}/{timestamp}/) and uses
+// AWS CLI sync to upload files. This preserves work history with immutable versions.
+// Returns SyncStats with files processed, bytes transferred, and duration.
 func (c *APIClient) SyncVolumeToS3(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error) {
 	if sandboxInfo == nil || sandboxInfo.Sandbox == nil {
 		return nil, errors.New("sandboxInfo or sandbox is nil")
@@ -227,6 +235,8 @@ func (c *APIClient) SyncVolumeToS3(ctx context.Context, sandboxInfo *SandboxInfo
 }
 
 // GetLatestVersion retrieves the most recent timestamp version for an account.
+// It creates a temporary sandbox to list S3 prefixes and finds the highest timestamp.
+// Returns 0 if no versions exist. This is used to restore the most recent work state.
 func (c *APIClient) GetLatestVersion(ctx context.Context, accountID types.UUID, bucketName string) (int64, error) {
 	if accountID == "" {
 		return 0, errors.New("accountID cannot be empty")

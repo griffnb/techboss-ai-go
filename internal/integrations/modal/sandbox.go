@@ -13,7 +13,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// SandboxConfig holds configuration for creating a sandbox.
+// SandboxConfig holds configuration for creating a Modal sandbox.
+// It defines the Docker image, storage volumes, S3 mounts, working directory,
+// secrets, and environment variables for the sandbox environment.
 type SandboxConfig struct {
 	AccountID       types.UUID        // Account scoping for the sandbox
 	Image           *ImageConfig      // Docker image configuration
@@ -25,13 +27,16 @@ type SandboxConfig struct {
 	EnvironmentVars map[string]string // Custom environment variables
 }
 
-// ImageConfig defines Docker image to use.
+// ImageConfig defines the Docker image to use for a sandbox.
+// It specifies a base registry image and optional Dockerfile commands to customize the image.
 type ImageConfig struct {
 	BaseImage          string   // Base registry image (e.g., "alpine:3.21")
 	DockerfileCommands []string // Custom Dockerfile commands for image building
 }
 
 // S3MountConfig defines S3 bucket mount configuration with timestamp versioning.
+// It enables mounting S3 buckets into sandboxes with read-only or read-write access.
+// The KeyPrefix supports timestamp-based versioning for data isolation.
 type S3MountConfig struct {
 	BucketName string // S3 bucket name
 	SecretName string // Modal secret for AWS credentials
@@ -42,6 +47,7 @@ type S3MountConfig struct {
 }
 
 // SandboxInfo contains sandbox metadata and state.
+// It provides access to the underlying Modal sandbox and tracks configuration and status.
 type SandboxInfo struct {
 	SandboxID string         // Modal sandbox ID
 	Sandbox   *modal.Sandbox // Underlying Modal sandbox
@@ -50,16 +56,22 @@ type SandboxInfo struct {
 	Status    SandboxStatus  // Current status
 }
 
-// SandboxStatus represents sandbox state.
+// SandboxStatus represents the current state of a sandbox.
 type SandboxStatus string
 
 const (
-	SandboxStatusRunning    SandboxStatus = "running"
+	// SandboxStatusRunning indicates the sandbox is currently active.
+	SandboxStatusRunning SandboxStatus = "running"
+	// SandboxStatusTerminated indicates the sandbox has been stopped.
 	SandboxStatusTerminated SandboxStatus = "terminated"
-	SandboxStatusError      SandboxStatus = "error"
+	// SandboxStatusError indicates the sandbox encountered an error.
+	SandboxStatusError SandboxStatus = "error"
 )
 
 // CreateSandbox creates a new Modal sandbox with the given configuration.
+// It creates a Modal app (scoped by accountID), builds the Docker image,
+// creates or reuses a volume, optionally mounts an S3 bucket, and starts the sandbox.
+// Returns SandboxInfo containing the sandbox ID and handle for further operations.
 func (c *APIClient) CreateSandbox(ctx context.Context, config *SandboxConfig) (*SandboxInfo, error) {
 	if config == nil {
 		return nil, errors.New("SandboxConfig cannot be nil")
@@ -155,6 +167,8 @@ func (c *APIClient) CreateSandbox(ctx context.Context, config *SandboxConfig) (*
 }
 
 // TerminateSandbox terminates a sandbox and optionally syncs data to S3.
+// If syncToS3 is true and S3Config is present, it syncs the volume to S3 before termination.
+// The sandbox status is updated to SandboxStatusTerminated on success.
 func (c *APIClient) TerminateSandbox(ctx context.Context, sandboxInfo *SandboxInfo, syncToS3 bool) error {
 	if sandboxInfo == nil || sandboxInfo.Sandbox == nil {
 		return errors.New("sandboxInfo or sandbox is nil")
@@ -178,7 +192,9 @@ func (c *APIClient) TerminateSandbox(ctx context.Context, sandboxInfo *SandboxIn
 	return nil
 }
 
-// GetSandboxStatus returns the current status of a sandbox.
+// GetSandboxStatus returns the current status of a sandbox by ID.
+// This method currently requires SandboxInfo and returns an error directing
+// callers to use GetSandboxStatusFromInfo instead.
 func (c *APIClient) GetSandboxStatus(_ context.Context, sandboxID string) (SandboxStatus, error) {
 	if sandboxID == "" {
 		return "", errors.New("sandboxID cannot be empty")
@@ -197,6 +213,8 @@ func (c *APIClient) GetSandboxStatus(_ context.Context, sandboxID string) (Sandb
 }
 
 // GetSandboxStatusFromInfo returns the current status of a sandbox using SandboxInfo.
+// It polls the sandbox to check if it's still running or has terminated.
+// The SandboxInfo.Status field is updated with the current status.
 func (c *APIClient) GetSandboxStatusFromInfo(ctx context.Context, sandboxInfo *SandboxInfo) (SandboxStatus, error) {
 	if sandboxInfo == nil || sandboxInfo.Sandbox == nil {
 		return "", errors.New("sandboxInfo or sandbox is nil")

@@ -1,7 +1,10 @@
 package modal
 
 import (
+	"bufio"
 	"context"
+	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/griffnb/core/lib/tools"
@@ -10,7 +13,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ClaudeExecConfig holds configuration for Claude execution.
+// ClaudeExecConfig holds configuration for Claude Code CLI execution in a sandbox.
+// It defines the prompt, output format, permissions, and other CLI flags.
 type ClaudeExecConfig struct {
 	Prompt          string   // User prompt for Claude
 	Workdir         string   // Working directory (default: volume mount path)
@@ -20,7 +24,8 @@ type ClaudeExecConfig struct {
 	AdditionalFlags []string // Any additional CLI flags
 }
 
-// ClaudeProcess represents a running Claude process.
+// ClaudeProcess represents a running Claude Code CLI process in a sandbox.
+// It provides access to the underlying container process and execution metadata.
 type ClaudeProcess struct {
 	Process   *modal.ContainerProcess // Underlying Modal process
 	Config    *ClaudeExecConfig       // Execution configuration
@@ -28,6 +33,9 @@ type ClaudeProcess struct {
 }
 
 // ExecClaude starts Claude Code CLI in the sandbox with PTY enabled.
+// It builds the Claude command with the configured flags, injects the Anthropic API key,
+// and executes the process with a pseudo-terminal (required by Claude CLI).
+// Returns a ClaudeProcess handle for streaming output and waiting for completion.
 func (c *APIClient) ExecClaude(ctx context.Context, sandboxInfo *SandboxInfo, config *ClaudeExecConfig) (*ClaudeProcess, error) {
 	// Validate inputs
 	if sandboxInfo == nil || sandboxInfo.Sandbox == nil {
@@ -107,7 +115,8 @@ func (c *APIClient) ExecClaude(ctx context.Context, sandboxInfo *SandboxInfo, co
 	return claudeProcess, nil
 }
 
-// WaitForClaude blocks until Claude process completes and returns exit code.
+// WaitForClaude blocks until Claude process completes and returns the exit code.
+// It waits for the process to finish and returns 0 for success or non-zero for errors.
 func (c *APIClient) WaitForClaude(ctx context.Context, claudeProcess *ClaudeProcess) (int, error) {
 	if claudeProcess == nil || claudeProcess.Process == nil {
 		return -1, errors.New("claudeProcess or process cannot be nil")
@@ -120,4 +129,81 @@ func (c *APIClient) WaitForClaude(ctx context.Context, claudeProcess *ClaudeProc
 	}
 
 	return exitCode, nil
+}
+
+// StreamClaudeOutput streams Claude output to http.ResponseWriter using Server-Sent Events (SSE).
+// It sets appropriate SSE headers, reads output line by line from Claude's stdout,
+// and sends each line as a data event. Sends "[DONE]" event on completion.
+// The connection is flushed after each line for real-time streaming.
+func (c *APIClient) StreamClaudeOutput(ctx context.Context, claudeProcess *ClaudeProcess, responseWriter http.ResponseWriter) error {
+	// Validate inputs
+	if claudeProcess == nil || claudeProcess.Process == nil {
+		return errors.New("claudeProcess or process cannot be nil")
+	}
+	if responseWriter == nil {
+		return errors.New("responseWriter cannot be nil")
+	}
+
+	// Set SSE headers (must be set before any writes)
+	responseWriter.Header().Set("Content-Type", "text/event-stream")
+	responseWriter.Header().Set("Cache-Control", "no-cache")
+	responseWriter.Header().Set("Connection", "keep-alive")
+	responseWriter.Header().Set("Access-Control-Allow-Origin", "*")
+
+	// Get flusher for real-time streaming
+	flusher, ok := responseWriter.(http.Flusher)
+	if !ok {
+		return errors.New("response writer does not support flushing")
+	}
+
+	// Ensure cleanup happens even if streaming is interrupted
+	var streamErr error
+	defer func() {
+		// Always send completion event if no error occurred
+		if streamErr == nil {
+			_, err := fmt.Fprintf(responseWriter, "data: [DONE]\n\n")
+			if err != nil {
+				// Log but don't override existing error
+				streamErr = errors.Wrapf(err, "failed to write completion event")
+			} else {
+				flusher.Flush()
+			}
+		}
+	}()
+
+	// Create scanner to read Claude stdout line by line
+	scanner := bufio.NewScanner(claudeProcess.Process.Stdout)
+
+	// Stream output line by line
+	for scanner.Scan() {
+		// Check for context cancellation
+		select {
+		case <-ctx.Done():
+			streamErr = errors.Wrapf(ctx.Err(), "streaming cancelled")
+			return streamErr
+		default:
+			// Continue streaming
+		}
+
+		line := scanner.Text()
+
+		// Write SSE formatted output
+		_, err := fmt.Fprintf(responseWriter, "data: %s\n\n", line)
+		if err != nil {
+			// Connection likely dropped - log but don't fail hard
+			streamErr = errors.Wrapf(err, "failed to write streaming response")
+			return streamErr
+		}
+
+		// Flush immediately for real-time streaming
+		flusher.Flush()
+	}
+
+	// Check for scanner errors
+	if err := scanner.Err(); err != nil {
+		streamErr = errors.Wrapf(err, "error reading Claude output")
+		return streamErr
+	}
+
+	return nil
 }
