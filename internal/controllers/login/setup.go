@@ -23,7 +23,7 @@ func Setup(coreRouter *router.CoreRouter) {
 	coreRouter.AddMainRoute("/admin", func(r chi.Router) {
 		r.Group(func(authR chi.Router) {
 			authR.Post("/login/super/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_READ_ADMIN: adminLogInAs,
+				constants.ROLE_READ_ADMIN: response.StandardRequestWrapper(adminLogInAs),
 			}))
 		})
 	})

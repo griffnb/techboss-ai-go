@@ -12,58 +12,46 @@ import (
 	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/griffnb/techboss-ai-go/internal/services/billing"
+	"github.com/pkg/errors"
 
 	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
-	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan"
+	"github.com/griffnb/techboss-ai-go/internal/models/billing_plan_price"
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"
 )
 
 type CheckoutSuccessPost struct {
-	HostedPageID   string `json:"hosted_page_id"`
-	SubscriptionID string `json:"subscription_id"`
-	PromoCode      string `json:"promo_code"`
+	BillingPlanPriceID string `json:"billing_plan_price_id"`
+	PromoCode          string `json:"promo_code"`
 }
 
-func authStripeCheckoutSuccess(_ http.ResponseWriter, _ *http.Request) (bool, int, error) {
-	/*
-		userSession := request.GetReqSession(req)
+// @link	{models}/src/models/billing_plan/services/_checkout.ts:checkoutSuccess
+func authStripeCheckoutSuccess(_ http.ResponseWriter, req *http.Request) (bool, int, error) {
+	accountObj := helpers.GetLoadedUser(req)
+	checkoutSuccess, err := request.GetJSONPostAs[*CheckoutSuccessPost](req)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[bool]()
+	}
 
-		checkoutSuccess := &CheckoutSuccessPost{}
-		err := request.GetJSONPostDataStruct(req, checkoutSuccess)
-		if err != nil {
-			log.ErrorContext(err, req.Context())
-			return response.PublicBadRequestError[bool]()
-		}
+	organizationObj, err := organization.Get(req.Context(), accountObj.OrganizationID.Get())
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[bool]()
+	}
 
-		accountObj, err := account.Get(req.Context(), userSession.User.ID())
-		if err != nil {
-			log.ErrorContext(err, req.Context())
-			return response.PublicBadRequestError[bool]()
-		}
-		currentPlan, err := billing_plan.GetJoinedPlanForFamily(req.Context(), accountObj.FamilyID.Get())
-		if err != nil {
-			log.ErrorContext(err, req.Context())
-			return response.PublicBadRequestError[bool]()
-		}
+	planPrice, err := billing_plan_price.Get(req.Context(), types.UUID(checkoutSuccess.BillingPlanPriceID))
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[bool]()
+	}
 
-		if !tools.Empty(checkoutSuccess.SubscriptionID) {
-			err = billing.ProcessStripeSuccessCheckout(req.Context(), accountObj, &plan.OrganizationSubscriptionPlan, &billing.SuccessCheckout{
-				SubscriptionID: checkoutSuccess.SubscriptionID,
-				PromoCode:      checkoutSuccess.PromoCode,
-			}, userSession.User)
-			if err != nil {
-				log.ErrorContext(err, req.Context())
-				return response.PublicBadRequestError[bool]()
-			}
-		} else if !tools.Empty(checkoutSuccess.HostedPageID) {
-
-			err = billing.ProcessChargebeeSuccessCheckout(req.Context(), &accountObj.Account, checkoutSuccess.HostedPageID, types.UUID(checkoutSuccess.OrganizationPlanID), userSession.User)
-			if err != nil {
-				log.ErrorContext(err, req.Context())
-				return response.PublicBadRequestError[bool]()
-			}
-		}
-	*/
+	_, err = billing.SuccessfulStripeCheckout(req.Context(), organizationObj, planPrice, &billing.SuccessCheckout{
+		PromoCode: checkoutSuccess.PromoCode,
+	}, accountObj)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[bool]()
+	}
 
 	return response.Success(true)
 }
@@ -73,6 +61,7 @@ type Checkout struct {
 	PromotionCode string `json:"promotion_code"`
 }
 
+// @link	{models}/src/models/billing_plan/services/_checkout.ts:startStripeCheckout
 func authStripeCheckout(_ http.ResponseWriter, req *http.Request) (*stripe_wrapper.StripeCheckout, int, error) {
 	accountObj := helpers.GetLoadedUser(req)
 
@@ -92,18 +81,20 @@ func authStripeCheckout(_ http.ResponseWriter, req *http.Request) (*stripe_wrapp
 		return response.PublicBadRequestError[*stripe_wrapper.StripeCheckout]()
 	}
 
-	planID := chi.URLParam(req, "id")
-	if tools.Empty(planID) {
+	priceID := chi.URLParam(req, "id")
+	if tools.Empty(priceID) {
+		log.ErrorContext(errors.Errorf("no id sent"), req.Context())
 		return response.PublicBadRequestError[*stripe_wrapper.StripeCheckout]()
 	}
 
-	plan, err := billing_plan.Get(req.Context(), types.UUID(planID))
+	planPrice, err := billing_plan_price.Get(req.Context(), types.UUID(priceID))
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.PublicBadRequestError[*stripe_wrapper.StripeCheckout]()
 	}
 
-	if tools.Empty(plan) {
+	if tools.Empty(planPrice) {
+		log.ErrorContext(errors.Errorf("no plan price found with id %s", priceID), req.Context())
 		return response.PublicBadRequestError[*stripe_wrapper.StripeCheckout]()
 	}
 
@@ -116,7 +107,7 @@ func authStripeCheckout(_ http.ResponseWriter, req *http.Request) (*stripe_wrapp
 		}
 	}
 
-	checkoutProps, err := billing.StripeCheckout(req.Context(), org, plan, &stripe_wrapper.StripeCodes{
+	checkoutProps, err := billing.StripeCheckout(req.Context(), org, planPrice, &stripe_wrapper.CheckoutOptions{
 		PromotionCodeID: promoCodeID,
 	})
 	if err != nil {
@@ -125,6 +116,5 @@ func authStripeCheckout(_ http.ResponseWriter, req *http.Request) (*stripe_wrapp
 	}
 
 	checkoutProps.PromoCode = checkoutData.PromotionCode
-
 	return response.Success(checkoutProps)
 }

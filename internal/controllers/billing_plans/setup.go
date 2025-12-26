@@ -1,4 +1,4 @@
-//go:generate core_gen controller BillingPlan -modelPackage=billing_plan -skip=authCreate,authUpdate,authIndex
+//go:generate core_gen controller BillingPlan -modelPackage=billing_plan -skip=authCreate,authUpdate,authIndex,adminUpdate,adminCreate
 package billing_plans
 
 import (
@@ -52,6 +52,9 @@ func Setup(coreRouter *router.CoreRouter) {
 		r.Group(func(authR chi.Router) {
 			authR.Get("/", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authIndex),
+			}))
+			authR.Get("/plans", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authPlans),
 			}))
 			authR.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authGet),
