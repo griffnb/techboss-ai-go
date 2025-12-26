@@ -24,8 +24,9 @@ func Client() *APIClient {
 	return instance
 }
 
+// Configured checks if Modal is properly configured.
 func Configured() bool {
-	return !tools.Empty(environment.GetConfig().Sendpulse) && !tools.Empty(environment.GetConfig().Sendpulse.ClientSecret)
+	return !tools.Empty(environment.GetConfig().Modal) && !tools.Empty(environment.GetConfig().Modal.TokenSecret)
 }
 
 type APIClient struct {
