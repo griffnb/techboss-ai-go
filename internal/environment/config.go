@@ -45,6 +45,9 @@ type AIKeys struct {
 	Anthropic struct {
 		APIKey string `json:"api_key"`
 	} `json:"anthropic"`
+	Bedrock struct {
+		Key string `json:"key"`
+	} `json:"bedrock"`
 }
 
 type Encryption struct {

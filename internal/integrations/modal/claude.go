@@ -100,6 +100,11 @@ func (c *APIClient) ExecClaude(ctx context.Context, sandboxInfo *SandboxInfo, co
 	if !tools.Empty(envConfig.AIKeys) && !tools.Empty(envConfig.AIKeys.Anthropic.APIKey) {
 		secretsMap["ANTHROPIC_API_KEY"] = envConfig.AIKeys.Anthropic.APIKey
 	}
+	if !tools.Empty(envConfig.AIKeys) && !tools.Empty(envConfig.AIKeys.Bedrock.Key) {
+		secretsMap["AWS_BEARER_TOKEN_BEDROCK"] = envConfig.AIKeys.Bedrock.Key
+		secretsMap["CLAUDE_CODE_USE_BEDROCK"] = "1"
+		secretsMap["AWS_REGION"] = "us-east-1"
+	}
 
 	// Create secrets from map
 	secrets, err := c.client.Secrets.FromMap(ctx, secretsMap, nil)
