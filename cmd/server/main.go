@@ -62,6 +62,8 @@ func main() {
 		"/p/",
 	})
 
+	// Serve static swagger files
+
 	// Controllers
 	controllers.Setup(httpRouter)
 

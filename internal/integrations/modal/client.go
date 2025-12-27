@@ -2,6 +2,8 @@
 // It enables creating isolated sandbox environments with Docker images, persistent volumes,
 // S3 storage mounts, and Claude Code CLI execution. The package supports multi-tenant
 // architecture with account-scoped resources and timestamp-based versioning for S3 storage.
+//
+//go:generate core_gen mock APIClient
 package modal
 
 import (

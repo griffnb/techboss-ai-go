@@ -11,8 +11,8 @@ The `helpers.RoleHandler` function provides role-based access control by mapping
 
 ```go
 helpers.RoleHandler(helpers.RoleHandlerMap{
-    constants.ROLE_READ_ADMIN: helpers.StandardRequestWrapper(adminGet),
-    constants.ROLE_ADMIN: helpers.StandardRequestWrapper(adminCreate),
+    constants.ROLE_READ_ADMIN: response.StandardRequestWrapper(adminGet),
+    constants.ROLE_ADMIN: response.StandardRequestWrapper(adminCreate),
 })
 ```
 
@@ -41,8 +41,8 @@ If a user's role doesn't exactly match a handler, the system checks lower-privil
 
 ```go
 helpers.RoleHandler(helpers.RoleHandlerMap{
-    constants.ROLE_READ_ADMIN: helpers.StandardRequestWrapper(adminGet),
-    constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(authGet),
+    constants.ROLE_READ_ADMIN: response.StandardRequestWrapper(adminGet),
+    constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(authGet),
 })
 ```
 
@@ -76,15 +76,15 @@ Full admin access required:
 
 ```go
 r.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-    constants.ROLE_ADMIN: helpers.StandardRequestWrapper(adminCreate),
+    constants.ROLE_ADMIN: response.StandardRequestWrapper(adminCreate),
 }))
 
 r.Put("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-    constants.ROLE_ADMIN: helpers.StandardRequestWrapper(adminUpdate),
+    constants.ROLE_ADMIN: response.StandardRequestWrapper(adminUpdate),
 }))
 
 r.Delete("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-    constants.ROLE_ADMIN: helpers.StandardRequestWrapper(adminDelete),
+    constants.ROLE_ADMIN: response.StandardRequestWrapper(adminDelete),
 }))
 ```
 
@@ -94,15 +94,15 @@ Both full admins and read-only admins can access:
 
 ```go
 r.Get("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-    constants.ROLE_READ_ADMIN: helpers.StandardRequestWrapper(adminIndex),
+    constants.ROLE_READ_ADMIN: response.StandardRequestWrapper(adminIndex),
 }))
 
 r.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-    constants.ROLE_READ_ADMIN: helpers.StandardRequestWrapper(adminGet),
+    constants.ROLE_READ_ADMIN: response.StandardRequestWrapper(adminGet),
 }))
 
 r.Get("/count", helpers.RoleHandler(helpers.RoleHandlerMap{
-    constants.ROLE_READ_ADMIN: helpers.StandardRequestWrapper(adminCount),
+    constants.ROLE_READ_ADMIN: response.StandardRequestWrapper(adminCount),
 }))
 ```
 
@@ -112,11 +112,11 @@ Any authenticated user can access:
 
 ```go
 r.Get("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-    constants.ROLE_ANY_AUTHORIZED: helpers.StandardPublicRequestWrapper(authIndex),
+    constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authIndex),
 }))
 
 r.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-    constants.ROLE_ANY_AUTHORIZED: helpers.StandardPublicRequestWrapper(authGet),
+    constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authGet),
 }))
 ```
 
@@ -126,8 +126,8 @@ Different handlers for different roles on the same route:
 
 ```go
 r.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-    constants.ROLE_ADMIN: helpers.StandardRequestWrapper(adminGetFull),
-    constants.ROLE_ANY_AUTHORIZED: helpers.StandardPublicRequestWrapper(authGetLimited),
+    constants.ROLE_ADMIN: response.StandardRequestWrapper(adminGetFull),
+    constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authGetLimited),
 }))
 ```
 

@@ -110,7 +110,7 @@ Then wire up in `setup.go`:
 
 ```go
 r.Get("/search", helpers.RoleHandler(helpers.RoleHandlerMap{
-    constants.ROLE_ANY_AUTHORIZED: helpers.StandardPublicRequestWrapper(customSearch),
+    constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(customSearch),
 }))
 ```
 

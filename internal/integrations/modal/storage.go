@@ -41,6 +41,8 @@ func (c *APIClient) InitVolumeFromS3(ctx context.Context, sandboxInfo *SandboxIn
 
 	// Build command to copy files from S3 mount to volume
 	// Use cp with recursive and verbose options
+	// Note: The || true ensures the command succeeds even if source is empty
+	// The 2>&1 redirects stderr to stdout so we can capture all output
 	cmd := []string{
 		"sh", "-c",
 		fmt.Sprintf(
@@ -71,6 +73,8 @@ func (c *APIClient) InitVolumeFromS3(ctx context.Context, sandboxInfo *SandboxIn
 	}
 
 	// Check exit code (allow 0 for success, ignore errors since we use || true)
+	// Note: cp returns non-zero when source is empty, which is expected behavior
+	// We only fail if it's a real error (not "No such file" which indicates empty S3)
 	if exitCode != 0 {
 		// Log but don't fail - empty directories return non-zero
 		outputStr := string(output)
@@ -120,6 +124,9 @@ func (c *APIClient) SyncVolumeToS3(ctx context.Context, sandboxInfo *SandboxInfo
 	startTime := time.Now()
 
 	// Generate timestamp for versioning
+	// This creates immutable snapshots of workspace state over time
+	// Format: s3://bucket/docs/{account_id}/{unix_timestamp}/
+	// Each sync creates a new version, preserving history
 	timestamp := time.Now().Unix()
 
 	// Build S3 path with account and timestamp
@@ -166,7 +173,8 @@ func (c *APIClient) SyncVolumeToS3(ctx context.Context, sandboxInfo *SandboxInfo
 	}
 
 	// Count files in volume to get stats
-	// Use ls -laR to count files
+	// Use ls -laR to recursively list all files, grep to filter only regular files (not dirs)
+	// This provides metrics for monitoring and billing purposes
 	countCmd := []string{"sh", "-c", fmt.Sprintf("ls -laR %s 2>/dev/null | grep '^-' | wc -l", sandboxInfo.Config.VolumeMountPath)}
 	countProcess, err := sandboxInfo.Sandbox.Exec(ctx, countCmd, &modal.SandboxExecParams{
 		Workdir: "/",

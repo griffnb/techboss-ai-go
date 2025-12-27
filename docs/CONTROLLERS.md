@@ -14,8 +14,8 @@ The controller system in this Go application follows a standardized pattern for 
 - Admin routes: `/admin/{resource}` - Full CRUD access for administrators  
 - Public routes: `/{resource}` - Restricted access for authenticated users
 - Each route group uses `helpers.RoleHandler` for access control
-- All admin endpoints wrap business logic in `helpers.StandardRequestWrapper`
-- All public endpoints wrap business logic in `helpersStandardPublicRequestWrapper` which protects against internal errors or fields not annotated with 'public:"view/edit"' from being returned
+- All admin endpoints wrap business logic in `response.StandardRequestWrapper`
+- All public endpoints wrap business logic in `response.StandardPublicRequestWrapper` which protects against internal errors or fields not annotated with 'public:"view/edit"' from being returned
 
 ## 2. Simple Controller Example
 

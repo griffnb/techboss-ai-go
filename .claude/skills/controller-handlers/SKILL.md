@@ -153,12 +153,12 @@ Handlers are wrapped in `setup.go`:
 ```go
 // Admin endpoint - shows full errors
 helpers.RoleHandler(helpers.RoleHandlerMap{
-    constants.ROLE_ADMIN: helpers.StandardRequestWrapper(adminCreate),
+    constants.ROLE_ADMIN: response.StandardRequestWrapper(adminCreate),
 })
 
 // Public endpoint - sanitizes errors
 helpers.RoleHandler(helpers.RoleHandlerMap{
-    constants.ROLE_ANY_AUTHORIZED: helpers.StandardPublicRequestWrapper(authGet),
+    constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authGet),
 })
 ```
 
@@ -170,7 +170,7 @@ helpers.RoleHandler(helpers.RoleHandlerMap{
 
 For admin endpoints:
 ```go
-helpers.StandardRequestWrapper(adminHandler)
+response.StandardRequestWrapper(adminHandler)
 ```
 
 **Features:**
@@ -182,7 +182,7 @@ helpers.StandardRequestWrapper(adminHandler)
 
 For public/authenticated user endpoints:
 ```go
-helpers.StandardPublicRequestWrapper(authHandler)
+response.StandardPublicRequestWrapper(authHandler)
 ```
 
 **Features:**

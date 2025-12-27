@@ -695,15 +695,15 @@ func Setup(coreRouter *router.CoreRouter) {
         r.Group(func(authR chi.Router) {
             // Sandbox CRUD
             authR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-                constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(createSandbox),
+                constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(createSandbox),
             }))
             
             authR.Get("/{sandboxID}", helpers.RoleHandler(helpers.RoleHandlerMap{
-                constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(getSandbox),
+                constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(getSandbox),
             }))
             
             authR.Delete("/{sandboxID}", helpers.RoleHandler(helpers.RoleHandlerMap{
-                constants.ROLE_ANY_AUTHORIZED: helpers.StandardRequestWrapper(deleteSandbox),
+                constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(deleteSandbox),
             }))
             
             // Claude streaming endpoint

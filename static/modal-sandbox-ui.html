@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Sandbox - Claude Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 24px;
+        }
+
+        /* Create Sandbox Section */
+        #create-section {
+            text-align: center;
+        }
+
+        #create-section h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        #create-section p {
+            color: #666;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #status {
+            margin-top: 16px;
+            font-size: 14px;
+            min-height: 20px;
+        }
+
+        .status-loading {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .status-success {
+            color: #10b981;
+            font-weight: 500;
+        }
+
+        .status-error {
+            color: #ef4444;
+            font-weight: 500;
+        }
+
+        /* Spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Chat Section */
+        #chat-section {
+            display: none;
+        }
+
+        .chat-info {
+            background: #f3f4f6;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .chat-info strong {
+            color: #333;
+        }
+
+        #messages {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            height: 400px;
+            overflow-y: auto;
+            padding: 16px;
+            margin-bottom: 16px;
+            background: #f9fafb;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .message-user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: 20%;
+            text-align: right;
+        }
+
+        .message-assistant {
+            background: white;
+            border: 1px solid #e5e7eb;
+            margin-right: 20%;
+        }
+
+        .message-system {
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            text-align: center;
+            font-style: italic;
+            color: #92400e;
+        }
+
+        .message-error {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+        }
+
+        .message-role {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+
+        #chat-form {
+            display: flex;
+            gap: 8px;
+        }
+
+        #prompt-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        #prompt-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #prompt-input:disabled {
+            background: #f3f4f6;
+            cursor: not-allowed;
+        }
+
+        #send-btn {
+            padding: 12px 24px;
+            white-space: nowrap;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            color: #9ca3af;
+            padding: 40px 20px;
+            font-size: 14px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 640px) {
+            body {
+                padding: 0;
+            }
+
+            #app {
+                border-radius: 0;
+                min-height: 100vh;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .content {
+                padding: 16px;
+            }
+
+            #messages {
+                height: calc(100vh - 400px);
+                min-height: 300px;
+            }
+
+            .message-user {
+                margin-left: 10%;
+            }
+
+            .message-assistant {
+                margin-right: 10%;
+            }
+
+            #chat-form {
+                flex-direction: column;
+            }
+
+            #send-btn {
+                width: 100%;
+            }
+        }
+
+        /* Scrollbar styling */
+        #messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        #messages::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        #messages::-webkit-scrollbar-thumb:hover {
+            background: #5568d3;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: inline-flex;
+            gap: 4px;
+            padding: 8px 0;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0.6);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>Modal Sandbox</h1>
+            <p>Claude Code Agent in an Isolated Container</p>
+        </div>
+
+        <div class="content">
+            <!-- Sandbox Creation Section -->
+            <div id="create-section">
+                <h2>Create Your Sandbox</h2>
+                <p>
+                    Click the button below to create a new Modal sandbox with Claude Code installed.
+                    This will set up an isolated environment with Alpine Linux, development tools,
+                    and persistent storage.
+                </p>
+                <button id="create-btn" class="btn">Create Sandbox</button>
+                <div id="status"></div>
+            </div>
+
+            <!-- Chat Section (hidden until sandbox ready) -->
+            <div id="chat-section">
+                <div class="chat-info">
+                    <strong>Sandbox ID:</strong> <span id="sandbox-id"></span>
+                </div>
+                <div id="messages">
+                    <div class="empty-state">
+                        Your conversation with Claude will appear here.<br>
+                        Ask Claude to help you with code, answer questions, or perform tasks.
+                    </div>
+                </div>
+                <form id="chat-form">
+                    <input
+                        type="text"
+                        id="prompt-input"
+                        placeholder="Ask Claude anything..."
+                        autocomplete="off"
+                    />
+                    <button type="submit" id="send-btn" class="btn">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application state
+        let sandboxID = null;
+        let isStreaming = false;
+        let baseURL = "http://localhost:8085"; // Adjust if needed
+
+        // DOM elements
+        const createSection = document.getElementById('create-section');
+        const createBtn = document.getElementById('create-btn');
+        const statusEl = document.getElementById('status');
+        const chatSection = document.getElementById('chat-section');
+        const sandboxIDEl = document.getElementById('sandbox-id');
+        const messagesEl = document.getElementById('messages');
+        const chatForm = document.getElementById('chat-form');
+        const promptInput = document.getElementById('prompt-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        // Initialize
+        console.log('Modal Sandbox UI initialized');
+
+        // Create sandbox handler
+        createBtn.addEventListener('click', async () => {
+            console.log('Create sandbox button clicked');
+            setStatus('loading', 'Creating sandbox... This may take a minute.');
+            createBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${baseURL}/sandbox`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        image_base: 'alpine:3.21',
+                        dockerfile_commands: [
+                            'RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep aws-cli',
+                            'RUN curl -fsSL https://claude.ai/install.sh | bash',
+                            'ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0'
+                        ],
+                        volume_name: '',
+                        init_from_s3: false
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to create sandbox: ${response.status} ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('Sandbox created:', data);
+
+                // Extract sandbox ID from response
+                if (data.data && data.data.sandbox_id) {
+                    sandboxID = data.data.sandbox_id;
+                } else {
+                    throw new Error('Invalid response: missing sandbox_id');
+                }
+
+                setStatus('success', `Sandbox created successfully! ID: ${sandboxID}`);
+
+                // Switch to chat interface after a brief delay
+                setTimeout(() => {
+                    createSection.style.display = 'none';
+                    chatSection.style.display = 'block';
+                    sandboxIDEl.textContent = sandboxID;
+                    promptInput.focus();
+                    clearMessages();
+                    addSystemMessage('Sandbox ready! You can now chat with Claude.');
+                }, 1500);
+
+            } catch (error) {
+                console.error('Error creating sandbox:', error);
+                setStatus('error', `Error: ${error.message}`);
+                createBtn.disabled = false;
+            }
+        });
+
+        // Chat form submit handler
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const prompt = promptInput.value.trim();
+            if (!prompt || isStreaming) return;
+
+            console.log('Sending prompt:', prompt);
+
+            // Add user message to UI
+            addMessage('user', prompt);
+            promptInput.value = '';
+
+            // Disable input while streaming
+            setStreamingState(true);
+
+            // Create assistant message container
+            const assistantMsg = addMessage('assistant', '');
+            const typingIndicator = addTypingIndicator(assistantMsg);
+
+            try {
+                // Stream Claude response using fetch
+                const url = `${baseURL}/sandbox/${sandboxID}/claude`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ prompt })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to execute Claude: ${response.status} ${errorText}`);
+                }
+
+                // Remove typing indicator
+                typingIndicator.remove();
+
+                // Read streaming response
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+
+                    if (done) {
+                        console.log('Stream complete');
+                        break;
+                    }
+
+                    // Decode chunk and add to buffer
+                    buffer += decoder.decode(value, { stream: true });
+
+                    // Process complete lines from buffer
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6); // Remove 'data: ' prefix
+
+                            if (data === '[DONE]') {
+                                console.log('Received [DONE] event');
+                                break;
+                            }
+
+                            // Append content to assistant message
+                            if (data) {
+                                assistantMsg.textContent += data;
+                                scrollToBottom();
+                            }
+                        }
+                    }
+                }
+
+                // If no content was streamed, show error
+                if (!assistantMsg.textContent) {
+                    assistantMsg.textContent = 'No response received from Claude.';
+                    assistantMsg.classList.add('message-error');
+                }
+
+            } catch (error) {
+                console.error('Error streaming Claude response:', error);
+
+                // Remove typing indicator if it exists
+                if (typingIndicator && typingIndicator.parentNode) {
+                    typingIndicator.remove();
+                }
+
+                // Show error in message
+                assistantMsg.textContent = `Error: ${error.message}`;
+                assistantMsg.classList.remove('message-assistant');
+                assistantMsg.classList.add('message-error');
+            } finally {
+                setStreamingState(false);
+            }
+        });
+
+        // Helper: Set status message
+        function setStatus(type, message) {
+            statusEl.className = `status-${type}`;
+
+            if (type === 'loading') {
+                statusEl.innerHTML = `<span class="spinner"></span>${message}`;
+            } else {
+                statusEl.textContent = message;
+            }
+        }
+
+        // Helper: Add message to chat
+        function addMessage(role, content) {
+            // Remove empty state if it exists
+            const emptyState = messagesEl.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const msgEl = document.createElement('div');
+            msgEl.className = `message message-${role}`;
+
+            if (role !== 'system') {
+                const roleLabel = document.createElement('div');
+                roleLabel.className = 'message-role';
+                roleLabel.textContent = role === 'user' ? 'You' : 'Claude';
+                msgEl.appendChild(roleLabel);
+            }
+
+            const contentEl = document.createElement('div');
+            contentEl.textContent = content;
+            msgEl.appendChild(contentEl);
+
+            messagesEl.appendChild(msgEl);
+            scrollToBottom();
+
+            return contentEl;
+        }
+
+        // Helper: Add system message
+        function addSystemMessage(content) {
+            const emptyState = messagesEl.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const msgEl = document.createElement('div');
+            msgEl.className = 'message message-system';
+            msgEl.textContent = content;
+            messagesEl.appendChild(msgEl);
+            scrollToBottom();
+        }
+
+        // Helper: Add typing indicator
+        function addTypingIndicator(messageEl) {
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator';
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+            messageEl.appendChild(indicator);
+            return indicator;
+        }
+
+        // Helper: Clear messages
+        function clearMessages() {
+            messagesEl.innerHTML = '';
+        }
+
+        // Helper: Scroll to bottom
+        function scrollToBottom() {
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        // Helper: Set streaming state
+        function setStreamingState(streaming) {
+            isStreaming = streaming;
+            promptInput.disabled = streaming;
+            sendBtn.disabled = streaming;
+
+            if (streaming) {
+                sendBtn.innerHTML = '<span class="spinner"></span>Sending...';
+            } else {
+                sendBtn.textContent = 'Send';
+                promptInput.focus();
+            }
+        }
+
+        // Handle Enter key to submit (Shift+Enter for new line)
+        promptInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        console.log('Event listeners registered');
+    </script>
+</body>
+</html>

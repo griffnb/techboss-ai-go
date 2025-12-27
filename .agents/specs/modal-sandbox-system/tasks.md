@@ -395,12 +395,12 @@ await runSubagent({
 
 ---
 
-## Phase 2: Service Layer, HTTP Endpoints & Web UI
+## Phase 2: Service Layer, HTTP Endpoints & Web UI ✅ COMPLETE
 
-### 9. Implement Service Layer
+### 9. Implement Service Layer ✅
 **References**: Design Section "Service Layer"
 
-- [ ] 9.1. Create `SandboxService` struct in `internal/services/modal/sandbox_service.go`
+- [x] 9.1. Create `SandboxService` struct in `internal/services/modal/sandbox_service.go`
   - Field: `client *modal.APIClient`
   - Constructor: `NewSandboxService() *SandboxService`
   
@@ -573,6 +573,14 @@ await runSubagent({
 ```
 **Task 2.6 - S3 Mount Implementation**: Modal's CloudBucketMount API requires the secret to have specific AWS credential keys: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and optionally AWS_SESSION_TOKEN. This should be documented in the configuration setup.
 ```
+
+### Actual Learnings
+
+**Task 9 - Service Layer Implementation**: The Modal integration has a generated mock implementation in `internal/integrations/modal/x_gen_mock.go` that provides `MockAPIClient` and `APIClientInterface`. The service layer currently uses the concrete `*modal.APIClient` type, but should be refactored to use `modal.APIClientInterface` for better testability. This would allow unit tests to mock the Modal client without requiring real Modal infrastructure. This is a future enhancement that would improve test isolation and speed.
+
+**Task 10 - Controller Routes**: The controller successfully follows the established patterns from `docs/CONTROLLERS.md`. The `testing_service.New()` helper provides clean test fixtures for controller testing. Stub implementations for GET and DELETE endpoints work well with TODO comments for Phase 2 database integration.
+
+**Task 13 - End-to-End Testing**: Discovered that end-to-end testing was blocked by lack of database persistence for sandbox retrieval (Claude streaming endpoint needs to retrieve sandbox by ID). Implemented in-memory cache (`sync.Map`) as a temporary solution to enable Phase 1 testing. This allows full end-to-end testing without implementing the complete Phase 2 database layer. The cache is thread-safe and persists for the session lifetime. All CRUD operations (create, get, delete) and Claude streaming now work with the cache. This is documented as a temporary solution with TODO comments for Phase 2 database implementation. Modal integration tests pass successfully, confirming Modal is properly configured. Router integration (Task 13.2) was already complete from previous tasks. System is now ready for manual testing with the UI.
 
 ---
 
