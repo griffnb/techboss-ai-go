@@ -60,7 +60,7 @@ func streamClaude(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Reconstruct SandboxInfo from model
-	sandboxInfo := reconstructSandboxInfo(sandboxModel, accountID)
+	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, accountID)
 
 	// Build ClaudeExecConfig with prompt
 	// stream-json: structured JSON output format

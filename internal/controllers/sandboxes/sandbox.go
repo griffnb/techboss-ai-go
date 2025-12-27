@@ -2,7 +2,6 @@ package sandboxes
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/core/lib/log"
@@ -10,7 +9,6 @@ import (
 	"github.com/griffnb/core/lib/router/response"
 	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
-	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
 	"github.com/griffnb/techboss-ai-go/internal/models/sandbox"
 	"github.com/griffnb/techboss-ai-go/internal/services/sandbox_service"
 )
@@ -95,53 +93,6 @@ func createSandbox(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, 
 	return response.Success(sandboxModel)
 }
 
-// reconstructSandboxInfo creates a modal.SandboxInfo from database model.
-// This reconstructs the full sandbox configuration needed for Modal API calls
-// from the persisted database record. It uses the template system to rebuild
-// the original configuration based on provider/agent types.
-func reconstructSandboxInfo(model *sandbox.Sandbox, accountID types.UUID) *modal.SandboxInfo {
-	// Get template to reconstruct config
-	template, _ := sandbox_service.GetSandboxTemplate(
-		model.Provider.Get(),
-		model.AgentID.Get(),
-	)
-
-	var config *modal.SandboxConfig
-	if template != nil {
-		config = template.BuildSandboxConfig(accountID)
-	} else {
-		// Fallback basic config if template not found
-		config = &modal.SandboxConfig{
-			AccountID:       accountID,
-			Image:           modal.GetImageConfigFromTemplate("claude"),
-			VolumeName:      "",
-			VolumeMountPath: "/mnt/workspace",
-			Workdir:         "/mnt/workspace",
-		}
-	}
-
-	// Map database status to Modal status
-	var modalStatus modal.SandboxStatus
-	if model.Deleted.Get() == 1 || model.Status.Get() != constants.STATUS_ACTIVE {
-		modalStatus = modal.SandboxStatusTerminated
-	} else {
-		modalStatus = modal.SandboxStatusRunning
-	}
-
-	createdAt := model.CreatedAt.Get()
-	if createdAt == nil {
-		createdAt = new(time.Time)
-	}
-
-	return &modal.SandboxInfo{
-		SandboxID: model.ExternalID.Get(),
-		Config:    config,
-		CreatedAt: *createdAt,
-		Status:    modalStatus,
-		Sandbox:   nil, // Not reconstructed from DB
-	}
-}
-
 // authDelete terminates a sandbox and soft-deletes the database record.
 // The auth framework already handles ownership verification.
 // If Modal termination fails, logs a warning but continues with soft delete.
@@ -161,7 +112,7 @@ func authDelete(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, int
 	}
 
 	// Reconstruct SandboxInfo for Modal termination
-	sandboxInfo := reconstructSandboxInfo(sandboxModel, accountID)
+	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, accountID)
 
 	// Terminate sandbox via service with S3 sync
 	service := sandbox_service.NewSandboxService()

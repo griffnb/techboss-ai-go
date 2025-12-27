@@ -21,7 +21,6 @@ require (
 )
 
 require (
-	github.com/gorilla/websocket v1.5.3
 	github.com/griffnb/core/lib v0.0.25
 	github.com/modal-labs/libmodal/modal-go v0.6.0
 	github.com/openai/openai-go/v3 v3.10.0
@@ -72,6 +71,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect

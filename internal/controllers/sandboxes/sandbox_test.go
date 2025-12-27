@@ -64,7 +64,7 @@ func Test_createSandbox_withTemplateConfig(t *testing.T) {
 		// Cleanup Modal sandbox
 		defer func() {
 			service := sandbox_service.NewSandboxService()
-			sandboxInfo := reconstructSandboxInfo(resp, req.Account.ID())
+			sandboxInfo := sandbox_service.ReconstructSandboxInfo(resp, req.Account.ID())
 			_ = service.TerminateSandbox(req.Request.Context(), sandboxInfo, false)
 		}()
 	})
@@ -148,7 +148,7 @@ func Test_createSandbox_databaseSaveFailure(t *testing.T) {
 		if resp != nil && !tools.Empty(resp.ExternalID.Get()) {
 			defer func() {
 				service := sandbox_service.NewSandboxService()
-				sandboxInfo := reconstructSandboxInfo(resp, testAccount.Account.ID())
+				sandboxInfo := sandbox_service.ReconstructSandboxInfo(resp, testAccount.Account.ID())
 				_ = service.TerminateSandbox(req.Request.Context(), sandboxInfo, false)
 			}()
 		}
@@ -216,7 +216,7 @@ func Test_authDelete_successfulDeletion(t *testing.T) {
 
 		// Terminate the Modal sandbox directly to simulate failure
 		service := sandbox_service.NewSandboxService()
-		sandboxInfo := reconstructSandboxInfo(sandboxResp, createReq.Account.ID())
+		sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxResp, createReq.Account.ID())
 		_ = service.TerminateSandbox(createReq.Request.Context(), sandboxInfo, false)
 
 		// Arrange - Delete request (Modal termination will fail since already terminated)
@@ -264,7 +264,7 @@ func Test_syncSandbox_updatesMetadata(t *testing.T) {
 		// Cleanup Modal sandbox at end
 		defer func() {
 			service := sandbox_service.NewSandboxService()
-			sandboxInfo := reconstructSandboxInfo(sandboxResp, createReq.Account.ID())
+			sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxResp, createReq.Account.ID())
 			_ = service.TerminateSandbox(createReq.Request.Context(), sandboxInfo, false)
 		}()
 

@@ -45,7 +45,7 @@ func Test_streamClaude_withOwnedSandbox(t *testing.T) {
 		// Cleanup Modal sandbox at end
 		defer func() {
 			service := sandbox_service.NewSandboxService()
-			sandboxInfo := reconstructSandboxInfo(sandboxResp, createReq.Account.ID())
+			sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxResp, createReq.Account.ID())
 			_ = service.TerminateSandbox(createReq.Request.Context(), sandboxInfo, false)
 		}()
 
@@ -104,7 +104,7 @@ func Test_streamClaude_withUnownedSandbox(t *testing.T) {
 		// Cleanup Modal sandbox at end
 		defer func() {
 			service := sandbox_service.NewSandboxService()
-			sandboxInfo := reconstructSandboxInfo(sandboxResp, createReq.Account.ID())
+			sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxResp, createReq.Account.ID())
 			_ = service.TerminateSandbox(createReq.Request.Context(), sandboxInfo, false)
 		}()
 
@@ -206,7 +206,7 @@ func Test_streamClaude_emptyPrompt(t *testing.T) {
 		// Cleanup Modal sandbox at end
 		defer func() {
 			service := sandbox_service.NewSandboxService()
-			sandboxInfo := reconstructSandboxInfo(sandboxResp, createReq.Account.ID())
+			sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxResp, createReq.Account.ID())
 			_ = service.TerminateSandbox(createReq.Request.Context(), sandboxInfo, false)
 		}()
 

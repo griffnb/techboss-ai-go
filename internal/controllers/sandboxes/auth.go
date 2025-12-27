@@ -53,7 +53,7 @@ func syncSandbox(_ http.ResponseWriter, req *http.Request) (*SyncSandboxResponse
 	}
 
 	// Reconstruct SandboxInfo for Modal sync
-	sandboxInfo := reconstructSandboxInfo(sandboxModel, accountID)
+	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, accountID)
 
 	// Sync to S3 via service layer
 	service := sandbox_service.NewSandboxService()
