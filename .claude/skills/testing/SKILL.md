@@ -1,6 +1,6 @@
 ---
 name: test-builder
-description: Use to build proper go unit tests
+description: Use to build proper go unit tests for services, models, and controllers
 ---
 
 
