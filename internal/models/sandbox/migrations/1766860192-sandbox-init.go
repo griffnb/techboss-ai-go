@@ -26,4 +26,5 @@ type SandboxV1 struct {
 	MetaData       *fields.StructField[any]      `column:"meta_data"       type:"jsonb"    default:"{}"`
 	Provider       *fields.IntConstantField[int] `column:"type"            type:"smallint" default:"0"`
 	AgentID        *fields.UUIDField             `column:"agent_id"        type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
+	ExternalID     *fields.StringField           `column:"external_id"     type:"text"     default:"null" index:"true" null:"true" public:"view"`
 }

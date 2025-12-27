@@ -1,4 +1,4 @@
-//go:generate core_gen controller Sandbox -modelPackage=sandbox -options=admin
+//go:generate core_gen controller Sandbox -modelPackage=sandbox -skip=authCreate,authUpdate
 package sandboxes
 
 import (
@@ -46,32 +46,38 @@ func Setup(coreRouter *router.CoreRouter) {
 		})
 	})
 
+	// Public authenticated routes
 	coreRouter.AddMainRoute(tools.BuildString("/", ROUTE), func(r chi.Router) {
 		r.Group(func(authR chi.Router) {
-			// POST /sandbox - Create new sandbox
-			authR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(createSandbox),
-			}))
+			r.Group(func(authR chi.Router) {
+				authR.Get("/", helpers.RoleHandler(helpers.RoleHandlerMap{
+					constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authIndex),
+				}))
+				authR.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
+					constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authGet),
+				}))
+			})
 
-			// GET /sandbox/{sandboxID} - Get sandbox status (stub for Phase 2)
-			authR.Get("/{sandboxID}", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(getSandbox),
-			}))
+			r.Group(func(authR chi.Router) {
+				authR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
+					constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authCreate),
+				}))
+				authR.Put("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
+					constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authUpdate),
+				}))
 
-			// DELETE /sandbox/{sandboxID} - Terminate sandbox (stub for Phase 2)
-			authR.Delete("/{sandboxID}", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(deleteSandbox),
-			}))
-
-			// POST /sandbox/{sandboxID}/sync - Sync sandbox volume to S3
-			authR.Post("/{sandboxID}/sync", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(syncSandbox),
-			}))
-
-			// POST /sandbox/{sandboxID}/claude - Execute Claude with streaming (Task 11)
-			authR.Post("/{sandboxID}/claude", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: router.NoTimeoutStreamingMiddleware(streamClaude),
-			}))
+				authR.Delete("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
+					constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(deleteSandbox),
+				}))
+				// POST /sandbox/{id}/sync - Sync sandbox volume to S3
+				authR.Post("/{id}/sync", helpers.RoleHandler(helpers.RoleHandlerMap{
+					constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(syncSandbox),
+				}))
+				// POST /sandbox/{sandboxID}/claude - Execute Claude with streaming (Task 11)
+				authR.Post("/{id}/claude", helpers.RoleHandler(helpers.RoleHandlerMap{
+					constants.ROLE_ANY_AUTHORIZED: router.NoTimeoutStreamingMiddleware(streamClaude),
+				}))
+			})
 		})
 	})
 }

@@ -32,6 +32,7 @@ type DBColumns struct {
 	MetaData       *fields.StructField[*MetaData]     `column:"meta_data"       type:"jsonb"    default:"{}"`
 	Provider       *fields.IntConstantField[Provider] `column:"type"            type:"smallint" default:"0"`
 	AgentID        *fields.UUIDField                  `column:"agent_id"        type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
+	ExternalID     *fields.StringField                `column:"external_id"     type:"text"     default:"null" index:"true" null:"true" public:"view"`
 }
 
 // Sandbox - Database model

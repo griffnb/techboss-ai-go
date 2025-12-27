@@ -10,7 +10,9 @@ import (
 	"github.com/griffnb/core/lib/router/request"
 	"github.com/griffnb/core/lib/router/response"
 	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
+	"github.com/griffnb/techboss-ai-go/internal/models/sandbox"
 	"github.com/griffnb/techboss-ai-go/internal/services/sandbox_service"
 	"github.com/pkg/errors"
 )
@@ -47,7 +49,7 @@ type CreateSandboxResponse struct {
 // and optionally initializes the volume from S3 if requested.
 //
 // TODO: Store sandboxInfo in database/cache for later retrieval (Phase 2)
-func createSandbox(_ http.ResponseWriter, req *http.Request) (*CreateSandboxResponse, int, error) {
+func authCreate(_ http.ResponseWriter, req *http.Request) (*CreateSandboxResponse, int, error) {
 	// Get authenticated user session
 	userSession := request.GetReqSession(req)
 	accountID := userSession.User.ID()
@@ -138,34 +140,19 @@ func createSandbox(_ http.ResponseWriter, req *http.Request) (*CreateSandboxResp
 	return response.Success(resp)
 }
 
-// getSandbox retrieves sandbox status by ID.
-// Currently uses in-memory cache for Phase 1 testing. Phase 2 will add database persistence.
-//
-// TODO: Retrieve sandboxInfo from database (Phase 2)
-func getSandbox(_ http.ResponseWriter, req *http.Request) (*CreateSandboxResponse, int, error) {
-	sandboxID := chi.URLParam(req, "sandboxID")
+// TODO: Implement authUpdate to allow updating sandbox metadata.
+func authUpdate(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, int, error) {
+	user := request.GetReqSession(req).User
 
-	log.Infof("getSandbox called with sandboxID: %s", sandboxID)
-
-	// Retrieve from in-memory cache (temporary solution)
-	// TODO (Phase 2): Query database instead of memory cache
-	value, ok := sandboxCache.Load(sandboxID)
-	if !ok {
-		err := errors.Errorf("sandbox not found: %s", sandboxID)
+	id := chi.URLParam(req, "id")
+	sandboxObj, err := sandbox.GetRestricted(req.Context(), types.UUID(id), user)
+	if err != nil {
 		log.ErrorContext(err, req.Context())
-		return response.AdminBadRequestError[*CreateSandboxResponse](err)
+		return response.PublicBadRequestError[*sandbox.Sandbox]()
+
 	}
 
-	sandboxInfo := value.(*modal.SandboxInfo)
-
-	// Return response
-	resp := &CreateSandboxResponse{
-		SandboxID: sandboxInfo.SandboxID,
-		Status:    string(sandboxInfo.Status),
-		CreatedAt: sandboxInfo.CreatedAt,
-	}
-
-	return response.Success(resp)
+	return response.Success(sandboxObj)
 }
 
 // deleteSandbox terminates a sandbox by ID.
@@ -173,7 +160,7 @@ func getSandbox(_ http.ResponseWriter, req *http.Request) (*CreateSandboxRespons
 //
 // TODO: Retrieve sandboxInfo from database (Phase 2)
 func deleteSandbox(_ http.ResponseWriter, req *http.Request) (*CreateSandboxResponse, int, error) {
-	sandboxID := chi.URLParam(req, "sandboxID")
+	sandboxID := chi.URLParam(req, "id")
 
 	log.Infof("deleteSandbox called with sandboxID: %s", sandboxID)
 
@@ -225,7 +212,7 @@ type SyncSandboxResponse struct {
 //
 // TODO: Retrieve sandboxInfo from database (Phase 2)
 func syncSandbox(_ http.ResponseWriter, req *http.Request) (*SyncSandboxResponse, int, error) {
-	sandboxID := chi.URLParam(req, "sandboxID")
+	sandboxID := chi.URLParam(req, "id")
 
 	log.Infof("syncSandbox called with sandboxID: %s", sandboxID)
 
