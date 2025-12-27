@@ -1,7 +1,7 @@
-// Package modal provides service layer for Modal sandbox operations.
+// Package sandbox_service provides service layer for Modal sandbox operations.
 // It acts as an intermediary between HTTP controllers and the Modal integration layer,
 // providing validation, business logic, and higher-level operations.
-package modal
+package sandbox_service
 
 import (
 	"context"

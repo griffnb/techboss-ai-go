@@ -11,7 +11,7 @@ import (
 	"github.com/griffnb/core/lib/router/response"
 	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
-	modalService "github.com/griffnb/techboss-ai-go/internal/services/modal"
+	"github.com/griffnb/techboss-ai-go/internal/services/sandbox_service"
 	"github.com/pkg/errors"
 )
 
@@ -104,7 +104,7 @@ func createSandbox(_ http.ResponseWriter, req *http.Request) (*CreateSandboxResp
 	}
 
 	// Create sandbox via service
-	service := modalService.NewSandboxService()
+	service := sandbox_service.NewSandboxService()
 	sandboxInfo, err := service.CreateSandbox(req.Context(), accountID, config)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
@@ -191,7 +191,7 @@ func deleteSandbox(_ http.ResponseWriter, req *http.Request) (*CreateSandboxResp
 	// Terminate sandbox with S3 sync
 	// The true parameter triggers volume sync to S3 before termination
 	// This preserves the final workspace state
-	service := modalService.NewSandboxService()
+	service := sandbox_service.NewSandboxService()
 	err := service.TerminateSandbox(req.Context(), sandboxInfo, true)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
@@ -241,7 +241,7 @@ func syncSandbox(_ http.ResponseWriter, req *http.Request) (*SyncSandboxResponse
 	sandboxInfo := value.(*modal.SandboxInfo)
 
 	// Sync to S3 via service layer
-	service := modalService.NewSandboxService()
+	service := sandbox_service.NewSandboxService()
 	stats, err := service.SyncToS3(req.Context(), sandboxInfo)
 	if err != nil {
 		log.ErrorContext(err, req.Context())

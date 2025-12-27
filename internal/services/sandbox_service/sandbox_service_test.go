@@ -1,4 +1,4 @@
-package modal_test
+package sandbox_service_test
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/common/system_testing"
 	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
-	modalservice "github.com/griffnb/techboss-ai-go/internal/services/modal"
+	"github.com/griffnb/techboss-ai-go/internal/services/sandbox_service"
 )
 
 func init() {
@@ -27,7 +27,7 @@ func TestNewSandboxService(t *testing.T) {
 		skipIfNotConfigured(t)
 
 		// Act
-		service := modalservice.NewSandboxService()
+		service := sandbox_service.NewSandboxService()
 
 		// Assert
 		assert.NEmpty(t, service)
@@ -37,7 +37,7 @@ func TestNewSandboxService(t *testing.T) {
 func TestSandboxService_CreateSandbox(t *testing.T) {
 	skipIfNotConfigured(t)
 
-	service := modalservice.NewSandboxService()
+	service := sandbox_service.NewSandboxService()
 	ctx := context.Background()
 
 	t.Run("Creates sandbox with accountID added to config", func(t *testing.T) {
@@ -87,7 +87,7 @@ func TestSandboxService_CreateSandbox(t *testing.T) {
 func TestSandboxService_TerminateSandbox(t *testing.T) {
 	skipIfNotConfigured(t)
 
-	service := modalservice.NewSandboxService()
+	service := sandbox_service.NewSandboxService()
 	ctx := context.Background()
 
 	t.Run("Terminates sandbox successfully", func(t *testing.T) {
@@ -144,7 +144,7 @@ func TestSandboxService_TerminateSandbox(t *testing.T) {
 func TestSandboxService_ExecuteClaudeStream(t *testing.T) {
 	skipIfNotConfigured(t)
 
-	service := modalservice.NewSandboxService()
+	service := sandbox_service.NewSandboxService()
 	ctx := context.Background()
 
 	t.Run("Executes Claude and streams output", func(t *testing.T) {
@@ -218,7 +218,7 @@ func TestSandboxService_ExecuteClaudeStream(t *testing.T) {
 func TestSandboxService_InitFromS3(t *testing.T) {
 	skipIfNotConfigured(t)
 
-	service := modalservice.NewSandboxService()
+	service := sandbox_service.NewSandboxService()
 	ctx := context.Background()
 
 	t.Run("Initializes volume from S3", func(t *testing.T) {
@@ -258,7 +258,7 @@ func TestSandboxService_InitFromS3(t *testing.T) {
 func TestSandboxService_SyncToS3(t *testing.T) {
 	skipIfNotConfigured(t)
 
-	service := modalservice.NewSandboxService()
+	service := sandbox_service.NewSandboxService()
 	ctx := context.Background()
 
 	t.Run("Syncs volume to S3", func(t *testing.T) {

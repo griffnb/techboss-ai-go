@@ -8,7 +8,7 @@ import (
 	"github.com/griffnb/core/lib/router/request"
 	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
-	modalService "github.com/griffnb/techboss-ai-go/internal/services/modal"
+	"github.com/griffnb/techboss-ai-go/internal/services/sandbox_service"
 	"github.com/pkg/errors"
 )
 
@@ -76,7 +76,7 @@ func streamClaude(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Execute Claude and stream via service layer
-	service := modalService.NewSandboxService()
+	service := sandbox_service.NewSandboxService()
 	err = service.ExecuteClaudeStream(req.Context(), sandboxInfo, claudeConfig, w)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
