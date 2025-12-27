@@ -236,3 +236,14 @@ func (c *APIClient) GetSandboxStatusFromInfo(ctx context.Context, sandboxInfo *S
 	sandboxInfo.Status = SandboxStatusTerminated
 	return SandboxStatusTerminated, nil
 }
+
+// GetSandbox retrieves a sandbox reference by ID.
+// This returns a sandbox handle that can be used for operations.
+// Note: This does not validate if the sandbox actually exists.
+func (c *APIClient) GetSandbox(ctx context.Context, sandboxID string) (*modal.Sandbox, error) {
+	sandbox, err := c.client.Sandboxes.FromID(ctx, sandboxID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get sandbox %s", sandboxID)
+	}
+	return sandbox, nil
+}

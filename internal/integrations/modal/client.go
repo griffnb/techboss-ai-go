@@ -68,3 +68,10 @@ func NewClient(config *environment.Modal) *APIClient {
 
 	return client
 }
+
+// GetSandbox retrieves a sandbox reference by ID.
+// This returns a sandbox handle that can be used for operations.
+// Note: This does not validate if the sandbox actually exists.
+func (c *APIClient) GetSandbox(sandboxID string) (*modal.Sandbox, error) {
+	return c.client.Sandboxes.FromID(sandboxID)
+}
