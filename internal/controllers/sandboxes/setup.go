@@ -59,14 +59,14 @@ func Setup(coreRouter *router.CoreRouter) {
 
 		r.Group(func(authR chi.Router) {
 			authR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authCreate),
+				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(createSandbox),
 			}))
 			authR.Put("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authUpdate),
 			}))
 
 			authR.Delete("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(deleteSandbox),
+				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authDelete),
 			}))
 			// POST /sandbox/{id}/sync - Sync sandbox volume to S3
 			authR.Post("/{id}/sync", helpers.RoleHandler(helpers.RoleHandlerMap{

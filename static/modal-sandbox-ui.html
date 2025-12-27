@@ -374,6 +374,86 @@
             font-size: 14px;
         }
 
+        /* Sandbox List */
+        #sandbox-list-container {
+            margin-bottom: 24px;
+        }
+
+        #sandbox-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .sandbox-item {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sandbox-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .sandbox-item-info {
+            flex: 1;
+        }
+
+        .sandbox-item-id {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .sandbox-item-meta {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .sandbox-item-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .sandbox-item-status.active {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .sandbox-item-status.terminated {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .sandbox-list-empty {
+            text-align: center;
+            color: #9ca3af;
+            padding: 32px 20px;
+            font-size: 14px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px dashed #d1d5db;
+        }
+
+        #sandbox-list-status {
+            text-align: center;
+            font-size: 14px;
+            min-height: 20px;
+        }
+
         /* Responsive Design */
         @media (max-width: 640px) {
             body {
@@ -477,15 +557,17 @@
         </div>
 
         <div class="content">
-            <!-- Sandbox Creation Section -->
+            <!-- Sandbox Selection Section -->
             <div id="create-section">
-                <h2>Create Your Sandbox</h2>
+                <h2>Your Sandboxes</h2>
                 <p>
-                    Click the button below to create a new Modal sandbox with Claude Code installed.
-                    This will set up an isolated environment with Alpine Linux, development tools,
-                    and persistent storage.
+                    Select an existing sandbox to continue, or create a new one.
                 </p>
-                <button id="create-btn" class="btn">Create Sandbox</button>
+                <div id="sandbox-list-container">
+                    <div id="sandbox-list"></div>
+                    <div id="sandbox-list-status"></div>
+                </div>
+                <button id="create-btn" class="btn">Create New Sandbox</button>
                 <div id="status"></div>
             </div>
 
@@ -533,9 +615,137 @@
         const chatForm = document.getElementById('chat-form');
         const promptInput = document.getElementById('prompt-input');
         const sendBtn = document.getElementById('send-btn');
+        const sandboxListEl = document.getElementById('sandbox-list');
+        const sandboxListStatusEl = document.getElementById('sandbox-list-status');
 
         // Initialize
         console.log('Modal Sandbox UI initialized');
+        loadSandboxList();
+
+        // Load sandbox list from API
+        async function loadSandboxList() {
+            console.log('Loading sandbox list...');
+            setSandboxListStatus('loading', 'Loading sandboxes...');
+
+            try {
+                const response = await fetch(`${baseURL}/sandbox`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to load sandboxes: ${response.status} ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('Sandboxes loaded:', data);
+
+                // Extract sandboxes array from response
+                let sandboxes = [];
+                if (data.data && data.data.sandboxes && Array.isArray(data.data.sandboxes)) {
+                    sandboxes = data.data.sandboxes;
+                } else if (data.data && Array.isArray(data.data)) {
+                    sandboxes = data.data;
+                }
+
+                // Display sandboxes
+                displaySandboxList(sandboxes);
+                setSandboxListStatus('', '');
+
+            } catch (error) {
+                console.error('Error loading sandbox list:', error);
+                setSandboxListStatus('error', `Error loading sandboxes: ${error.message}`);
+                // Show empty state on error
+                displaySandboxList([]);
+            }
+        }
+
+        // Display sandbox list in UI
+        function displaySandboxList(sandboxes) {
+            sandboxListEl.innerHTML = '';
+
+            if (!sandboxes || sandboxes.length === 0) {
+                const emptyState = document.createElement('div');
+                emptyState.className = 'sandbox-list-empty';
+                emptyState.textContent = 'No sandboxes available. Create a new one to get started!';
+                sandboxListEl.appendChild(emptyState);
+                return;
+            }
+
+            sandboxes.forEach(sandbox => {
+                const item = createSandboxListItem(sandbox);
+                sandboxListEl.appendChild(item);
+            });
+        }
+
+        // Create a sandbox list item element
+        function createSandboxListItem(sandbox) {
+            const item = document.createElement('div');
+            item.className = 'sandbox-item';
+
+            // Get sandbox data
+            const id = sandbox.id || 'N/A';
+            const status = sandbox.status === 0 ? 'active' : 'terminated';
+            const createdAt = sandbox.created_at ? formatDate(sandbox.created_at) : 'Unknown';
+
+            item.innerHTML = `
+                <div class="sandbox-item-info">
+                    <div class="sandbox-item-id">Sandbox ${id}</div>
+                    <div class="sandbox-item-meta">Created: ${createdAt}</div>
+                </div>
+                <div class="sandbox-item-status ${status}">${status}</div>
+            `;
+
+            // Only allow selection of active sandboxes
+            if (status === 'active') {
+                item.addEventListener('click', () => selectSandbox(sandbox));
+            } else {
+                item.style.opacity = '0.6';
+                item.style.cursor = 'not-allowed';
+            }
+
+            return item;
+        }
+
+        // Select a sandbox and switch to chat interface
+        function selectSandbox(sandbox) {
+            console.log('Sandbox selected:', sandbox);
+
+            sandboxID = sandbox.id;
+
+            // Switch to chat interface
+            createSection.style.display = 'none';
+            chatSection.style.display = 'block';
+            sandboxIDEl.textContent = sandboxID;
+            promptInput.focus();
+            clearMessages();
+            addSystemMessage(`Sandbox ${sandboxID} selected. Ready to chat with Claude!`);
+        }
+
+        // Format date string
+        function formatDate(dateString) {
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleString();
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        // Set sandbox list status message
+        function setSandboxListStatus(type, message) {
+            sandboxListStatusEl.className = type ? `status-${type}` : '';
+
+            if (type === 'loading') {
+                sandboxListStatusEl.innerHTML = `<span class="spinner"></span>${message}`;
+            } else {
+                sandboxListStatusEl.textContent = message;
+            }
+        }
 
         // Create sandbox handler
         createBtn.addEventListener('click', async () => {
@@ -551,9 +761,10 @@
                     },
                     credentials: 'include',
                     body: JSON.stringify({
-                        image_template: 'claude',
-                        volume_name: '',
-                        init_from_s3: false
+                        data: {
+                            provider: 1,  // PROVIDER_CLAUDE_CODE = 1
+                            agent_id: ""  // Empty for now, can be populated later
+                        }
                     })
                 });
 
@@ -565,14 +776,21 @@
                 const data = await response.json();
                 console.log('Sandbox created:', data);
 
-                // Extract sandbox ID from response
-                if (data.data && data.data.sandbox_id) {
-                    sandboxID = data.data.sandbox_id;
+                // Extract sandbox ID from response (database ID, not external_id)
+                let newSandboxID = null;
+                if (data.data && data.data.id) {
+                    newSandboxID = data.data.id;
+                } else if (data.data && data.data.sandbox) {
+                    newSandboxID = data.data.sandbox.id;
                 } else {
-                    throw new Error('Invalid response: missing sandbox_id');
+                    throw new Error('Invalid response: missing sandbox id');
                 }
 
+                sandboxID = newSandboxID;
                 setStatus('success', `Sandbox created successfully! ID: ${sandboxID}`);
+
+                // Reload sandbox list to show new sandbox
+                await loadSandboxList();
 
                 // Switch to chat interface after a brief delay
                 setTimeout(() => {
@@ -780,13 +998,17 @@
                 // Show success message
                 addSystemMessage('✅ Sandbox terminated successfully. Synced to S3 before shutdown.');
 
-                // Reset UI to creation state
-                setTimeout(() => {
+                // Reset UI to creation state and reload sandbox list
+                setTimeout(async () => {
                     createSection.style.display = 'block';
                     chatSection.style.display = 'none';
                     sandboxID = null;
                     clearMessages();
                     setStatus('', '');
+                    terminateBtn.textContent = '🗑️ Terminate Sandbox';
+                    terminateBtn.disabled = false;
+                    // Reload sandbox list to show updated state
+                    await loadSandboxList();
                 }, 2000);
 
             } catch (error) {

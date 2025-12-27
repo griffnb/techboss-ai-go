@@ -2,143 +2,15 @@ package sandboxes
 
 import (
 	"net/http"
-	"sync"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/core/lib/router/request"
 	"github.com/griffnb/core/lib/router/response"
-	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/core/lib/types"
-	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
 	"github.com/griffnb/techboss-ai-go/internal/models/sandbox"
 	"github.com/griffnb/techboss-ai-go/internal/services/sandbox_service"
-	"github.com/pkg/errors"
 )
-
-// sandboxCache provides in-memory storage for sandbox info by ID.
-// This is a temporary solution for Phase 1 testing. Phase 2 will implement
-// proper database persistence for production use.
-// Thread-safe with sync.Map for concurrent access.
-var sandboxCache = sync.Map{}
-
-// CreateSandboxRequest holds request data for sandbox creation.
-// It defines the Docker image, storage volumes, and S3 configuration for the sandbox.
-// Supports either image_template for pre-configured images or custom image_base + dockerfile_commands.
-type CreateSandboxRequest struct {
-	ImageTemplate      string   `json:"image_template"`      // Pre-configured template (e.g., "claude")
-	ImageBase          string   `json:"image_base"`          // Custom base image (required if no template)
-	DockerfileCommands []string `json:"dockerfile_commands"` // Custom Dockerfile commands (optional)
-	VolumeName         string   `json:"volume_name"`         // Volume name for persistent storage
-	S3BucketName       string   `json:"s3_bucket_name"`      // S3 bucket name (optional)
-	S3KeyPrefix        string   `json:"s3_key_prefix"`       // S3 key prefix (optional)
-	InitFromS3         bool     `json:"init_from_s3"`        // Initialize volume from S3
-}
-
-// CreateSandboxResponse holds response data for sandbox creation.
-// It returns the sandbox ID, status, and creation timestamp.
-type CreateSandboxResponse struct {
-	SandboxID string    `json:"sandbox_id"`
-	Status    string    `json:"status"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-// createSandbox creates a new sandbox for the authenticated user.
-// It builds the sandbox configuration from the request, creates the sandbox via the service layer,
-// and optionally initializes the volume from S3 if requested.
-//
-// TODO: Store sandboxInfo in database/cache for later retrieval (Phase 2)
-func authCreate(_ http.ResponseWriter, req *http.Request) (*CreateSandboxResponse, int, error) {
-	// Get authenticated user session
-	userSession := request.GetReqSession(req)
-	accountID := userSession.User.ID()
-
-	// Parse request body
-	data, err := request.GetJSONPostAs[*CreateSandboxRequest](req)
-	if err != nil {
-		log.ErrorContext(err, req.Context())
-		return response.AdminBadRequestError[*CreateSandboxResponse](err)
-	}
-
-	// Validate and build image config (either from template or custom)
-	var imageConfig *modal.ImageConfig
-
-	if !tools.Empty(data.ImageTemplate) {
-		// Use pre-configured template
-		imageConfig = modal.GetImageConfigFromTemplate(data.ImageTemplate)
-		if imageConfig == nil {
-			err := errors.Errorf("unknown image_template: %s", data.ImageTemplate)
-			log.ErrorContext(err, req.Context())
-			return response.AdminBadRequestError[*CreateSandboxResponse](err)
-		}
-	} else if !tools.Empty(data.ImageBase) {
-		// Use custom image configuration
-		imageConfig = &modal.ImageConfig{
-			BaseImage:          data.ImageBase,
-			DockerfileCommands: data.DockerfileCommands,
-		}
-	} else {
-		// Neither template nor custom image provided
-		err := errors.New("either image_template or image_base is required")
-		log.ErrorContext(err, req.Context())
-		return response.AdminBadRequestError[*CreateSandboxResponse](err)
-	}
-
-	// Build sandbox config
-	config := &modal.SandboxConfig{
-		AccountID:       accountID,
-		Image:           imageConfig,
-		VolumeName:      data.VolumeName,
-		VolumeMountPath: "/mnt/workspace",
-		Workdir:         "/mnt/workspace",
-	}
-
-	// Add S3 config if provided
-	if !tools.Empty(data.S3BucketName) {
-		config.S3Config = &modal.S3MountConfig{
-			BucketName: data.S3BucketName,
-			SecretName: "s3-bucket", // Default secret name
-			KeyPrefix:  data.S3KeyPrefix,
-			MountPath:  "/mnt/s3-bucket",
-			ReadOnly:   true,
-		}
-	}
-
-	// Create sandbox via service
-	service := sandbox_service.NewSandboxService()
-	sandboxInfo, err := service.CreateSandbox(req.Context(), accountID, config)
-	if err != nil {
-		log.ErrorContext(err, req.Context())
-		return response.AdminBadRequestError[*CreateSandboxResponse](err)
-	}
-
-	// Initialize from S3 if requested
-	if data.InitFromS3 && config.S3Config != nil {
-		_, err := service.InitFromS3(req.Context(), sandboxInfo)
-		if err != nil {
-			log.ErrorContext(err, req.Context())
-			// Continue even if init fails - non-fatal
-			log.Infof("Warning: failed to initialize from S3: %v", err)
-		}
-	}
-
-	// TODO (Phase 2): Store sandboxInfo in database for persistence across restarts
-	// TEMPORARY: Store in memory for Phase 1 testing
-	// This cache is session-scoped and will be lost on server restart
-	// For production, implement proper database persistence with a modal_sandboxes table
-	sandboxCache.Store(sandboxInfo.SandboxID, sandboxInfo)
-	log.Infof("Stored sandbox %s in memory cache", sandboxInfo.SandboxID)
-
-	// Return response
-	resp := &CreateSandboxResponse{
-		SandboxID: sandboxInfo.SandboxID,
-		Status:    string(sandboxInfo.Status),
-		CreatedAt: sandboxInfo.CreatedAt,
-	}
-
-	return response.Success(resp)
-}
 
 // TODO: Implement authUpdate to allow updating sandbox metadata.
 func authUpdate(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, int, error) {
@@ -155,50 +27,6 @@ func authUpdate(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, int
 	return response.Success(sandboxObj)
 }
 
-// deleteSandbox terminates a sandbox by ID.
-// Currently uses in-memory cache for Phase 1 testing. Phase 2 will add database persistence.
-//
-// TODO: Retrieve sandboxInfo from database (Phase 2)
-func deleteSandbox(_ http.ResponseWriter, req *http.Request) (*CreateSandboxResponse, int, error) {
-	sandboxID := chi.URLParam(req, "id")
-
-	log.Infof("deleteSandbox called with sandboxID: %s", sandboxID)
-
-	// Retrieve from in-memory cache (temporary solution)
-	// TODO (Phase 2): Query database instead of memory cache
-	value, ok := sandboxCache.Load(sandboxID)
-	if !ok {
-		err := errors.Errorf("sandbox not found: %s", sandboxID)
-		log.ErrorContext(err, req.Context())
-		return response.AdminBadRequestError[*CreateSandboxResponse](err)
-	}
-
-	sandboxInfo := value.(*modal.SandboxInfo)
-
-	// Terminate sandbox with S3 sync
-	// The true parameter triggers volume sync to S3 before termination
-	// This preserves the final workspace state
-	service := sandbox_service.NewSandboxService()
-	err := service.TerminateSandbox(req.Context(), sandboxInfo, true)
-	if err != nil {
-		log.ErrorContext(err, req.Context())
-		return response.AdminBadRequestError[*CreateSandboxResponse](err)
-	}
-
-	// Remove from cache
-	sandboxCache.Delete(sandboxID)
-	log.Infof("Terminated and removed sandbox %s from cache", sandboxID)
-
-	// Return response
-	resp := &CreateSandboxResponse{
-		SandboxID: sandboxInfo.SandboxID,
-		Status:    "terminated",
-		CreatedAt: sandboxInfo.CreatedAt,
-	}
-
-	return response.Success(resp)
-}
-
 // SyncSandboxResponse holds response data for S3 sync operations.
 type SyncSandboxResponse struct {
 	SandboxID        string `json:"sandbox_id"`
@@ -209,23 +37,23 @@ type SyncSandboxResponse struct {
 
 // syncSandbox syncs the sandbox volume to S3 without terminating.
 // This allows manual backups/snapshots of the current workspace state.
-//
-// TODO: Retrieve sandboxInfo from database (Phase 2)
+// Updates metadata with sync statistics (files processed, bytes transferred, duration).
 func syncSandbox(_ http.ResponseWriter, req *http.Request) (*SyncSandboxResponse, int, error) {
-	sandboxID := chi.URLParam(req, "id")
+	userSession := request.GetReqSession(req)
+	accountID := userSession.User.ID()
+	id := chi.URLParam(req, "id")
 
-	log.Infof("syncSandbox called with sandboxID: %s", sandboxID)
+	log.Infof("syncSandbox called for sandbox ID: %s", id)
 
-	// Retrieve from in-memory cache (temporary solution)
-	// TODO (Phase 2): Query database instead of memory cache
-	value, ok := sandboxCache.Load(sandboxID)
-	if !ok {
-		err := errors.Errorf("sandbox not found: %s", sandboxID)
+	// Query database for sandbox by ID with ownership verification
+	sandboxModel, err := sandbox.Get(req.Context(), types.UUID(id))
+	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.AdminBadRequestError[*SyncSandboxResponse](err)
 	}
 
-	sandboxInfo := value.(*modal.SandboxInfo)
+	// Reconstruct SandboxInfo for Modal sync
+	sandboxInfo := reconstructSandboxInfo(sandboxModel, accountID)
 
 	// Sync to S3 via service layer
 	service := sandbox_service.NewSandboxService()
@@ -236,11 +64,33 @@ func syncSandbox(_ http.ResponseWriter, req *http.Request) (*SyncSandboxResponse
 	}
 
 	log.Infof("Synced sandbox %s to S3: %d files, %d bytes, %dms",
-		sandboxID, stats.FilesProcessed, stats.BytesTransferred, stats.Duration.Milliseconds())
+		id, stats.FilesProcessed, stats.BytesTransferred, stats.Duration.Milliseconds())
+
+	// Update database metadata with sync statistics and timestamp
+	metadata, err := sandboxModel.MetaData.Get()
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.AdminBadRequestError[*SyncSandboxResponse](err)
+	}
+	if metadata == nil {
+		metadata = &sandbox.MetaData{}
+	}
+	metadata.UpdateLastSync(
+		stats.FilesProcessed,
+		stats.BytesTransferred,
+		stats.Duration.Milliseconds(),
+	)
+	sandboxModel.MetaData.Set(metadata)
+
+	err = sandboxModel.Save(userSession.User)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		log.Infof("Warning: failed to update metadata after sync: %v", err)
+	}
 
 	// Return response with sync stats
 	resp := &SyncSandboxResponse{
-		SandboxID:        sandboxInfo.SandboxID,
+		SandboxID:        sandboxModel.ID().String(),
 		FilesProcessed:   stats.FilesProcessed,
 		BytesTransferred: stats.BytesTransferred,
 		DurationMs:       stats.Duration.Milliseconds(),
