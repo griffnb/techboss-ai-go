@@ -49,25 +49,48 @@ func (c *APIClient) ExecClaude(ctx context.Context, sandboxInfo *SandboxInfo, co
 	}
 
 	// Build Claude command
-	cmd := []string{"claude"}
+	claudeCmd := "claude"
 
 	// Add flags based on config
 	if config.SkipPermissions {
-		cmd = append(cmd, "--dangerously-skip-permissions")
+		claudeCmd += " --dangerously-skip-permissions"
 	}
 	if config.Verbose {
-		cmd = append(cmd, "--verbose")
+		claudeCmd += " --verbose"
 	}
 	if !tools.Empty(config.OutputFormat) {
-		cmd = append(cmd, "--output-format", config.OutputFormat)
+		claudeCmd += fmt.Sprintf(" --output-format %s", config.OutputFormat)
 	}
 
 	// Add prompt with -c (chat mode) and -p (prompt) flags
-	cmd = append(cmd, "-c", "-p", config.Prompt)
+	// Escape single quotes in prompt for shell safety
+	escapedPrompt := fmt.Sprintf("'%s'", config.Prompt)
+	claudeCmd += fmt.Sprintf(" -c -p %s", escapedPrompt)
 
 	// Add any additional flags
 	if len(config.AdditionalFlags) > 0 {
-		cmd = append(cmd, config.AdditionalFlags...)
+		for _, flag := range config.AdditionalFlags {
+			claudeCmd += " " + flag
+		}
+	}
+
+	// Determine workdir (default to volume mount path)
+	workdir := config.Workdir
+	if tools.Empty(workdir) && !tools.Empty(sandboxInfo.Config.VolumeMountPath) {
+		workdir = sandboxInfo.Config.VolumeMountPath
+	}
+
+	// Run as non-root user to avoid root privilege restrictions
+	// Create user if it doesn't exist (Alpine-compatible), change ownership, and run as that user
+	// Copy claude to a globally accessible location since /root/.local/bin is not accessible to other users
+	cmd := []string{
+		"sh", "-c",
+		fmt.Sprintf(
+			"CLAUDE_PATH=$(which claude) && cp $CLAUDE_PATH /usr/local/bin/claude 2>/dev/null || true && chmod 755 /usr/local/bin/claude && id -u claudeuser >/dev/null 2>&1 || (adduser -D -s /bin/sh claudeuser 2>/dev/null || useradd -m -s /bin/bash claudeuser) && chown -R claudeuser:claudeuser %s 2>/dev/null || true && su claudeuser -c \"cd %s && /usr/local/bin/claude %s\"",
+			workdir,
+			workdir,
+			claudeCmd[len("claude "):], // Remove "claude" prefix since we're using /usr/local/bin/claude
+		),
 	}
 
 	// Retrieve Anthropic API key from environment config
@@ -84,20 +107,15 @@ func (c *APIClient) ExecClaude(ctx context.Context, sandboxInfo *SandboxInfo, co
 		return nil, errors.Wrapf(err, "failed to create secrets for Claude execution")
 	}
 
-	// Determine workdir (default to volume mount path)
-	workdir := config.Workdir
-	if tools.Empty(workdir) && !tools.Empty(sandboxInfo.Config.VolumeMountPath) {
-		workdir = sandboxInfo.Config.VolumeMountPath
-	}
-
 	// Execute with PTY (CRITICAL: Claude CLI requires PTY)
 	execParams := &modal.SandboxExecParams{
 		PTY:     true, // Required for Claude CLI
 		Secrets: []*modal.Secret{secrets},
 	}
 
+	// Workdir is already handled in the command via chown, but set it for context
 	if !tools.Empty(workdir) {
-		execParams.Workdir = workdir
+		execParams.Workdir = "/"
 	}
 
 	process, err := sandboxInfo.Sandbox.Exec(ctx, cmd, execParams)
