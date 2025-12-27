@@ -7,9 +7,10 @@ import (
 	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/core/lib/router/request"
 	"github.com/griffnb/core/lib/tools"
+	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
+	"github.com/griffnb/techboss-ai-go/internal/models/sandbox"
 	"github.com/griffnb/techboss-ai-go/internal/services/sandbox_service"
-	"github.com/pkg/errors"
 )
 
 // ClaudeRequest holds request data for Claude execution.
@@ -19,21 +20,20 @@ type ClaudeRequest struct {
 }
 
 // streamClaude executes Claude Code CLI in a sandbox and streams output using SSE.
-// It parses the request body for the prompt, validates inputs, retrieves sandbox info,
-// and streams the Claude output to the client in real-time.
-//
-// Currently uses in-memory cache for Phase 1 testing. Phase 2 will retrieve
-// sandboxInfo from the database using the sandboxID parameter.
+// It parses the request body for the prompt, validates inputs, retrieves sandbox info
+// from the database with ownership verification, and streams the Claude output to the
+// client in real-time.
 //
 // The streaming uses Server-Sent Events (SSE) with the following flow:
 // 1. Parse request and validate prompt
-// 2. Retrieve sandboxInfo from cache (temporary)
+// 2. Retrieve sandboxInfo from database with ownership verification
 // 3. Build ClaudeExecConfig
 // 4. Call service.ExecuteClaudeStream which handles SSE headers and streaming
 // 5. Service layer streams output line by line with [DONE] event at completion
 func streamClaude(w http.ResponseWriter, req *http.Request) {
-	// Get sandboxID from URL params
-	sandboxID := chi.URLParam(req, "sandboxID")
+	userSession := request.GetReqSession(req)
+	accountID := userSession.User.ID()
+	id := chi.URLParam(req, "id")
 
 	// Parse request body for prompt
 	data, err := request.GetJSONPostAs[*ClaudeRequest](req)
@@ -49,20 +49,18 @@ func streamClaude(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	log.Infof("streamClaude called with sandboxID: %s, prompt: %s", sandboxID, data.Prompt)
+	log.Infof("streamClaude called for sandbox ID: %s, prompt: %s", id, data.Prompt)
 
-	// Retrieve from in-memory cache (temporary solution)
-	// TODO (Phase 2): Retrieve sandboxInfo from database instead of memory cache
-	// This will enable sandbox retrieval across server restarts and multiple instances
-	value, ok := sandboxCache.Load(sandboxID)
-	if !ok {
-		err := errors.Errorf("sandbox not found: %s", sandboxID)
+	// Get sandbox from database and verify ownership
+	sandboxModel, err := sandbox.Get(req.Context(), types.UUID(id))
+	if err != nil || sandboxModel == nil || sandboxModel.AccountID.Get() != accountID {
 		log.ErrorContext(err, req.Context())
 		http.Error(w, "sandbox not found", http.StatusNotFound)
 		return
 	}
 
-	sandboxInfo := value.(*modal.SandboxInfo)
+	// Reconstruct SandboxInfo from model
+	sandboxInfo := reconstructSandboxInfo(sandboxModel, accountID)
 
 	// Build ClaudeExecConfig with prompt
 	// stream-json: structured JSON output format
