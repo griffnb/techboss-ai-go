@@ -5,9 +5,11 @@ package modal
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/griffnb/core/lib/types"
+	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
 	"github.com/pkg/errors"
 )
@@ -31,6 +33,10 @@ func NewSandboxService() *SandboxService {
 // calling the integration layer. This ensures sandboxes are properly scoped
 // to accounts for multi-tenancy.
 //
+// S3 configuration is automatically added for workspace persistence using
+// the agent-docs bucket with key prefix docs/{accountID}. When synced, a
+// timestamp is automatically appended: docs/{accountID}/{timestamp}/
+//
 // TODO: Add business logic checks (quotas, permissions)
 // TODO: Store sandbox metadata in database for retrieval
 func (s *SandboxService) CreateSandbox(
@@ -48,6 +54,20 @@ func (s *SandboxService) CreateSandbox(
 
 	// Add account ID to config for multi-tenant scoping
 	config.AccountID = accountID
+
+	// Always include S3 config for workspace persistence and testing
+	envConfig := environment.GetConfig()
+	if envConfig != nil && envConfig.S3Config != nil && envConfig.S3Config.Buckets != nil {
+		if bucketName, ok := envConfig.S3Config.Buckets["agent-docs"]; ok {
+			config.S3Config = &modal.S3MountConfig{
+				BucketName: bucketName,
+				SecretName: "s3-bucket",
+				KeyPrefix:  fmt.Sprintf("docs/%s/", accountID), // Must end with /
+				MountPath:  "/mnt/s3-bucket",
+				ReadOnly:   true,
+			}
+		}
+	}
 
 	// Create sandbox via integration layer
 	sandboxInfo, err := s.client.CreateSandbox(ctx, config)

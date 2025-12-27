@@ -33,9 +33,8 @@ func GetClaudeImageConfig() *ImageConfig {
 		DockerfileCommands: []string{
 			// Install system dependencies
 			// shadow: provides useradd/groupadd
-			// sudo: allows claudeuser to run aws CLI
 			// util-linux: provides runuser command for switching users
-			"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep aws-cli shadow sudo util-linux",
+			"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep aws-cli shadow util-linux",
 
 			// Create claudeuser with specific UID/GID for consistency
 			// Using shadow package for useradd (more features than adduser)
@@ -55,10 +54,6 @@ func GetClaudeImageConfig() *ImageConfig {
 			// Set up environment variables
 			// USE_BUILTIN_RIPGREP=0 tells Claude to use system ripgrep (faster)
 			"ENV PATH=/usr/local/bin:$PATH USE_BUILTIN_RIPGREP=0",
-
-			// Allow claudeuser to run aws CLI commands (needed for S3 sync)
-			// This is safe because we only give sudo for specific commands
-			"RUN echo 'claudeuser ALL=(ALL) NOPASSWD: /usr/bin/aws' >> /etc/sudoers",
 		},
 	}
 }

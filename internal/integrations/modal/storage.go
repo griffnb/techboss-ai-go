@@ -145,8 +145,9 @@ func (c *APIClient) SyncVolumeToS3(ctx context.Context, sandboxInfo *SandboxInfo
 	}
 
 	// Build AWS CLI sync command running as claudeuser
-	// claudeuser has sudo access to aws CLI (configured in image template)
-	syncCmd := fmt.Sprintf("sudo aws s3 sync %s %s --exact-timestamps 2>&1", sandboxInfo.Config.VolumeMountPath, s3Path)
+	// AWS CLI runs directly as claudeuser with credentials passed via secrets
+	// Note: Modal sandboxes have "no new privileges" flag set, so sudo cannot be used
+	syncCmd := fmt.Sprintf("aws s3 sync %s %s --exact-timestamps 2>&1", sandboxInfo.Config.VolumeMountPath, s3Path)
 	cmd := []string{
 		"runuser", "-u", ClaudeUserName, "--",
 		"sh", "-c", syncCmd,

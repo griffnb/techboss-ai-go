@@ -239,6 +239,7 @@ func TestSandboxService_InitFromS3(t *testing.T) {
 				ReadOnly:   true,
 			},
 		}
+
 		sandboxInfo, err := service.CreateSandbox(ctx, accountID, config)
 		assert.NoError(t, err)
 		defer func() {

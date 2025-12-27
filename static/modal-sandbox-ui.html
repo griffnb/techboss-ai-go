@@ -198,6 +198,77 @@
             color: #991b1b;
         }
 
+        /* Tool use styling */
+        .tool-call {
+            background: #e0e7ff;
+            border-left: 3px solid #6366f1;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .tool-call-header {
+            font-weight: 600;
+            color: #4338ca;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tool-call-name {
+            font-family: 'Courier New', monospace;
+            background: #6366f1;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .tool-call-params {
+            color: #6366f1;
+            font-size: 12px;
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+
+        .tool-result {
+            background: #dcfce7;
+            border-left: 3px solid #16a34a;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .tool-result-header {
+            font-weight: 600;
+            color: #15803d;
+            margin-bottom: 4px;
+        }
+
+        .tool-result-summary {
+            color: #166534;
+            font-size: 12px;
+        }
+
+        .text-content {
+            color: #1f2937;
+            line-height: 1.6;
+        }
+
+        .thinking {
+            background: #fef3c7;
+            border-left: 3px solid #f59e0b;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+            font-size: 13px;
+            font-style: italic;
+            color: #92400e;
+        }
+
         .message-role {
             font-size: 12px;
             font-weight: 600;
@@ -580,9 +651,15 @@
                                 break;
                             }
 
-                            // Append content to assistant message
+                            // Try to parse as JSON for stream-json format
                             if (data) {
-                                assistantMsg.textContent += data;
+                                try {
+                                    const jsonData = JSON.parse(data);
+                                    appendStreamContent(assistantMsg, jsonData);
+                                } catch (e) {
+                                    // Not JSON, append as plain text
+                                    appendTextContent(assistantMsg, data);
+                                }
                                 scrollToBottom();
                             }
                         }
@@ -590,7 +667,7 @@
                 }
 
                 // If no content was streamed, show error
-                if (!assistantMsg.textContent) {
+                if (!assistantMsg.hasChildNodes() || assistantMsg.textContent.trim() === '') {
                     assistantMsg.textContent = 'No response received from Claude.';
                     assistantMsg.classList.add('message-error');
                 }
@@ -710,6 +787,138 @@
                 terminateBtn.disabled = false;
             }
         });
+
+        // Helper: Append stream content (JSON format)
+        function appendStreamContent(messageEl, jsonData) {
+            const type = jsonData.type;
+
+            if (type === 'text') {
+                appendTextContent(messageEl, jsonData.text);
+            } else if (type === 'tool_use') {
+                appendToolUse(messageEl, jsonData);
+            } else if (type === 'tool_result') {
+                appendToolResult(messageEl, jsonData);
+            } else if (type === 'thinking') {
+                appendThinking(messageEl, jsonData.thinking);
+            }
+        }
+
+        // Helper: Append plain text content
+        function appendTextContent(messageEl, text) {
+            // Find or create text content container
+            let textContainer = messageEl.querySelector('.text-content');
+            if (!textContainer) {
+                textContainer = document.createElement('div');
+                textContainer.className = 'text-content';
+                messageEl.appendChild(textContainer);
+            }
+            textContainer.textContent += text;
+        }
+
+        // Helper: Append tool use block
+        function appendToolUse(messageEl, toolData) {
+            const toolDiv = document.createElement('div');
+            toolDiv.className = 'tool-call';
+
+            const header = document.createElement('div');
+            header.className = 'tool-call-header';
+            header.innerHTML = `
+                <span>🔧</span>
+                <span class="tool-call-name">${toolData.name || 'Tool'}</span>
+                <span>${getToolDescription(toolData.name)}</span>
+            `;
+            toolDiv.appendChild(header);
+
+            // Show abbreviated parameters (not full content)
+            if (toolData.input) {
+                const params = document.createElement('div');
+                params.className = 'tool-call-params';
+                params.textContent = getToolSummary(toolData.name, toolData.input);
+                toolDiv.appendChild(params);
+            }
+
+            messageEl.appendChild(toolDiv);
+        }
+
+        // Helper: Append tool result block
+        function appendToolResult(messageEl, resultData) {
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'tool-result';
+
+            const header = document.createElement('div');
+            header.className = 'tool-result-header';
+            header.innerHTML = '✓ Tool completed';
+            resultDiv.appendChild(header);
+
+            // Show abbreviated result (not full content)
+            const summary = document.createElement('div');
+            summary.className = 'tool-result-summary';
+            summary.textContent = getResultSummary(resultData);
+            resultDiv.appendChild(summary);
+
+            messageEl.appendChild(resultDiv);
+        }
+
+        // Helper: Append thinking block
+        function appendThinking(messageEl, thinking) {
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.className = 'thinking';
+            thinkingDiv.textContent = `💭 ${thinking}`;
+            messageEl.appendChild(thinkingDiv);
+        }
+
+        // Helper: Get tool description
+        function getToolDescription(toolName) {
+            const descriptions = {
+                'Read': 'Reading file',
+                'Write': 'Writing file',
+                'Edit': 'Editing file',
+                'Bash': 'Running command',
+                'Glob': 'Finding files',
+                'Grep': 'Searching code',
+                'Task': 'Running subtask'
+            };
+            return descriptions[toolName] || 'Using tool';
+        }
+
+        // Helper: Get tool summary
+        function getToolSummary(toolName, input) {
+            if (toolName === 'Read' && input.file_path) {
+                return `📄 ${input.file_path}`;
+            } else if (toolName === 'Write' && input.file_path) {
+                const lines = (input.content || '').split('\n').length;
+                return `📝 ${input.file_path} (${lines} lines)`;
+            } else if (toolName === 'Edit' && input.file_path) {
+                return `✏️ ${input.file_path}`;
+            } else if (toolName === 'Bash' && input.command) {
+                return `$ ${input.command.substring(0, 60)}${input.command.length > 60 ? '...' : ''}`;
+            } else if (toolName === 'Glob' && input.pattern) {
+                return `🔍 ${input.pattern}`;
+            } else if (toolName === 'Grep' && input.pattern) {
+                return `🔎 "${input.pattern}"`;
+            } else if (toolName === 'Task' && input.prompt) {
+                return `🤖 ${input.description || input.prompt.substring(0, 50)}`;
+            }
+            return 'Parameters provided';
+        }
+
+        // Helper: Get result summary
+        function getResultSummary(resultData) {
+            const content = resultData.content || '';
+
+            // If it's a large result, just show line count
+            const lines = content.split('\n').length;
+            if (lines > 10) {
+                return `Returned ${lines} lines`;
+            }
+
+            // For small results, show truncated content
+            if (content.length > 100) {
+                return content.substring(0, 100) + '...';
+            }
+
+            return content || 'Completed successfully';
+        }
 
         // Helper: Set status message
         function setStatus(type, message) {
