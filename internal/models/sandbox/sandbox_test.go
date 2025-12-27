@@ -17,9 +17,9 @@ func init() {
 }
 
 const (
-	UNIT_TEST_FIELD         = "name"
-	UNIT_TEST_VALUE         = "UNIT_TEST_VALUE"
-	UNIT_TEST_CHANGED_VALUE = "UNIT_TEST_CHANGED_VALUE"
+	UNIT_TEST_FIELD         = "external_id"
+	UNIT_TEST_VALUE         = "sb-test-123"
+	UNIT_TEST_CHANGED_VALUE = "sb-test-456"
 )
 
 func TestNew(_ *testing.T) {
@@ -132,4 +132,116 @@ func TestFindFirstJoined(t *testing.T) {
 	if tools.Empty(obj2) {
 		t.Fatalf("Get Err  couldnt find")
 	}
+}
+
+func Test_Sandbox_SaveWithMetaData(t *testing.T) {
+	t.Run("saves sandbox with minimal metadata", func(t *testing.T) {
+		// Arrange - Create sandbox with minimal metadata
+		obj := sandbox.New()
+		obj.ExternalID.Set("sb-test-minimal")
+		obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		obj.MetaData.Set(&sandbox.MetaData{}) // Empty metadata
+
+		// Act
+		err := obj.Save(nil)
+		// Assert
+		if err != nil {
+			t.Fatalf("Failed to save sandbox: %v", err)
+		}
+		defer testtools.CleanupModel(obj)
+
+		// Verify sandbox was saved and can be retrieved
+		retrieved, err := sandbox.Get(context.Background(), obj.ID())
+		if err != nil {
+			t.Fatalf("Failed to retrieve sandbox: %v", err)
+		}
+
+		if tools.Empty(retrieved) {
+			t.Fatal("Retrieved sandbox is empty")
+		}
+
+		// Verify fields
+		if retrieved.ExternalID.Get() != "sb-test-minimal" {
+			t.Fatalf("Expected external_id 'sb-test-minimal', got '%s'", retrieved.ExternalID.Get())
+		}
+
+		if retrieved.Provider.Get() != sandbox.PROVIDER_CLAUDE_CODE {
+			t.Fatalf("Expected provider %d, got %d", sandbox.PROVIDER_CLAUDE_CODE, retrieved.Provider.Get())
+		}
+
+		// Verify metadata exists and is empty
+		metadata, err := retrieved.MetaData.Get()
+		if err != nil {
+			t.Fatalf("Failed to get metadata: %v", err)
+		}
+		if metadata == nil {
+			t.Fatal("Metadata should not be nil")
+		}
+
+		if metadata.LastS3Sync != nil {
+			t.Fatal("LastS3Sync should be nil for minimal metadata")
+		}
+
+		if metadata.SyncStats != nil {
+			t.Fatal("SyncStats should be nil for minimal metadata")
+		}
+	})
+
+	t.Run("saves sandbox with populated metadata", func(t *testing.T) {
+		// Arrange - Create sandbox with populated metadata
+		obj := sandbox.New()
+		obj.ExternalID.Set("sb-test-populated")
+		obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+
+		metadata := &sandbox.MetaData{}
+		metadata.UpdateLastSync(10, 1024, 500)
+		obj.MetaData.Set(metadata)
+
+		// Act
+		err := obj.Save(nil)
+		// Assert
+		if err != nil {
+			t.Fatalf("Failed to save sandbox: %v", err)
+		}
+		defer testtools.CleanupModel(obj)
+
+		// Verify sandbox was saved and can be retrieved
+		retrieved, err := sandbox.Get(context.Background(), obj.ID())
+		if err != nil {
+			t.Fatalf("Failed to retrieve sandbox: %v", err)
+		}
+
+		if tools.Empty(retrieved) {
+			t.Fatal("Retrieved sandbox is empty")
+		}
+
+		// Verify metadata was persisted
+		retrievedMetadata, err := retrieved.MetaData.Get()
+		if err != nil {
+			t.Fatalf("Failed to get metadata: %v", err)
+		}
+		if retrievedMetadata == nil {
+			t.Fatal("Metadata should not be nil")
+		}
+
+		if retrievedMetadata.LastS3Sync == nil {
+			t.Fatal("LastS3Sync should not be nil")
+		}
+
+		if retrievedMetadata.SyncStats == nil {
+			t.Fatal("SyncStats should not be nil")
+		}
+
+		if retrievedMetadata.SyncStats.FilesProcessed != 10 {
+			t.Fatalf("Expected FilesProcessed 10, got %d", retrievedMetadata.SyncStats.FilesProcessed)
+		}
+
+		if retrievedMetadata.SyncStats.BytesTransferred != 1024 {
+			t.Fatalf("Expected BytesTransferred 1024, got %d", retrievedMetadata.SyncStats.BytesTransferred)
+		}
+
+		if retrievedMetadata.SyncStats.DurationMs != 500 {
+			t.Fatalf("Expected DurationMs 500, got %d", retrievedMetadata.SyncStats.DurationMs)
+		}
+	})
 }

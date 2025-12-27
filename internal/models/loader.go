@@ -19,6 +19,7 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/models/migrations"
 	"github.com/griffnb/techboss-ai-go/internal/models/object_tag"
 	"github.com/griffnb/techboss-ai-go/internal/models/organization"
+	"github.com/griffnb/techboss-ai-go/internal/models/sandbox"
 	"github.com/griffnb/techboss-ai-go/internal/models/subscription"
 	"github.com/griffnb/techboss-ai-go/internal/models/tag"
 
@@ -55,6 +56,7 @@ func LoadModels() (err error) {
 		billing_plan_price.TABLE: &billing_plan_price.Structure{},
 		category.TABLE:           &category.Structure{},
 		lead.TABLE:               &lead.Structure{},
+		sandbox.TABLE:            &sandbox.Structure{},
 		subscription.TABLE:       &subscription.Structure{},
 		tag.TABLE:                &tag.Structure{},
 		object_tag.TABLE:         &object_tag.Structure{},
