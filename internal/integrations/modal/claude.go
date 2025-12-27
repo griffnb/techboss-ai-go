@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/griffnb/core/lib/tools"
@@ -49,29 +50,22 @@ func (c *APIClient) ExecClaude(ctx context.Context, sandboxInfo *SandboxInfo, co
 		return nil, errors.New("prompt cannot be empty")
 	}
 
-	// Build Claude command
-	claudeCmd := "claude"
-
-	// Add flags based on config
+	// Build Claude command flags
+	claudeFlags := ""
 	if config.SkipPermissions {
-		claudeCmd += " --dangerously-skip-permissions"
+		claudeFlags += " --dangerously-skip-permissions"
 	}
 	if config.Verbose {
-		claudeCmd += " --verbose"
+		claudeFlags += " --verbose"
 	}
 	if !tools.Empty(config.OutputFormat) {
-		claudeCmd += fmt.Sprintf(" --output-format %s", config.OutputFormat)
+		claudeFlags += fmt.Sprintf(" --output-format %s", config.OutputFormat)
 	}
-
-	// Add prompt with -c (chat mode) and -p (prompt) flags
-	// Escape single quotes in prompt for shell safety
-	escapedPrompt := fmt.Sprintf("'%s'", config.Prompt)
-	claudeCmd += fmt.Sprintf(" -c -p %s", escapedPrompt)
 
 	// Add any additional flags
 	if len(config.AdditionalFlags) > 0 {
 		for _, flag := range config.AdditionalFlags {
-			claudeCmd += " " + flag
+			claudeFlags += " " + flag
 		}
 	}
 
@@ -81,15 +75,57 @@ func (c *APIClient) ExecClaude(ctx context.Context, sandboxInfo *SandboxInfo, co
 		workdir = sandboxInfo.Config.VolumeMountPath
 	}
 
-	// Run as claudeuser (pre-configured in image template)
-	// For images built with GetClaudeImageConfig(), claudeuser is already set up with proper permissions
-	// Claude is installed at /usr/local/bin/claude and workspace is owned by claudeuser
-	// Using runuser (from util-linux) instead of su for cleaner non-interactive user switching
+	// Build command that:
+	// 1. Fixes workspace ownership as root (Modal volumes are mounted as root)
+	// 2. Switches to claudeuser for Claude execution
+	// This two-step approach ensures permissions are fixed AFTER volume mount but BEFORE Claude runs
+
+	// STEP 1: Fix workspace permissions as root (separate exec call)
+	// Modal volumes are mounted as root, so we need to chown before Claude can write
+	// CRITICAL: /mnt/workspace is a symlink to /__modal/volumes/... - resolve it first
+	fmt.Printf("[DEBUG] Step 1: Fixing workspace permissions for %s\n", workdir)
+	permFixCmd := []string{
+		"sh", "-c",
+		fmt.Sprintf(
+			"REAL_PATH=$(readlink -f %s) && chown -R %s:%s $REAL_PATH && echo \"Permissions fixed for $REAL_PATH\"",
+			workdir,
+			ClaudeUserName,
+			ClaudeUserName,
+		),
+	}
+
+	// Run permission fix as root (no secrets needed)
+	permProcess, err := sandboxInfo.Sandbox.Exec(ctx, permFixCmd, &modal.SandboxExecParams{
+		PTY: false,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to execute permission fix command")
+	}
+
+	// Wait for permission fix to complete
+	permExitCode, err := permProcess.Wait(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed waiting for permission fix")
+	}
+	if permExitCode != 0 {
+		return nil, errors.Errorf("permission fix failed with exit code %d", permExitCode)
+	}
+	fmt.Printf("[DEBUG] Step 1 complete: Permissions fixed (exit code %d)\n", permExitCode)
+
+	// STEP 2: Run Claude as claudeuser (separate exec call)
+	// Escape the prompt for shell - replace single quotes with '\'' to escape them
+	escapedPrompt := strings.ReplaceAll(config.Prompt, "'", "'\\''")
+
+	// Build the Claude command running as claudeuser
+	claudeCmd := fmt.Sprintf("cd %s && claude%s -c -p '%s'", workdir, claudeFlags, escapedPrompt)
 	cmd := []string{
 		"runuser", "-u", ClaudeUserName, "--",
 		"sh", "-c",
-		fmt.Sprintf("cd %s && claude %s", workdir, claudeCmd[len("claude "):]),
+		claudeCmd,
 	}
+
+	fmt.Printf("[DEBUG] Step 2: Executing Claude as %s\n", ClaudeUserName)
+	fmt.Printf("[DEBUG] Command: %v\n", cmd)
 
 	// Retrieve Anthropic API key from environment config
 	envConfig := environment.GetConfig()
@@ -110,13 +146,13 @@ func (c *APIClient) ExecClaude(ctx context.Context, sandboxInfo *SandboxInfo, co
 		return nil, errors.Wrapf(err, "failed to create secrets for Claude execution")
 	}
 
-	// Execute with PTY (CRITICAL: Claude CLI requires PTY)
+	// Execute Claude with PTY (CRITICAL: Claude CLI requires PTY)
 	execParams := &modal.SandboxExecParams{
 		PTY:     true, // Required for Claude CLI
 		Secrets: []*modal.Secret{secrets},
 	}
 
-	// Workdir is already handled in the command via chown, but set it for context
+	// Workdir is already handled in the command
 	if !tools.Empty(workdir) {
 		execParams.Workdir = "/"
 	}
