@@ -22,7 +22,6 @@ func TestClaudeExecConfig(t *testing.T) {
 			Prompt:          "List files in current directory",
 			Workdir:         "/mnt/workspace",
 			OutputFormat:    "stream-json",
-			SkipPermissions: true,
 			Verbose:         true,
 			AdditionalFlags: []string{"--timeout", "300"},
 		}
@@ -31,7 +30,6 @@ func TestClaudeExecConfig(t *testing.T) {
 		assert.Equal(t, "List files in current directory", config.Prompt)
 		assert.Equal(t, "/mnt/workspace", config.Workdir)
 		assert.Equal(t, "stream-json", config.OutputFormat)
-		assert.Equal(t, true, config.SkipPermissions)
 		assert.Equal(t, true, config.Verbose)
 		assert.Equal(t, 2, len(config.AdditionalFlags))
 	})
@@ -46,7 +44,6 @@ func TestClaudeExecConfig(t *testing.T) {
 		assert.Equal(t, "echo hello", config.Prompt)
 		assert.Equal(t, "", config.Workdir)
 		assert.Equal(t, "", config.OutputFormat)
-		assert.Equal(t, false, config.SkipPermissions)
 		assert.Equal(t, false, config.Verbose)
 		assert.Equal(t, 0, len(config.AdditionalFlags))
 	})
@@ -85,15 +82,8 @@ func TestExecClaude(t *testing.T) {
 		// Arrange - Create sandbox with Claude CLI installed
 		accountID := types.UUID("test-claude-exec-123")
 		sandboxConfig := &modal.SandboxConfig{
-			AccountID: accountID,
-			Image: &modal.ImageConfig{
-				BaseImage: "alpine:3.21",
-				DockerfileCommands: []string{
-					"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep aws-cli",
-					"RUN curl -fsSL https://claude.ai/install.sh | bash",
-					"ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0",
-				},
-			},
+			AccountID:       accountID,
+			Image:           modal.GetClaudeImageConfig(),
 			VolumeName:      "test-volume-claude-exec",
 			VolumeMountPath: "/mnt/workspace",
 			Workdir:         "/mnt/workspace",
@@ -130,15 +120,8 @@ func TestExecClaude(t *testing.T) {
 		// Arrange - Create sandbox with Claude CLI
 		accountID := types.UUID("test-claude-flags-456")
 		sandboxConfig := &modal.SandboxConfig{
-			AccountID: accountID,
-			Image: &modal.ImageConfig{
-				BaseImage: "alpine:3.21",
-				DockerfileCommands: []string{
-					"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep aws-cli",
-					"RUN curl -fsSL https://claude.ai/install.sh | bash",
-					"ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0",
-				},
-			},
+			AccountID:       accountID,
+			Image:           modal.GetClaudeImageConfig(),
 			VolumeName:      "test-volume-claude-flags",
 			VolumeMountPath: "/mnt/workspace",
 			Workdir:         "/mnt/workspace",
@@ -157,13 +140,6 @@ func TestExecClaude(t *testing.T) {
 			name   string
 			config *modal.ClaudeExecConfig
 		}{
-			{
-				name: "With skip permissions",
-				config: &modal.ClaudeExecConfig{
-					Prompt:          "echo test",
-					SkipPermissions: true,
-				},
-			},
 			{
 				name: "With verbose",
 				config: &modal.ClaudeExecConfig{
@@ -283,15 +259,8 @@ func TestWaitForClaude(t *testing.T) {
 		// Arrange - Create sandbox with Claude CLI
 		accountID := types.UUID("test-claude-wait-123")
 		sandboxConfig := &modal.SandboxConfig{
-			AccountID: accountID,
-			Image: &modal.ImageConfig{
-				BaseImage: "alpine:3.21",
-				DockerfileCommands: []string{
-					"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep aws-cli",
-					"RUN curl -fsSL https://claude.ai/install.sh | bash",
-					"ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0",
-				},
-			},
+			AccountID:       accountID,
+			Image:           modal.GetClaudeImageConfig(),
 			VolumeName:      "test-volume-claude-wait",
 			VolumeMountPath: "/mnt/workspace",
 			Workdir:         "/mnt/workspace",
@@ -358,15 +327,8 @@ func TestExecClaudeRefactored(t *testing.T) {
 		// Arrange - Create sandbox
 		accountID := types.UUID("test-claude-refactor-123")
 		sandboxConfig := &modal.SandboxConfig{
-			AccountID: accountID,
-			Image: &modal.ImageConfig{
-				BaseImage: "alpine:3.21",
-				DockerfileCommands: []string{
-					"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep aws-cli",
-					"RUN curl -fsSL https://claude.ai/install.sh | bash",
-					"ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0",
-				},
-			},
+			AccountID:       accountID,
+			Image:           modal.GetClaudeImageConfig(),
 			VolumeName:      "test-volume-refactor",
 			VolumeMountPath: "/mnt/workspace",
 			Workdir:         "/mnt/workspace",
@@ -452,15 +414,8 @@ func TestStreamClaudeOutput(t *testing.T) {
 		// Arrange - Create sandbox with Claude CLI installed
 		accountID := types.UUID("test-claude-stream-123")
 		sandboxConfig := &modal.SandboxConfig{
-			AccountID: accountID,
-			Image: &modal.ImageConfig{
-				BaseImage: "alpine:3.21",
-				DockerfileCommands: []string{
-					"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep aws-cli",
-					"RUN curl -fsSL https://claude.ai/install.sh | bash",
-					"ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0",
-				},
-			},
+			AccountID:       accountID,
+			Image:           modal.GetClaudeImageConfig(),
 			VolumeName:      "test-volume-claude-stream",
 			VolumeMountPath: "/mnt/workspace",
 			Workdir:         "/mnt/workspace",
@@ -540,15 +495,8 @@ func TestStreamClaudeOutput(t *testing.T) {
 		// Arrange - Create sandbox with Claude CLI installed
 		accountID := types.UUID("test-claude-stream-error-456")
 		sandboxConfig := &modal.SandboxConfig{
-			AccountID: accountID,
-			Image: &modal.ImageConfig{
-				BaseImage: "alpine:3.21",
-				DockerfileCommands: []string{
-					"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep aws-cli",
-					"RUN curl -fsSL https://claude.ai/install.sh | bash",
-					"ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0",
-				},
-			},
+			AccountID:       accountID,
+			Image:           modal.GetClaudeImageConfig(),
 			VolumeName:      "test-volume-claude-error",
 			VolumeMountPath: "/mnt/workspace",
 			Workdir:         "/mnt/workspace",
@@ -603,15 +551,8 @@ func TestStreamClaudeOutputWithCancellation(t *testing.T) {
 		// Arrange - Create sandbox with Claude CLI installed
 		accountID := types.UUID("test-claude-cancel-789")
 		sandboxConfig := &modal.SandboxConfig{
-			AccountID: accountID,
-			Image: &modal.ImageConfig{
-				BaseImage: "alpine:3.21",
-				DockerfileCommands: []string{
-					"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep aws-cli",
-					"RUN curl -fsSL https://claude.ai/install.sh | bash",
-					"ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0",
-				},
-			},
+			AccountID:       accountID,
+			Image:           modal.GetClaudeImageConfig(),
 			VolumeName:      "test-volume-claude-cancel",
 			VolumeMountPath: "/mnt/workspace",
 			Workdir:         "/mnt/workspace",

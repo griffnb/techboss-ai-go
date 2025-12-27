@@ -39,11 +39,13 @@ func (c *APIClient) InitVolumeFromS3(ctx context.Context, sandboxInfo *SandboxIn
 
 	startTime := time.Now()
 
-	// Build command to copy files from S3 mount to volume
+	// Build command to copy files from S3 mount to volume as claudeuser
+	// Run as claudeuser to ensure proper file ownership in workspace
 	// Use cp with recursive and verbose options
 	// Note: The || true ensures the command succeeds even if source is empty
 	// The 2>&1 redirects stderr to stdout so we can capture all output
 	cmd := []string{
+		"runuser", "-u", ClaudeUserName, "--",
 		"sh", "-c",
 		fmt.Sprintf(
 			"cp -rv %s/* %s/ 2>&1 || true",
@@ -142,9 +144,13 @@ func (c *APIClient) SyncVolumeToS3(ctx context.Context, sandboxInfo *SandboxInfo
 		return nil, errors.Wrapf(err, "failed to get secret %s for S3 sync", sandboxInfo.Config.S3Config.SecretName)
 	}
 
-	// Build AWS CLI sync command
-	syncCmd := fmt.Sprintf("aws s3 sync %s %s --exact-timestamps 2>&1", sandboxInfo.Config.VolumeMountPath, s3Path)
-	cmd := []string{"sh", "-c", syncCmd}
+	// Build AWS CLI sync command running as claudeuser
+	// claudeuser has sudo access to aws CLI (configured in image template)
+	syncCmd := fmt.Sprintf("sudo aws s3 sync %s %s --exact-timestamps 2>&1", sandboxInfo.Config.VolumeMountPath, s3Path)
+	cmd := []string{
+		"runuser", "-u", ClaudeUserName, "--",
+		"sh", "-c", syncCmd,
+	}
 
 	// Execute with AWS credentials
 	process, err := sandboxInfo.Sandbox.Exec(ctx, cmd, &modal.SandboxExecParams{
@@ -175,7 +181,12 @@ func (c *APIClient) SyncVolumeToS3(ctx context.Context, sandboxInfo *SandboxInfo
 	// Count files in volume to get stats
 	// Use ls -laR to recursively list all files, grep to filter only regular files (not dirs)
 	// This provides metrics for monitoring and billing purposes
-	countCmd := []string{"sh", "-c", fmt.Sprintf("ls -laR %s 2>/dev/null | grep '^-' | wc -l", sandboxInfo.Config.VolumeMountPath)}
+	// Run as claudeuser to ensure proper permissions
+	countCmd := []string{
+		"runuser", "-u", ClaudeUserName, "--",
+		"sh", "-c",
+		fmt.Sprintf("ls -laR %s 2>/dev/null | grep '^-' | wc -l", sandboxInfo.Config.VolumeMountPath),
+	}
 	countProcess, err := sandboxInfo.Sandbox.Exec(ctx, countCmd, &modal.SandboxExecParams{
 		Workdir: "/",
 	})

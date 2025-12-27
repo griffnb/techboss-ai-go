@@ -170,9 +170,8 @@ func TestSandboxService_ExecuteClaudeStream(t *testing.T) {
 		}()
 
 		claudeConfig := &modal.ClaudeExecConfig{
-			Prompt:          "Say hello",
-			OutputFormat:    "text",
-			SkipPermissions: true,
+			Prompt:       "Say hello",
+			OutputFormat: "text",
 		}
 
 		// Create mock response writer

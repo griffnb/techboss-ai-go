@@ -91,9 +91,8 @@ func TestCompleteSandboxLifecycleWithClaude(t *testing.T) {
 		// Step 3: Execute Claude with prompt
 		t.Log("Step 3: Executing Claude with prompt...")
 		claudeConfig := &modal.ClaudeExecConfig{
-			Prompt:          "echo 'Hello from integration test'",
-			SkipPermissions: true,
-			Verbose:         false,
+			Prompt:  "echo 'Hello from integration test'",
+			Verbose: false,
 		}
 
 		claudeProcess, err := client.ExecClaude(ctx, sandboxInfo, claudeConfig)
@@ -663,8 +662,7 @@ func TestSandboxWithAllConfigurationOptions(t *testing.T) {
 		// Test Claude execution with all configuration
 		t.Log("Testing Claude execution with full configuration...")
 		claudeConfig := &modal.ClaudeExecConfig{
-			Prompt:          "pwd && ls -la",
-			SkipPermissions: true,
+			Prompt: "pwd && ls -la",
 		}
 
 		claudeProcess, err := client.ExecClaude(ctx, sandboxInfo, claudeConfig)

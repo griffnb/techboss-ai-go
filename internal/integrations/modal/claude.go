@@ -14,12 +14,13 @@ import (
 )
 
 // ClaudeExecConfig holds configuration for Claude Code CLI execution in a sandbox.
-// It defines the prompt, output format, permissions, and other CLI flags.
+// It defines the prompt, output format, and other CLI flags.
+// Note: Permissions are handled by running as claudeuser (set up in image template).
 type ClaudeExecConfig struct {
 	Prompt          string   // User prompt for Claude
 	Workdir         string   // Working directory (default: volume mount path)
 	OutputFormat    string   // "stream-json" or "text"
-	SkipPermissions bool     // --dangerously-skip-permissions flag
+	SkipPermissions bool     // --dangerously-skip-permissions flag (safe in sandbox with claudeuser)
 	Verbose         bool     // Enable verbose output
 	AdditionalFlags []string // Any additional CLI flags
 }
@@ -80,17 +81,14 @@ func (c *APIClient) ExecClaude(ctx context.Context, sandboxInfo *SandboxInfo, co
 		workdir = sandboxInfo.Config.VolumeMountPath
 	}
 
-	// Run as non-root user to avoid root privilege restrictions
-	// Create user if it doesn't exist (Alpine-compatible), change ownership, and run as that user
-	// Copy claude to a globally accessible location since /root/.local/bin is not accessible to other users
+	// Run as claudeuser (pre-configured in image template)
+	// For images built with GetClaudeImageConfig(), claudeuser is already set up with proper permissions
+	// Claude is installed at /usr/local/bin/claude and workspace is owned by claudeuser
+	// Using runuser (from util-linux) instead of su for cleaner non-interactive user switching
 	cmd := []string{
+		"runuser", "-u", ClaudeUserName, "--",
 		"sh", "-c",
-		fmt.Sprintf(
-			"CLAUDE_PATH=$(which claude) && cp $CLAUDE_PATH /usr/local/bin/claude 2>/dev/null || true && chmod 755 /usr/local/bin/claude && id -u claudeuser >/dev/null 2>&1 || (adduser -D -s /bin/sh claudeuser 2>/dev/null || useradd -m -s /bin/bash claudeuser) && chown -R claudeuser:claudeuser %s 2>/dev/null || true && su claudeuser -c \"cd %s && /usr/local/bin/claude %s\"",
-			workdir,
-			workdir,
-			claudeCmd[len("claude "):], // Remove "claude" prefix since we're using /usr/local/bin/claude
-		),
+		fmt.Sprintf("cd %s && claude %s", workdir, claudeCmd[len("claude "):]),
 	}
 
 	// Retrieve Anthropic API key from environment config

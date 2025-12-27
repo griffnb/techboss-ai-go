@@ -66,7 +66,7 @@ func streamClaude(w http.ResponseWriter, req *http.Request) {
 
 	// Build ClaudeExecConfig with prompt
 	// stream-json: structured JSON output format
-	// SkipPermissions: bypasses permission prompts (safe in sandboxed environment)
+	// SkipPermissions: prevents interactive prompts in sandbox (safe with claudeuser setup)
 	// Verbose: detailed logging for debugging
 	claudeConfig := &modal.ClaudeExecConfig{
 		Prompt:          data.Prompt,

@@ -32,6 +32,11 @@ func Setup(coreRouter *router.CoreRouter) {
 				constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(deleteSandbox),
 			}))
 
+			// POST /sandbox/{sandboxID}/sync - Sync sandbox volume to S3
+			authR.Post("/{sandboxID}/sync", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(syncSandbox),
+			}))
+
 			// POST /sandbox/{sandboxID}/claude - Execute Claude with streaming (Task 11)
 			authR.Post("/{sandboxID}/claude", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_ANY_AUTHORIZED: router.NoTimeoutStreamingMiddleware(streamClaude),

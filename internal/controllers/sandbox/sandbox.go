@@ -23,13 +23,15 @@ var sandboxCache = sync.Map{}
 
 // CreateSandboxRequest holds request data for sandbox creation.
 // It defines the Docker image, storage volumes, and S3 configuration for the sandbox.
+// Supports either image_template for pre-configured images or custom image_base + dockerfile_commands.
 type CreateSandboxRequest struct {
-	ImageBase          string   `json:"image_base"`
-	DockerfileCommands []string `json:"dockerfile_commands"`
-	VolumeName         string   `json:"volume_name"`
-	S3BucketName       string   `json:"s3_bucket_name"`
-	S3KeyPrefix        string   `json:"s3_key_prefix"`
-	InitFromS3         bool     `json:"init_from_s3"`
+	ImageTemplate      string   `json:"image_template"`      // Pre-configured template (e.g., "claude")
+	ImageBase          string   `json:"image_base"`          // Custom base image (required if no template)
+	DockerfileCommands []string `json:"dockerfile_commands"` // Custom Dockerfile commands (optional)
+	VolumeName         string   `json:"volume_name"`         // Volume name for persistent storage
+	S3BucketName       string   `json:"s3_bucket_name"`      // S3 bucket name (optional)
+	S3KeyPrefix        string   `json:"s3_key_prefix"`       // S3 key prefix (optional)
+	InitFromS3         bool     `json:"init_from_s3"`        // Initialize volume from S3
 }
 
 // CreateSandboxResponse holds response data for sandbox creation.
@@ -57,20 +59,34 @@ func createSandbox(_ http.ResponseWriter, req *http.Request) (*CreateSandboxResp
 		return response.AdminBadRequestError[*CreateSandboxResponse](err)
 	}
 
-	// Validate required fields
-	if tools.Empty(data.ImageBase) {
-		err := errors.New("image_base is required")
+	// Validate and build image config (either from template or custom)
+	var imageConfig *modal.ImageConfig
+
+	if !tools.Empty(data.ImageTemplate) {
+		// Use pre-configured template
+		imageConfig = modal.GetImageConfigFromTemplate(data.ImageTemplate)
+		if imageConfig == nil {
+			err := errors.Errorf("unknown image_template: %s", data.ImageTemplate)
+			log.ErrorContext(err, req.Context())
+			return response.AdminBadRequestError[*CreateSandboxResponse](err)
+		}
+	} else if !tools.Empty(data.ImageBase) {
+		// Use custom image configuration
+		imageConfig = &modal.ImageConfig{
+			BaseImage:          data.ImageBase,
+			DockerfileCommands: data.DockerfileCommands,
+		}
+	} else {
+		// Neither template nor custom image provided
+		err := errors.New("either image_template or image_base is required")
 		log.ErrorContext(err, req.Context())
 		return response.AdminBadRequestError[*CreateSandboxResponse](err)
 	}
 
 	// Build sandbox config
 	config := &modal.SandboxConfig{
-		AccountID: accountID,
-		Image: &modal.ImageConfig{
-			BaseImage:          data.ImageBase,
-			DockerfileCommands: data.DockerfileCommands,
-		},
+		AccountID:       accountID,
+		Image:           imageConfig,
 		VolumeName:      data.VolumeName,
 		VolumeMountPath: "/mnt/workspace",
 		Workdir:         "/mnt/workspace",
@@ -191,6 +207,56 @@ func deleteSandbox(_ http.ResponseWriter, req *http.Request) (*CreateSandboxResp
 		SandboxID: sandboxInfo.SandboxID,
 		Status:    "terminated",
 		CreatedAt: sandboxInfo.CreatedAt,
+	}
+
+	return response.Success(resp)
+}
+
+// SyncSandboxResponse holds response data for S3 sync operations.
+type SyncSandboxResponse struct {
+	SandboxID        string `json:"sandbox_id"`
+	FilesProcessed   int    `json:"files_processed"`
+	BytesTransferred int64  `json:"bytes_transferred"`
+	DurationMs       int64  `json:"duration_ms"`
+}
+
+// syncSandbox syncs the sandbox volume to S3 without terminating.
+// This allows manual backups/snapshots of the current workspace state.
+//
+// TODO: Retrieve sandboxInfo from database (Phase 2)
+func syncSandbox(_ http.ResponseWriter, req *http.Request) (*SyncSandboxResponse, int, error) {
+	sandboxID := chi.URLParam(req, "sandboxID")
+
+	log.Infof("syncSandbox called with sandboxID: %s", sandboxID)
+
+	// Retrieve from in-memory cache (temporary solution)
+	// TODO (Phase 2): Query database instead of memory cache
+	value, ok := sandboxCache.Load(sandboxID)
+	if !ok {
+		err := errors.Errorf("sandbox not found: %s", sandboxID)
+		log.ErrorContext(err, req.Context())
+		return response.AdminBadRequestError[*SyncSandboxResponse](err)
+	}
+
+	sandboxInfo := value.(*modal.SandboxInfo)
+
+	// Sync to S3 via service layer
+	service := modalService.NewSandboxService()
+	stats, err := service.SyncToS3(req.Context(), sandboxInfo)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.AdminBadRequestError[*SyncSandboxResponse](err)
+	}
+
+	log.Infof("Synced sandbox %s to S3: %d files, %d bytes, %dms",
+		sandboxID, stats.FilesProcessed, stats.BytesTransferred, stats.Duration.Milliseconds())
+
+	// Return response with sync stats
+	resp := &SyncSandboxResponse{
+		SandboxID:        sandboxInfo.SandboxID,
+		FilesProcessed:   stats.FilesProcessed,
+		BytesTransferred: stats.BytesTransferred,
+		DurationMs:       stats.Duration.Milliseconds(),
 	}
 
 	return response.Success(resp)

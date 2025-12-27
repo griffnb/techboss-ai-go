@@ -237,6 +237,55 @@
             white-space: nowrap;
         }
 
+        /* Sandbox action buttons */
+        .sandbox-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .btn-danger:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         /* Empty state */
         .empty-state {
             text-align: center;
@@ -365,6 +414,10 @@
                 <div class="chat-info">
                     <strong>Sandbox ID:</strong> <span id="sandbox-id"></span>
                 </div>
+                <div class="sandbox-actions">
+                    <button id="sync-btn" class="btn-secondary">💾 Sync to S3</button>
+                    <button id="terminate-btn" class="btn-danger">🗑️ Terminate Sandbox</button>
+                </div>
                 <div id="messages">
                     <div class="empty-state">
                         Your conversation with Claude will appear here.<br>
@@ -418,12 +471,7 @@
                     },
                     credentials: 'include',
                     body: JSON.stringify({
-                        image_base: 'alpine:3.21',
-                        dockerfile_commands: [
-                            'RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep aws-cli',
-                            'RUN curl -fsSL https://claude.ai/install.sh | bash',
-                            'ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0'
-                        ],
+                        image_template: 'claude',
                         volume_name: '',
                         init_from_s3: false
                     })
@@ -561,6 +609,105 @@
                 assistantMsg.classList.add('message-error');
             } finally {
                 setStreamingState(false);
+            }
+        });
+
+        // Sync to S3 button handler
+        document.getElementById('sync-btn').addEventListener('click', async () => {
+            const syncBtn = document.getElementById('sync-btn');
+
+            if (!sandboxID) {
+                alert('No sandbox available');
+                return;
+            }
+
+            // Disable button during sync
+            syncBtn.disabled = true;
+            syncBtn.textContent = '⏳ Syncing...';
+
+            try {
+                const url = `${baseURL}/sandbox/${sandboxID}/sync`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to sync: ${response.status} ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('Sync result:', result);
+
+                // Show success message
+                addSystemMessage(`✅ Synced to S3: ${result.files_processed || 0} files processed`);
+                syncBtn.textContent = '✓ Synced!';
+
+                // Reset button after delay
+                setTimeout(() => {
+                    syncBtn.textContent = '💾 Sync to S3';
+                    syncBtn.disabled = false;
+                }, 2000);
+
+            } catch (error) {
+                console.error('Error syncing to S3:', error);
+                addSystemMessage(`❌ Sync failed: ${error.message}`);
+                syncBtn.textContent = '💾 Sync to S3';
+                syncBtn.disabled = false;
+            }
+        });
+
+        // Terminate sandbox button handler
+        document.getElementById('terminate-btn').addEventListener('click', async () => {
+            const terminateBtn = document.getElementById('terminate-btn');
+
+            if (!sandboxID) {
+                alert('No sandbox available');
+                return;
+            }
+
+            // Confirm termination
+            if (!confirm('Are you sure you want to terminate this sandbox? This will sync to S3 and shut down the container.')) {
+                return;
+            }
+
+            // Disable button during termination
+            terminateBtn.disabled = true;
+            terminateBtn.textContent = '⏳ Terminating...';
+
+            try {
+                const url = `${baseURL}/sandbox/${sandboxID}`;
+                const response = await fetch(url, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to terminate: ${response.status} ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('Terminate result:', result);
+
+                // Show success message
+                addSystemMessage('✅ Sandbox terminated successfully. Synced to S3 before shutdown.');
+
+                // Reset UI to creation state
+                setTimeout(() => {
+                    createSection.style.display = 'block';
+                    chatSection.style.display = 'none';
+                    sandboxID = null;
+                    clearMessages();
+                    setStatus('', '');
+                }, 2000);
+
+            } catch (error) {
+                console.error('Error terminating sandbox:', error);
+                addSystemMessage(`❌ Termination failed: ${error.message}`);
+                terminateBtn.textContent = '🗑️ Terminate Sandbox';
+                terminateBtn.disabled = false;
             }
         });
 
