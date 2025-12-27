@@ -1,20 +1,51 @@
-package sandbox
+//go:generate core_gen controller Sandbox -modelPackage=sandbox -options=admin
+package sandboxes
 
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/core/lib/router"
+
 	"github.com/griffnb/core/lib/router/response"
 	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
 	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
+	"github.com/griffnb/techboss-ai-go/internal/models/sandbox"
 )
 
-const ROUTE string = "sandbox"
+const (
+	TABLE_NAME string = sandbox.TABLE
+	ROUTE      string = "sandbox"
+)
 
-// Setup configures sandbox routes with role-based access control.
-// All endpoints require any authorized user (ROLE_ANY_AUTHORIZED).
-// The Claude streaming endpoint uses NoTimeoutStreamingMiddleware for long-running operations.
+// Setup sets up the router
 func Setup(coreRouter *router.CoreRouter) {
+	coreRouter.AddMainRoute(tools.BuildString("/admin/", ROUTE), func(r chi.Router) {
+		r.Group(func(adminR chi.Router) {
+			adminR.Get("/", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_READ_ADMIN: response.StandardRequestWrapper(adminIndex),
+			}))
+			adminR.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_READ_ADMIN: response.StandardRequestWrapper(adminGet),
+			}))
+			adminR.Get("/count", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_READ_ADMIN: response.StandardRequestWrapper(adminCount),
+			}))
+		})
+		r.Group(func(adminR chi.Router) {
+			adminR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ADMIN: response.StandardRequestWrapper(adminCreate),
+			}))
+			adminR.Put("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ADMIN: response.StandardRequestWrapper(adminUpdate),
+			}))
+		})
+		r.Group(func(adminR chi.Router) {
+			adminR.Get("/_ts", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_READ_ADMIN: helpers.TSValidation(TABLE_NAME),
+			}))
+		})
+	})
+
 	coreRouter.AddMainRoute(tools.BuildString("/", ROUTE), func(r chi.Router) {
 		r.Group(func(authR chi.Router) {
 			// POST /sandbox - Create new sandbox
@@ -43,24 +74,4 @@ func Setup(coreRouter *router.CoreRouter) {
 			}))
 		})
 	})
-}
-
-// SetupTestRoutes configures routes for testing without CoreRouter.
-// This helper function allows tests to create a chi.Router directly.
-func SetupTestRoutes(r chi.Router) {
-	r.Post("/sandbox", helpers.RoleHandler(helpers.RoleHandlerMap{
-		constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(createSandbox),
-	}))
-
-	r.Get("/sandbox/{sandboxID}", helpers.RoleHandler(helpers.RoleHandlerMap{
-		constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(getSandbox),
-	}))
-
-	r.Delete("/sandbox/{sandboxID}", helpers.RoleHandler(helpers.RoleHandlerMap{
-		constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(deleteSandbox),
-	}))
-
-	r.Post("/sandbox/{sandboxID}/claude", helpers.RoleHandler(helpers.RoleHandlerMap{
-		constants.ROLE_ANY_AUTHORIZED: router.NoTimeoutStreamingMiddleware(streamClaude),
-	}))
 }
