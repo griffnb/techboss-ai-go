@@ -47,13 +47,16 @@ func GetClaudeImageConfig() *ImageConfig {
 			// Make it executable by all users but only writable by root
 			"RUN cp /root/.local/bin/claude /usr/local/bin/claude && chmod 755 /usr/local/bin/claude && chown root:root /usr/local/bin/claude",
 
-			// Create workspace directory with proper ownership
-			// This ensures claudeuser can write to workspace without permission issues
-			"RUN mkdir -p /mnt/workspace && chown -R claudeuser:claudeuser /mnt/workspace",
+			// Create workspace directory (ownership will be fixed at runtime)
+			"RUN mkdir -p /mnt/workspace",
 
 			// Set up environment variables
 			// USE_BUILTIN_RIPGREP=0 tells Claude to use system ripgrep (faster)
 			"ENV PATH=/usr/local/bin:$PATH USE_BUILTIN_RIPGREP=0",
+
+			// Fix workspace ownership at container startup
+			// Modal volumes are mounted as root, so we need to change ownership after mount
+			"CMD chown -R claudeuser:claudeuser /mnt/workspace 2>/dev/null || true && sleep infinity",
 		},
 	}
 }

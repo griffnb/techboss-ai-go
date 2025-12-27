@@ -242,10 +242,19 @@
             font-size: 13px;
         }
 
+        .tool-result-error {
+            background: #fee2e2;
+            border-left-color: #dc2626;
+        }
+
         .tool-result-header {
             font-weight: 600;
             color: #15803d;
             margin-bottom: 4px;
+        }
+
+        .tool-result-error .tool-result-header {
+            color: #dc2626;
         }
 
         .tool-result-summary {
@@ -790,17 +799,52 @@
 
         // Helper: Append stream content (JSON format)
         function appendStreamContent(messageEl, jsonData) {
-            const type = jsonData.type;
-
-            if (type === 'text') {
-                appendTextContent(messageEl, jsonData.text);
-            } else if (type === 'tool_use') {
-                appendToolUse(messageEl, jsonData);
-            } else if (type === 'tool_result') {
-                appendToolResult(messageEl, jsonData);
-            } else if (type === 'thinking') {
-                appendThinking(messageEl, jsonData.thinking);
+            // Handle init message
+            if (jsonData.type === 'system' && jsonData.subtype === 'init') {
+                // Initialize - show ready state
+                appendTextContent(messageEl, '🚀 Claude initialized...\n');
+                return;
             }
+
+            // Handle assistant messages with content blocks
+            if (jsonData.type === 'assistant' && jsonData.message) {
+                const message = jsonData.message;
+
+                // Process content array
+                if (message.content && Array.isArray(message.content)) {
+                    message.content.forEach(content => {
+                        if (content.type === 'text') {
+                            appendTextContent(messageEl, content.text);
+                        } else if (content.type === 'tool_use') {
+                            appendToolUse(messageEl, content);
+                        }
+                    });
+                }
+                return;
+            }
+
+            // Handle tool results (user messages)
+            if (jsonData.type === 'user' && jsonData.message) {
+                const message = jsonData.message;
+
+                if (message.content && Array.isArray(message.content)) {
+                    message.content.forEach(content => {
+                        if (content.type === 'tool_result') {
+                            appendToolResult(messageEl, content);
+                        }
+                    });
+                }
+                return;
+            }
+
+            // Handle result/success messages
+            if (jsonData.type === 'result' && jsonData.result) {
+                appendTextContent(messageEl, `\n\n✅ ${jsonData.result}`);
+                return;
+            }
+
+            // Fallback for unknown formats
+            console.log('Unknown message format:', jsonData);
         }
 
         // Helper: Append plain text content
@@ -810,9 +854,12 @@
             if (!textContainer) {
                 textContainer = document.createElement('div');
                 textContainer.className = 'text-content';
+                textContainer.style.whiteSpace = 'pre-wrap';
+                textContainer.style.wordBreak = 'break-word';
                 messageEl.appendChild(textContainer);
             }
             textContainer.textContent += text;
+            scrollToBottom();
         }
 
         // Helper: Append tool use block
@@ -838,6 +885,7 @@
             }
 
             messageEl.appendChild(toolDiv);
+            scrollToBottom();
         }
 
         // Helper: Append tool result block
@@ -847,7 +895,10 @@
 
             const header = document.createElement('div');
             header.className = 'tool-result-header';
-            header.innerHTML = '✓ Tool completed';
+            header.innerHTML = `✓ Tool completed${resultData.is_error ? ' with error' : ''}`;
+            if (resultData.is_error) {
+                resultDiv.classList.add('tool-result-error');
+            }
             resultDiv.appendChild(header);
 
             // Show abbreviated result (not full content)
@@ -857,6 +908,7 @@
             resultDiv.appendChild(summary);
 
             messageEl.appendChild(resultDiv);
+            scrollToBottom();
         }
 
         // Helper: Append thinking block
