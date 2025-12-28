@@ -1,5 +1,8 @@
 package modal
 
+// https://github.com/awslabs/mountpoint-s3/blob/main/doc/SEMANTICS.md
+// S3 mount uses mountpoint-s3 which provides POSIX-like semantics for S3 buckets.
+
 import (
 	"bufio"
 	"context"

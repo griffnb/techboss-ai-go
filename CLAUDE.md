@@ -22,6 +22,7 @@ Instructions for controllers are in
 
 6. Avoid scanning lots of files, use `#code_tools docs` to look at packages and functions.
 7. If go docs are missing from a function or package, and you learn something important about it, ADD TO YOUR TODO LIST THAT YOU NEED TO UPDATE THAT GO DOC WITH WHAT YOU LEARNED
+8. **VERY IMPORTANT** Do not make large files with lots of functionality.  Group functions together into files that relate them together.  This makes it easier to find grouped functions and their associated tests.  **LARGE FILES ARE BAD**
 
 ## 🔄 CHECKLIST UPDATE POLICY
 

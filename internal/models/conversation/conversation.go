@@ -10,6 +10,7 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/common"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/models/base"
+	_ "github.com/griffnb/techboss-ai-go/internal/models/conversation/migrations"
 )
 
 const (
@@ -28,8 +29,11 @@ type Structure struct {
 
 type DBColumns struct {
 	base.Structure
-	AccountID *fields.UUIDField `column:"account_id" type:"uuid" default:"null" null:"true" index:"true"`
-	AgentID   *fields.UUIDField `column:"agent_id"   type:"uuid" default:"null" null:"true" index:"true"`
+	AccountID      *fields.UUIDField                       `column:"account_id"      type:"uuid"  default:"null" null:"true" index:"true"`
+	OrganizationID *fields.UUIDField                       `column:"organization_id" type:"uuid"  default:"null" null:"true" index:"true"`
+	AgentID        *fields.UUIDField                       `column:"agent_id"        type:"uuid"  default:"null" null:"true" index:"true"`
+	SandboxID      *fields.UUIDField                       `column:"sandbox_id"      type:"uuid"  default:"null" null:"true" index:"true"`
+	Stats          *fields.StructField[*ConversationStats] `column:"stats"           type:"jsonb" default:"{}"`
 }
 
 type JoinData struct{}
