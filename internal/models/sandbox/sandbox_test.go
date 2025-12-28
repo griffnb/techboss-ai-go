@@ -194,7 +194,7 @@ func Test_Sandbox_SaveWithMetaData(t *testing.T) {
 		obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
 
 		metadata := &sandbox.MetaData{}
-		metadata.UpdateLastSync(10, 1024, 500)
+		metadata.UpdateLastSync(10, 2, 5, 1024, 500)
 		obj.MetaData.Set(metadata)
 
 		// Act
@@ -232,8 +232,16 @@ func Test_Sandbox_SaveWithMetaData(t *testing.T) {
 			t.Fatal("SyncStats should not be nil")
 		}
 
-		if retrievedMetadata.SyncStats.FilesProcessed != 10 {
-			t.Fatalf("Expected FilesProcessed 10, got %d", retrievedMetadata.SyncStats.FilesProcessed)
+		if retrievedMetadata.SyncStats.FilesDownloaded != 10 {
+			t.Fatalf("Expected FilesDownloaded 10, got %d", retrievedMetadata.SyncStats.FilesDownloaded)
+		}
+
+		if retrievedMetadata.SyncStats.FilesDeleted != 2 {
+			t.Fatalf("Expected FilesDeleted 2, got %d", retrievedMetadata.SyncStats.FilesDeleted)
+		}
+
+		if retrievedMetadata.SyncStats.FilesSkipped != 5 {
+			t.Fatalf("Expected FilesSkipped 5, got %d", retrievedMetadata.SyncStats.FilesSkipped)
 		}
 
 		if retrievedMetadata.SyncStats.BytesTransferred != 1024 {

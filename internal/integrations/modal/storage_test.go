@@ -102,7 +102,7 @@ func TestInitVolumeFromS3(t *testing.T) {
 		// Assert - Should succeed with 0 files processed
 		assert.NoError(t, err)
 		assert.NotEmpty(t, stats)
-		assert.Equal(t, 0, stats.FilesProcessed)
+		assert.Equal(t, 0, stats.FilesDownloaded)
 	})
 
 	t.Run("InitVolumeFromS3 returns error for sandbox without S3Config", func(t *testing.T) {
@@ -232,7 +232,7 @@ func TestSyncVolumeToS3(t *testing.T) {
 		// Assert - Should succeed with 0 files processed
 		assert.NoError(t, err)
 		assert.NotEmpty(t, stats)
-		assert.Equal(t, 0, stats.FilesProcessed)
+		assert.Equal(t, 0, stats.FilesDownloaded)
 	})
 
 	t.Run("SyncVolumeToS3 returns error for sandbox without S3Config", func(t *testing.T) {
@@ -379,14 +379,18 @@ func TestSyncStats(t *testing.T) {
 	t.Run("SyncStats with all fields", func(t *testing.T) {
 		// Arrange & Act
 		stats := &modal.SyncStats{
-			FilesProcessed:   10,
+			FilesDownloaded:  10,
+			FilesDeleted:     2,
+			FilesSkipped:     5,
 			BytesTransferred: 1024,
 			Duration:         5 * time.Second,
 			Errors:           []error{},
 		}
 
 		// Assert
-		assert.Equal(t, 10, stats.FilesProcessed)
+		assert.Equal(t, 10, stats.FilesDownloaded)
+		assert.Equal(t, 2, stats.FilesDeleted)
+		assert.Equal(t, 5, stats.FilesSkipped)
 		assert.Equal(t, int64(1024), stats.BytesTransferred)
 		assert.Equal(t, 5*time.Second, stats.Duration)
 		assert.Equal(t, 0, len(stats.Errors))
@@ -395,14 +399,18 @@ func TestSyncStats(t *testing.T) {
 	t.Run("SyncStats with errors", func(t *testing.T) {
 		// Arrange & Act
 		stats := &modal.SyncStats{
-			FilesProcessed:   5,
+			FilesDownloaded:  5,
+			FilesDeleted:     1,
+			FilesSkipped:     3,
 			BytesTransferred: 512,
 			Duration:         2 * time.Second,
 			Errors:           []error{fmt.Errorf("test error 1"), fmt.Errorf("test error 2")},
 		}
 
 		// Assert
-		assert.Equal(t, 5, stats.FilesProcessed)
+		assert.Equal(t, 5, stats.FilesDownloaded)
+		assert.Equal(t, 1, stats.FilesDeleted)
+		assert.Equal(t, 3, stats.FilesSkipped)
 		assert.Equal(t, int64(512), stats.BytesTransferred)
 		assert.Equal(t, 2, len(stats.Errors))
 	})
@@ -412,9 +420,31 @@ func TestSyncStats(t *testing.T) {
 		stats := &modal.SyncStats{}
 
 		// Assert - Zero values should be useful
-		assert.Equal(t, 0, stats.FilesProcessed)
+		assert.Equal(t, 0, stats.FilesDownloaded)
+		assert.Equal(t, 0, stats.FilesDeleted)
+		assert.Equal(t, 0, stats.FilesSkipped)
 		assert.Equal(t, int64(0), stats.BytesTransferred)
 		assert.Equal(t, time.Duration(0), stats.Duration)
 		assert.Empty(t, stats.Errors)
+	})
+
+	t.Run("SyncStats with new fields (FilesDownloaded, FilesDeleted, FilesSkipped)", func(t *testing.T) {
+		// Arrange & Act - Test new field structure per design phase 3.1
+		stats := &modal.SyncStats{
+			FilesDownloaded:  15,
+			FilesDeleted:     3,
+			FilesSkipped:     42,
+			BytesTransferred: 2048,
+			Duration:         3 * time.Second,
+			Errors:           []error{},
+		}
+
+		// Assert - Verify all new fields are properly stored
+		assert.Equal(t, 15, stats.FilesDownloaded)
+		assert.Equal(t, 3, stats.FilesDeleted)
+		assert.Equal(t, 42, stats.FilesSkipped)
+		assert.Equal(t, int64(2048), stats.BytesTransferred)
+		assert.Equal(t, 3*time.Second, stats.Duration)
+		assert.Equal(t, 0, len(stats.Errors))
 	})
 }

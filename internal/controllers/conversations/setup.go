@@ -56,6 +56,10 @@ func Setup(coreRouter *router.CoreRouter) {
 			authR.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_ANY_AUTHORIZED: response.StandardRequestWrapper(authGet),
 			}))
+			// Streaming endpoint - no wrapper since it handles HTTP directly
+			authR.Post("/{conversationId}/sandbox/{sandboxId}", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: streamClaude,
+			}))
 		})
 	})
 }

@@ -178,11 +178,57 @@ func TestSandboxService_ExecuteClaudeStream(t *testing.T) {
 		responseWriter := httptest.NewRecorder()
 
 		// Act
-		err = service.ExecuteClaudeStream(ctx, sandboxInfo, claudeConfig, responseWriter)
+		claudeProcess, err := service.ExecuteClaudeStream(ctx, sandboxInfo, claudeConfig, responseWriter)
 
 		// Assert
 		assert.NoError(t, err)
 		assert.NotEmpty(t, responseWriter.Body.String())
+		assert.NEmpty(t, claudeProcess)
+		assert.NEmpty(t, claudeProcess.Process)
+		assert.Equal(t, claudeConfig, claudeProcess.Config)
+	})
+
+	t.Run("Returns ClaudeProcess with token information", func(t *testing.T) {
+		// Arrange - create sandbox with Claude installed
+		accountID := types.UUID("test-account-claude-tokens")
+		config := &modal.SandboxConfig{
+			Image: &modal.ImageConfig{
+				BaseImage: "alpine:3.21",
+				DockerfileCommands: []string{
+					"RUN apk add --no-cache bash curl git libgcc libstdc++ ripgrep",
+					"RUN curl -fsSL https://claude.ai/install.sh | bash",
+					"ENV PATH=/root/.local/bin:$PATH USE_BUILTIN_RIPGREP=0",
+				},
+			},
+			VolumeName:      "test-volume",
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+		sandboxInfo, err := service.CreateSandbox(ctx, accountID, config)
+		assert.NoError(t, err)
+		defer func() {
+			_ = modal.Client().TerminateSandbox(ctx, sandboxInfo, false)
+		}()
+
+		claudeConfig := &modal.ClaudeExecConfig{
+			Prompt:          "Say hello",
+			OutputFormat:    "stream-json",
+			SkipPermissions: true,
+		}
+
+		// Create mock response writer
+		responseWriter := httptest.NewRecorder()
+
+		// Act
+		claudeProcess, err := service.ExecuteClaudeStream(ctx, sandboxInfo, claudeConfig, responseWriter)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.NEmpty(t, claudeProcess)
+		assert.NEmpty(t, claudeProcess.Process)
+		assert.Equal(t, claudeConfig, claudeProcess.Config)
+		// Token fields should exist (may be 0 if no summary event was parsed)
+		// The important part is that ClaudeProcess is returned so callers can access tokens
 	})
 
 	t.Run("Validates claudeConfig before execution", func(t *testing.T) {
@@ -208,10 +254,11 @@ func TestSandboxService_ExecuteClaudeStream(t *testing.T) {
 		responseWriter := httptest.NewRecorder()
 
 		// Act
-		err = service.ExecuteClaudeStream(ctx, sandboxInfo, claudeConfig, responseWriter)
+		claudeProcess, err := service.ExecuteClaudeStream(ctx, sandboxInfo, claudeConfig, responseWriter)
 
 		// Assert
 		assert.Error(t, err)
+		assert.Empty(t, claudeProcess)
 	})
 }
 

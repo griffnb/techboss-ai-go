@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Message represents a conversation message with optional tool calls
 type Message struct {
 	Key            string     `json:"key"`
 	ConversationID types.UUID `json:"conversation_id"`
@@ -17,6 +18,18 @@ type Message struct {
 	Role           int64      `json:"role"`
 	Timestamp      int64      `json:"timestamp"`
 	Tokens         int64      `json:"tokens"`
+	ToolCalls      []ToolCall `json:"tool_calls,omitempty"`
+}
+
+// ToolCall represents a tool invocation within a message
+type ToolCall struct {
+	ID     string         `json:"id"`
+	Type   string         `json:"type"`
+	Name   string         `json:"name"`
+	Input  map[string]any `json:"input"`
+	Output string         `json:"output"`
+	Status string         `json:"status"`
+	Error  string         `json:"error"`
 }
 
 func (this *Message) Save(ctx context.Context) error {

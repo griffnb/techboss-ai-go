@@ -19,10 +19,13 @@ import (
 )
 
 // SyncStats contains statistics about S3 sync operations.
-// It tracks the number of files processed, bytes transferred, operation duration,
-// and any non-fatal errors encountered during the sync.
+// It tracks the number of files downloaded, deleted, skipped, bytes transferred,
+// operation duration, and any non-fatal errors encountered during the sync.
+// This aligns with state-file-based sync per design phase 3.1.
 type SyncStats struct {
-	FilesProcessed   int           // Number of files synced
+	FilesDownloaded  int           // Number of files downloaded from S3
+	FilesDeleted     int           // Number of local files deleted
+	FilesSkipped     int           // Number of files unchanged (skipped)
 	BytesTransferred int64         // Total bytes transferred
 	Duration         time.Duration // Time taken
 	Errors           []error       // Any non-fatal errors
@@ -105,7 +108,9 @@ func (c *APIClient) InitVolumeFromS3(ctx context.Context, sandboxInfo *SandboxIn
 	duration := time.Since(startTime)
 
 	stats := &SyncStats{
-		FilesProcessed:   filesProcessed,
+		FilesDownloaded:  filesProcessed,
+		FilesDeleted:     0,
+		FilesSkipped:     0,
 		BytesTransferred: bytesTransferred,
 		Duration:         duration,
 		Errors:           []error{},
@@ -248,7 +253,9 @@ func (c *APIClient) SyncVolumeToS3(ctx context.Context, sandboxInfo *SandboxInfo
 	duration := time.Since(startTime)
 
 	stats := &SyncStats{
-		FilesProcessed:   filesProcessed,
+		FilesDownloaded:  filesProcessed,
+		FilesDeleted:     0,
+		FilesSkipped:     0,
 		BytesTransferred: bytesTransferred,
 		Duration:         duration,
 		Errors:           []error{},

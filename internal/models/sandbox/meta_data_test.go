@@ -17,13 +17,15 @@ func Test_UpdateLastSync_setsTimestampAndStats(t *testing.T) {
 	t.Run("sets timestamp and stats on first sync", func(t *testing.T) {
 		// Arrange
 		metadata := &sandbox.MetaData{}
-		filesProcessed := 10
+		filesDownloaded := 10
+		filesDeleted := 2
+		filesSkipped := 5
 		bytesTransferred := int64(1024)
 		durationMs := int64(500)
 
 		// Act
 		beforeTime := time.Now().Unix()
-		metadata.UpdateLastSync(filesProcessed, bytesTransferred, durationMs)
+		metadata.UpdateLastSync(filesDownloaded, filesDeleted, filesSkipped, bytesTransferred, durationMs)
 		afterTime := time.Now().Unix()
 
 		// Assert
@@ -35,7 +37,9 @@ func Test_UpdateLastSync_setsTimestampAndStats(t *testing.T) {
 		assert.True(t, *metadata.LastS3Sync <= afterTime)
 
 		// Verify stats
-		assert.Equal(t, filesProcessed, metadata.SyncStats.FilesProcessed)
+		assert.Equal(t, filesDownloaded, metadata.SyncStats.FilesDownloaded)
+		assert.Equal(t, filesDeleted, metadata.SyncStats.FilesDeleted)
+		assert.Equal(t, filesSkipped, metadata.SyncStats.FilesSkipped)
 		assert.Equal(t, bytesTransferred, metadata.SyncStats.BytesTransferred)
 		assert.Equal(t, durationMs, metadata.SyncStats.DurationMs)
 	})
@@ -45,14 +49,14 @@ func Test_UpdateLastSync_setsTimestampAndStats(t *testing.T) {
 		metadata := &sandbox.MetaData{}
 
 		// First sync
-		metadata.UpdateLastSync(5, 512, 250)
+		metadata.UpdateLastSync(5, 1, 2, 512, 250)
 		firstTimestamp := *metadata.LastS3Sync
 
 		// Wait a bit to ensure different timestamp
 		time.Sleep(1 * time.Second)
 
 		// Act - Second sync
-		metadata.UpdateLastSync(20, 2048, 1000)
+		metadata.UpdateLastSync(20, 3, 10, 2048, 1000)
 
 		// Assert
 		assert.NEmpty(t, metadata.LastS3Sync)
@@ -62,7 +66,9 @@ func Test_UpdateLastSync_setsTimestampAndStats(t *testing.T) {
 		assert.True(t, *metadata.LastS3Sync > firstTimestamp)
 
 		// Verify stats were updated
-		assert.Equal(t, 20, metadata.SyncStats.FilesProcessed)
+		assert.Equal(t, 20, metadata.SyncStats.FilesDownloaded)
+		assert.Equal(t, 3, metadata.SyncStats.FilesDeleted)
+		assert.Equal(t, 10, metadata.SyncStats.FilesSkipped)
 		assert.Equal(t, int64(2048), metadata.SyncStats.BytesTransferred)
 		assert.Equal(t, int64(1000), metadata.SyncStats.DurationMs)
 	})
@@ -72,7 +78,7 @@ func Test_UpdateLastSync_setsTimestampAndStats(t *testing.T) {
 		metadata := &sandbox.MetaData{}
 
 		// Act
-		metadata.UpdateLastSync(0, 0, 0)
+		metadata.UpdateLastSync(0, 0, 0, 0, 0)
 
 		// Assert
 		// Verify pointers are not nil
@@ -84,7 +90,9 @@ func Test_UpdateLastSync_setsTimestampAndStats(t *testing.T) {
 		}
 
 		// Verify zero values are properly stored
-		assert.Equal(t, 0, metadata.SyncStats.FilesProcessed)
+		assert.Equal(t, 0, metadata.SyncStats.FilesDownloaded)
+		assert.Equal(t, 0, metadata.SyncStats.FilesDeleted)
+		assert.Equal(t, 0, metadata.SyncStats.FilesSkipped)
 		assert.Equal(t, int64(0), metadata.SyncStats.BytesTransferred)
 		assert.Equal(t, int64(0), metadata.SyncStats.DurationMs)
 	})

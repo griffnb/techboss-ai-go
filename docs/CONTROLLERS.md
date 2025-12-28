@@ -174,3 +174,174 @@ The route name is used in:
 - OpenAPI/Swagger documentation
 
 This convention ensures consistency across the entire application and makes the API predictable for consumers.
+
+## 7. Conversation Streaming Endpoint
+
+The conversation streaming endpoint provides Server-Sent Events (SSE) streaming for conversational AI interactions with sandbox environments. This endpoint is conversation-centric, tracking all messages, token usage, and executing lifecycle hooks.
+
+### Endpoint Details
+
+**Route:** `POST /conversation/{conversationId}/sandbox/{sandboxId}`
+
+**Authentication:** Required (any authorized user)
+
+**Content-Type:** `application/json`
+
+**Response Type:** `text/event-stream` (Server-Sent Events)
+
+### URL Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `conversationId` | UUID | Conversation identifier (created if doesn't exist) |
+| `sandboxId` | UUID | Sandbox identifier (reserved for future use) |
+
+### Request Body
+
+```json
+{
+  "prompt": "Write a function to calculate fibonacci numbers",
+  "provider": 1,
+  "agent_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `prompt` | string | Yes | - | User message to send to Claude |
+| `provider` | int | No | 1 | Sandbox provider (1 = PROVIDER_CLAUDE_CODE) |
+| `agent_id` | UUID | Yes | - | Agent ID for the conversation |
+
+### Response Format
+
+The endpoint streams responses using Server-Sent Events (SSE). Each event contains JSON data:
+
+```
+event: message
+data: {"type":"text","content":"Here's a fibonacci function..."}
+
+event: message
+data: {"type":"tool_use","id":"tool_123","name":"bash","input":{"command":"python fib.py"}}
+
+event: done
+data: {"status":"complete"}
+```
+
+### Error Responses
+
+| Status Code | Description | Cause |
+|-------------|-------------|-------|
+| 400 Bad Request | Invalid request format | Missing or empty prompt, invalid JSON |
+| 401 Unauthorized | Authentication required | Missing or invalid session token |
+| 500 Internal Server Error | Server error | Conversation creation failed, sandbox initialization failed |
+
+### Lifecycle Hooks
+
+This endpoint executes lifecycle hooks at specific points:
+
+1. **OnColdStart** (CRITICAL): Executed when a new sandbox is created. If this fails, the request returns 500 error.
+2. **OnMessage**: Executed when saving user and assistant messages (non-critical).
+3. **OnStreamFinish**: Executed after streaming completes, syncs to S3 and updates stats (non-critical).
+
+### Example Usage
+
+**Using curl:**
+
+```bash
+curl -X POST https://api.example.com/conversation/550e8400-e29b-41d4-a716-446655440000/sandbox/any-id \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Create a Python script to process CSV files",
+    "agent_id": "agent-uuid-here"
+  }'
+```
+
+**Using JavaScript (EventSource):**
+
+```javascript
+const response = await fetch('/conversation/conv-id/sandbox/sandbox-id', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_TOKEN'
+  },
+  body: JSON.stringify({
+    prompt: 'Write a function to reverse a string',
+    agent_id: 'agent-uuid-here'
+  })
+});
+
+const eventSource = new EventSource(response.url);
+eventSource.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Received:', data);
+};
+```
+
+### Implementation Notes
+
+**Session Access:**
+```go
+userSession := request.GetReqSession(req)
+accountID := userSession.User.ID()
+```
+
+**Conversation Creation:**
+The endpoint automatically creates conversations if they don't exist, using the provided `conversationId` and `agent_id`.
+
+**Sandbox Initialization:**
+If the conversation doesn't have an active sandbox, one is created and initialized:
+- OnColdStart hook executes (syncs from S3)
+- If initialization fails, the request returns 500 error
+- Subsequent requests reuse the same sandbox
+
+**Token Tracking:**
+Token usage is automatically tracked and stored in conversation statistics:
+- Input tokens (prompt and context)
+- Output tokens (generated response)
+- Cache tokens (cached content)
+
+**Error Handling:**
+- Critical errors (conversation/sandbox creation, OnColdStart) return HTTP errors
+- Non-critical errors (message saving, S3 sync) are logged but don't fail the request
+- Once streaming starts, errors are logged but the stream continues to prevent client disconnection
+
+### Architecture Flow
+
+```
+1. User Request → streamClaude() handler
+2. Parse request body and validate
+3. Get or create conversation (PostgreSQL)
+4. Ensure sandbox exists:
+   - If new sandbox: Create → Execute OnColdStart (S3 sync) → Save to DB
+   - If existing sandbox: Reconstruct from DB
+5. Stream with hooks:
+   - Save user message → OnMessage hook
+   - Execute Claude streaming
+   - Parse token usage from stream
+   - Save assistant message → OnMessage hook
+   - Execute OnStreamFinish hook (S3 sync + stats update)
+6. Return streaming response to client
+```
+
+### Migration from Legacy Endpoint
+
+**Old Endpoint:** `POST /sandboxes/{id}/claude`
+
+**New Endpoint:** `POST /conversation/{conversationId}/sandbox/{sandboxId}`
+
+**Key Changes:**
+- Conversation-centric instead of sandbox-centric
+- Automatic conversation creation
+- Token tracking and statistics
+- Message persistence
+- Lifecycle hooks for S3 sync
+
+**Migration Steps:**
+1. Update client to use new endpoint URL format
+2. Include `agent_id` in request body
+3. Handle conversation IDs (generate UUID on client side)
+4. Update response parsing if needed (format is similar)
+
+See the Sandbox Service README for more details on lifecycle hooks and state file management.
