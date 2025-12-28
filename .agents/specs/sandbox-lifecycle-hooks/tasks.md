@@ -12,6 +12,7 @@
 4. **Wait for Completion**: Do not move to next task until current sub-agent completes
 5. **Track Progress**: Mark tasks as complete (✅) after sub-agent finishes successfully
 6. **Update Learnings**: If sub-agent discovers important information, add it to the Learnings section
+7. **Phases**: Do only one phase at a time
 
 ### Sub-Agent Prompt Template
 
