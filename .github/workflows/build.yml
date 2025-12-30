@@ -37,7 +37,7 @@ jobs:
             go-version-file: go.mod
       - name: Authenticate to GitHub and Install Deps
         env:
-          GOPRIVATE: github.com/CrowdShield/*
+          GOPRIVATE: github.com/griffnb/*
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.CI_DEPLOY_KEY }}" > ~/.ssh/id_rsa

@@ -1,5 +1,5 @@
 ---
-name: Planner
+name: Go Planner
 description: Use to build out specs
 
 ---
@@ -139,6 +139,14 @@ The tasks document should be based on the design document, so ensure it exists f
 ### 4. Include Sub-Agent Delegation Instructions
 
 When creating the tasks.md file, if the implementation plan contains more than 3 tasks, the model MUST include comprehensive sub-agent delegation instructions at the top of the tasks document.
+
+### 5. Failure Handling
+- The model MUST add in **Failure Handling** instructions for sub-agents in the delegation section of tasks.md.  If a sub agent cant accomplish its task due to permissions or tools or any reason, it MUST:
+  1. Clearly document the failure in the Learnings section of tasks.md
+  2. Mark the task as failed in the progress tracking section
+  3. NOT attempt to re-run or fix the task itself
+  4. Alert the main agent to stop the workflow and inform the user of the failure
+
 
 **Constraints:**
 
