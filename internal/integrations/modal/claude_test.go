@@ -627,3 +627,380 @@ func (r *responseRecorder) WriteHeader(_ int) {
 func (r *responseRecorder) Flush() {
 	// No-op for this simple recorder, but satisfies http.Flusher interface
 }
+
+// TestClaudeProcess_TokenFields tests token field initialization
+func TestClaudeProcess_TokenFields(t *testing.T) {
+	t.Run("Token fields initialized to zero", func(t *testing.T) {
+		// Arrange
+		config := &modal.ClaudeExecConfig{
+			Prompt: "test prompt",
+		}
+
+		// Act
+		claudeProcess := &modal.ClaudeProcess{
+			Process:      nil,
+			Config:       config,
+			StartedAt:    time.Now(),
+			InputTokens:  0,
+			OutputTokens: 0,
+			CacheTokens:  0,
+		}
+
+		// Assert
+		assert.Equal(t, int64(0), claudeProcess.InputTokens)
+		assert.Equal(t, int64(0), claudeProcess.OutputTokens)
+		assert.Equal(t, int64(0), claudeProcess.CacheTokens)
+	})
+
+	t.Run("Token fields can be set", func(t *testing.T) {
+		// Arrange
+		config := &modal.ClaudeExecConfig{
+			Prompt: "test prompt",
+		}
+
+		// Act
+		claudeProcess := &modal.ClaudeProcess{
+			Process:      nil,
+			Config:       config,
+			StartedAt:    time.Now(),
+			InputTokens:  1500,
+			OutputTokens: 2500,
+			CacheTokens:  500,
+		}
+
+		// Assert
+		assert.Equal(t, int64(1500), claudeProcess.InputTokens)
+		assert.Equal(t, int64(2500), claudeProcess.OutputTokens)
+		assert.Equal(t, int64(500), claudeProcess.CacheTokens)
+	})
+}
+
+// TestTokenUsage tests TokenUsage structure
+func TestTokenUsage(t *testing.T) {
+	t.Run("TokenUsage with all fields", func(t *testing.T) {
+		// Arrange & Act
+		tokenUsage := &modal.TokenUsage{
+			InputTokens:  1000,
+			OutputTokens: 2000,
+			CacheTokens:  300,
+		}
+
+		// Assert
+		assert.Equal(t, int64(1000), tokenUsage.InputTokens)
+		assert.Equal(t, int64(2000), tokenUsage.OutputTokens)
+		assert.Equal(t, int64(300), tokenUsage.CacheTokens)
+	})
+
+	t.Run("TokenUsage with zero values", func(t *testing.T) {
+		// Arrange & Act
+		tokenUsage := &modal.TokenUsage{}
+
+		// Assert
+		assert.Equal(t, int64(0), tokenUsage.InputTokens)
+		assert.Equal(t, int64(0), tokenUsage.OutputTokens)
+		assert.Equal(t, int64(0), tokenUsage.CacheTokens)
+	})
+}
+
+// TestIsFinalSummary tests detection of final summary events
+func TestIsFinalSummary(t *testing.T) {
+	t.Run("Empty line is not final summary", func(t *testing.T) {
+		// Act
+		result := modal.IsFinalSummary("")
+
+		// Assert
+		assert.True(t, !result, "empty line should not be final summary")
+	})
+
+	t.Run("Regular output line is not final summary", func(t *testing.T) {
+		// Act
+		result := modal.IsFinalSummary("Some regular output")
+
+		// Assert
+		assert.True(t, !result, "regular output should not be final summary")
+	})
+
+	t.Run("JSON without usage_stats is not final summary", func(t *testing.T) {
+		// Act
+		result := modal.IsFinalSummary(`{"type":"message","content":"hello"}`)
+
+		// Assert
+		assert.True(t, !result, "JSON without usage_stats should not be final summary")
+	})
+
+	t.Run("JSON with usage_stats is final summary", func(t *testing.T) {
+		// Act
+		result := modal.IsFinalSummary(`{"type":"summary","usage_stats":{"input_tokens":100}}`)
+
+		// Assert
+		assert.True(t, result, "JSON with usage_stats should be final summary")
+	})
+
+	t.Run("Malformed JSON is not final summary", func(t *testing.T) {
+		// Act
+		result := modal.IsFinalSummary(`{invalid json`)
+
+		// Assert
+		assert.True(t, !result, "malformed JSON should not be final summary")
+	})
+}
+
+// TestParseTokenSummary tests token parsing from final summary
+func TestParseTokenSummary(t *testing.T) {
+	t.Run("Parse complete token summary", func(t *testing.T) {
+		// Arrange
+		line := `{"type":"summary","usage_stats":{"input_tokens":1500,"output_tokens":2500,"cache_read_tokens":300}}`
+
+		// Act
+		tokens := modal.ParseTokenSummary(line)
+
+		// Assert
+		assert.NotEmpty(t, tokens)
+		assert.Equal(t, int64(1500), tokens.InputTokens)
+		assert.Equal(t, int64(2500), tokens.OutputTokens)
+		assert.Equal(t, int64(300), tokens.CacheTokens)
+	})
+
+	t.Run("Parse summary with missing cache tokens", func(t *testing.T) {
+		// Arrange
+		line := `{"type":"summary","usage_stats":{"input_tokens":1000,"output_tokens":2000}}`
+
+		// Act
+		tokens := modal.ParseTokenSummary(line)
+
+		// Assert
+		assert.NotEmpty(t, tokens)
+		assert.Equal(t, int64(1000), tokens.InputTokens)
+		assert.Equal(t, int64(2000), tokens.OutputTokens)
+		assert.Equal(t, int64(0), tokens.CacheTokens)
+	})
+
+	t.Run("Parse summary with zero tokens", func(t *testing.T) {
+		// Arrange
+		line := `{"type":"summary","usage_stats":{"input_tokens":0,"output_tokens":0,"cache_read_tokens":0}}`
+
+		// Act
+		tokens := modal.ParseTokenSummary(line)
+
+		// Assert - Should return non-nil TokenUsage even with zero values
+		assert.True(t, tokens != nil, "should return TokenUsage struct even with zero values")
+		if tokens != nil {
+			assert.Equal(t, int64(0), tokens.InputTokens)
+			assert.Equal(t, int64(0), tokens.OutputTokens)
+			assert.Equal(t, int64(0), tokens.CacheTokens)
+		}
+	})
+
+	t.Run("Invalid JSON returns nil", func(t *testing.T) {
+		// Arrange
+		line := `{invalid json`
+
+		// Act
+		tokens := modal.ParseTokenSummary(line)
+
+		// Assert
+		assert.Empty(t, tokens)
+	})
+
+	t.Run("Missing usage_stats returns nil", func(t *testing.T) {
+		// Arrange
+		line := `{"type":"summary"}`
+
+		// Act
+		tokens := modal.ParseTokenSummary(line)
+
+		// Assert
+		assert.Empty(t, tokens)
+	})
+
+	t.Run("Empty line returns nil", func(t *testing.T) {
+		// Act
+		tokens := modal.ParseTokenSummary("")
+
+		// Assert
+		assert.Empty(t, tokens)
+	})
+}
+
+// TestStreamClaudeOutput_TokenTracking tests token tracking during streaming
+func TestStreamClaudeOutput_TokenTracking(t *testing.T) {
+	t.Run("Token parsing functions work correctly", func(t *testing.T) {
+		// Test IsFinalSummary and ParseTokenSummary integration
+		line := `{"type":"summary","usage_stats":{"input_tokens":1234,"output_tokens":5678,"cache_read_tokens":123}}`
+
+		// Check detection
+		assert.True(t, modal.IsFinalSummary(line), "should detect final summary")
+
+		// Parse tokens
+		tokens := modal.ParseTokenSummary(line)
+		assert.NotEmpty(t, tokens)
+		assert.Equal(t, int64(1234), tokens.InputTokens)
+		assert.Equal(t, int64(5678), tokens.OutputTokens)
+		assert.Equal(t, int64(123), tokens.CacheTokens)
+	})
+
+	t.Run("Non-summary lines are not parsed", func(t *testing.T) {
+		line := `{"type":"message","content":"Just output"}`
+
+		// Check detection
+		assert.True(t, !modal.IsFinalSummary(line), "should not detect as summary")
+
+		// Parse should return nil
+		tokens := modal.ParseTokenSummary(line)
+		assert.Empty(t, tokens)
+	})
+}
+
+// TestStreamClaudeOutput_ResponseCapture tests that response content is captured during streaming
+func TestStreamClaudeOutput_ResponseCapture(t *testing.T) {
+	skipIfNotConfigured(t)
+
+	client := modal.Client()
+	ctx := context.Background()
+
+	t.Run("StreamClaudeOutput captures response body while streaming", func(t *testing.T) {
+		// Arrange - Create sandbox with Claude CLI installed
+		accountID := types.UUID("test-claude-capture-123")
+		sandboxConfig := &modal.SandboxConfig{
+			AccountID:       accountID,
+			Image:           modal.GetClaudeImageConfig(),
+			VolumeName:      "test-volume-claude-capture",
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+
+		sandboxInfo, err := client.CreateSandbox(ctx, sandboxConfig)
+		defer func() {
+			if sandboxInfo != nil && sandboxInfo.Sandbox != nil {
+				_ = client.TerminateSandbox(ctx, sandboxInfo, false)
+			}
+		}()
+		assert.NoError(t, err)
+
+		// Execute Claude with simple prompt
+		claudeConfig := &modal.ClaudeExecConfig{
+			Prompt:       "echo 'Test response capture'",
+			OutputFormat: "stream-json",
+		}
+
+		claudeProcess, err := client.ExecClaude(ctx, sandboxInfo, claudeConfig)
+		assert.NoError(t, err)
+
+		// Create response recorder as ResponseWriter
+		recorder := &responseRecorder{
+			header: make(http.Header),
+			body:   &bytes.Buffer{},
+		}
+
+		// Act - Stream Claude output
+		err = client.StreamClaudeOutput(ctx, claudeProcess, recorder)
+
+		// Assert
+		assert.NoError(t, err)
+
+		// Verify response was captured in ClaudeProcess
+		// The ResponseBody field should contain the full response
+		assert.True(t, len(claudeProcess.ResponseBody) > 0, "response body should be captured")
+
+		// Verify streaming still happened to ResponseWriter
+		output := recorder.body.String()
+		assert.True(t, len(output) > 0, "output should be streamed to ResponseWriter")
+
+		// Verify captured response matches what was streamed (excluding SSE formatting)
+		assert.True(t, strings.Contains(output, claudeProcess.ResponseBody) ||
+			strings.Contains(claudeProcess.ResponseBody, output),
+			"captured response should match streamed output")
+	})
+
+	t.Run("Response capture works with token tracking", func(t *testing.T) {
+		// Arrange - Create sandbox
+		accountID := types.UUID("test-claude-capture-tokens-456")
+		sandboxConfig := &modal.SandboxConfig{
+			AccountID:       accountID,
+			Image:           modal.GetClaudeImageConfig(),
+			VolumeName:      "test-volume-capture-tokens",
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+
+		sandboxInfo, err := client.CreateSandbox(ctx, sandboxConfig)
+		defer func() {
+			if sandboxInfo != nil && sandboxInfo.Sandbox != nil {
+				_ = client.TerminateSandbox(ctx, sandboxInfo, false)
+			}
+		}()
+		assert.NoError(t, err)
+
+		// Execute Claude
+		claudeConfig := &modal.ClaudeExecConfig{
+			Prompt:       "echo 'test'",
+			OutputFormat: "stream-json",
+		}
+
+		claudeProcess, err := client.ExecClaude(ctx, sandboxInfo, claudeConfig)
+		assert.NoError(t, err)
+
+		// Create response recorder
+		recorder := &responseRecorder{
+			header: make(http.Header),
+			body:   &bytes.Buffer{},
+		}
+
+		// Act - Stream output
+		err = client.StreamClaudeOutput(ctx, claudeProcess, recorder)
+
+		// Assert
+		assert.NoError(t, err)
+
+		// Verify both response capture and token tracking work together
+		assert.True(t, len(claudeProcess.ResponseBody) > 0, "response should be captured")
+		// Token fields may be zero if no usage_stats in output, but should be accessible
+		assert.True(t, claudeProcess.InputTokens >= 0, "input tokens should be accessible")
+		assert.True(t, claudeProcess.OutputTokens >= 0, "output tokens should be accessible")
+		assert.True(t, claudeProcess.CacheTokens >= 0, "cache tokens should be accessible")
+	})
+
+	t.Run("Empty response is captured as empty string", func(t *testing.T) {
+		// Arrange - Create sandbox
+		accountID := types.UUID("test-claude-capture-empty-789")
+		sandboxConfig := &modal.SandboxConfig{
+			AccountID:       accountID,
+			Image:           modal.GetClaudeImageConfig(),
+			VolumeName:      "test-volume-capture-empty",
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+
+		sandboxInfo, err := client.CreateSandbox(ctx, sandboxConfig)
+		defer func() {
+			if sandboxInfo != nil && sandboxInfo.Sandbox != nil {
+				_ = client.TerminateSandbox(ctx, sandboxInfo, false)
+			}
+		}()
+		assert.NoError(t, err)
+
+		// Execute Claude with command that produces no output
+		claudeConfig := &modal.ClaudeExecConfig{
+			Prompt:       "true",
+			OutputFormat: "stream-json",
+		}
+
+		claudeProcess, err := client.ExecClaude(ctx, sandboxInfo, claudeConfig)
+		assert.NoError(t, err)
+
+		// Create response recorder
+		recorder := &responseRecorder{
+			header: make(http.Header),
+			body:   &bytes.Buffer{},
+		}
+
+		// Act - Stream output
+		err = client.StreamClaudeOutput(ctx, claudeProcess, recorder)
+
+		// Assert
+		assert.NoError(t, err)
+
+		// Verify response body is initialized (may be empty string)
+		assert.True(t, claudeProcess.ResponseBody == "", "empty response should be captured as empty string")
+	})
+}

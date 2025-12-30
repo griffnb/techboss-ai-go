@@ -289,7 +289,9 @@ func Test_syncSandbox_updatesMetadata(t *testing.T) {
 		assert.Equal(t, sandboxResp.ID().String(), syncResp.SandboxID)
 
 		// Verify sync stats in response
-		assert.True(t, syncResp.FilesProcessed >= 0)
+		assert.True(t, syncResp.FilesDownloaded >= 0)
+		assert.True(t, syncResp.FilesDeleted >= 0)
+		assert.True(t, syncResp.FilesSkipped >= 0)
 		assert.True(t, syncResp.BytesTransferred >= 0)
 		assert.True(t, syncResp.DurationMs >= 0)
 
@@ -305,7 +307,9 @@ func Test_syncSandbox_updatesMetadata(t *testing.T) {
 		assert.NEmpty(t, metadata.SyncStats)
 
 		// Verify sync stats structure in metadata
-		assert.True(t, metadata.SyncStats.FilesProcessed >= 0)
+		assert.True(t, metadata.SyncStats.FilesDownloaded >= 0)
+		assert.True(t, metadata.SyncStats.FilesDeleted >= 0)
+		assert.True(t, metadata.SyncStats.FilesSkipped >= 0)
 		assert.True(t, metadata.SyncStats.BytesTransferred >= 0)
 		assert.True(t, metadata.SyncStats.DurationMs >= 0)
 	})

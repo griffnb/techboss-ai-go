@@ -3,11 +3,13 @@ package modal
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/modal-labs/libmodal/modal-go"
@@ -29,9 +31,20 @@ type ClaudeExecConfig struct {
 // ClaudeProcess represents a running Claude Code CLI process in a sandbox.
 // It provides access to the underlying container process and execution metadata.
 type ClaudeProcess struct {
-	Process   *modal.ContainerProcess // Underlying Modal process
-	Config    *ClaudeExecConfig       // Execution configuration
-	StartedAt time.Time               // When process started
+	Process      *modal.ContainerProcess // Underlying Modal process
+	Config       *ClaudeExecConfig       // Execution configuration
+	StartedAt    time.Time               // When process started
+	InputTokens  int64                   // Input tokens from final summary
+	OutputTokens int64                   // Output tokens from final summary
+	CacheTokens  int64                   // Cache tokens from final summary
+	ResponseBody string                  // Captured response body from streaming (excludes [DONE] event)
+}
+
+// TokenUsage represents parsed token usage from Claude response
+type TokenUsage struct {
+	InputTokens  int64
+	OutputTokens int64
+	CacheTokens  int64
 }
 
 // ExecClaude starts Claude Code CLI in the sandbox with PTY enabled.
@@ -192,6 +205,7 @@ func (c *APIClient) WaitForClaude(ctx context.Context, claudeProcess *ClaudeProc
 // It sets appropriate SSE headers, reads output line by line from Claude's stdout,
 // and sends each line as a data event. Sends "[DONE]" event on completion.
 // The connection is flushed after each line for real-time streaming.
+// Additionally, it captures the full response body in claudeProcess.ResponseBody for later use.
 func (c *APIClient) StreamClaudeOutput(ctx context.Context, claudeProcess *ClaudeProcess, responseWriter http.ResponseWriter) error {
 	// Validate inputs
 	if claudeProcess == nil || claudeProcess.Process == nil {
@@ -213,9 +227,15 @@ func (c *APIClient) StreamClaudeOutput(ctx context.Context, claudeProcess *Claud
 		return errors.New("response writer does not support flushing")
 	}
 
+	// Initialize response capture buffer
+	var responseBuffer strings.Builder
+
 	// Ensure cleanup happens even if streaming is interrupted
 	var streamErr error
 	defer func() {
+		// Set captured response body (excluding [DONE] event)
+		claudeProcess.ResponseBody = responseBuffer.String()
+
 		// Always send completion event if no error occurred
 		if streamErr == nil {
 			_, err := fmt.Fprintf(responseWriter, "data: [DONE]\n\n")
@@ -244,6 +264,29 @@ func (c *APIClient) StreamClaudeOutput(ctx context.Context, claudeProcess *Claud
 
 		line := scanner.Text()
 
+		// Parse final token summary if present
+		if IsFinalSummary(line) {
+			tokens := ParseTokenSummary(line)
+			if tokens != nil {
+				claudeProcess.InputTokens = tokens.InputTokens
+				claudeProcess.OutputTokens = tokens.OutputTokens
+				claudeProcess.CacheTokens = tokens.CacheTokens
+
+				// Log token usage (Requirement 10.7)
+				log.Info(fmt.Sprintf("[Token Usage] input=%d output=%d cache=%d total=%d",
+					tokens.InputTokens,
+					tokens.OutputTokens,
+					tokens.CacheTokens,
+					tokens.InputTokens+tokens.OutputTokens+tokens.CacheTokens))
+			}
+		}
+
+		// Capture response body (append line with newline separator)
+		if responseBuffer.Len() > 0 {
+			responseBuffer.WriteString("\n")
+		}
+		responseBuffer.WriteString(line)
+
 		// Write SSE formatted output
 		_, err := fmt.Fprintf(responseWriter, "data: %s\n\n", line)
 		if err != nil {
@@ -263,4 +306,55 @@ func (c *APIClient) StreamClaudeOutput(ctx context.Context, claudeProcess *Claud
 	}
 
 	return nil
+}
+
+// IsFinalSummary checks if the line contains Claude's final token usage summary.
+// Claude returns a JSON event with "usage_stats" field at the end of streaming.
+func IsFinalSummary(line string) bool {
+	if tools.Empty(line) {
+		return false
+	}
+
+	// Check if line contains usage_stats field (indicates token summary)
+	return strings.Contains(line, "usage_stats")
+}
+
+// ParseTokenSummary extracts token usage from Claude's final summary event.
+// Returns TokenUsage if successfully parsed, nil otherwise.
+func ParseTokenSummary(line string) *TokenUsage {
+	if tools.Empty(line) {
+		return nil
+	}
+
+	// First check if usage_stats field exists
+	var checkMap map[string]interface{}
+	err := json.Unmarshal([]byte(line), &checkMap)
+	if err != nil {
+		return nil
+	}
+
+	// Verify usage_stats field exists
+	if _, ok := checkMap["usage_stats"]; !ok {
+		return nil
+	}
+
+	// Parse JSON structure
+	var summary struct {
+		UsageStats struct {
+			InputTokens     int64 `json:"input_tokens"`
+			OutputTokens    int64 `json:"output_tokens"`
+			CacheReadTokens int64 `json:"cache_read_tokens"`
+		} `json:"usage_stats"`
+	}
+
+	err = json.Unmarshal([]byte(line), &summary)
+	if err != nil {
+		return nil
+	}
+
+	return &TokenUsage{
+		InputTokens:  summary.UsageStats.InputTokens,
+		OutputTokens: summary.UsageStats.OutputTokens,
+		CacheTokens:  summary.UsageStats.CacheReadTokens,
+	}
 }

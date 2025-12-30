@@ -1,0 +1,2 @@
+This file is a marker to indicate defaults_stub.go should be deleted.
+The real implementation is now in defaults.go.

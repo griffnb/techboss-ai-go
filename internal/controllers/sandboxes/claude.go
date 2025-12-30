@@ -75,10 +75,16 @@ func streamClaude(w http.ResponseWriter, req *http.Request) {
 
 	// Execute Claude and stream via service layer
 	service := sandbox_service.NewSandboxService()
-	err = service.ExecuteClaudeStream(req.Context(), sandboxInfo, claudeConfig, w)
+	claudeProcess, err := service.ExecuteClaudeStream(req.Context(), sandboxInfo, claudeConfig, w)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		http.Error(w, "failed to execute Claude", http.StatusInternalServerError)
 		return
 	}
+
+	// ClaudeProcess contains token usage information (InputTokens, OutputTokens, CacheTokens)
+	// populated during streaming by parsing the final summary event.
+	// For now, we just log it. Future enhancements could save this to database.
+	log.Infof("Claude execution completed - Input: %d, Output: %d, Cache: %d tokens",
+		claudeProcess.InputTokens, claudeProcess.OutputTokens, claudeProcess.CacheTokens)
 }

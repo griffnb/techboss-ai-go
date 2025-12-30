@@ -110,42 +110,48 @@ func (s *SandboxService) TerminateSandbox(
 // ExecuteClaudeStream executes Claude and streams output to HTTP response.
 // It combines ExecClaude and StreamClaudeOutput into a single operation for convenience.
 // This method validates the config and handles the complete streaming lifecycle.
+// Returns the ClaudeProcess which contains:
+// - Token usage information (InputTokens, OutputTokens, CacheTokens) populated during streaming
+// - Full response body (ResponseBody) captured during streaming
 func (s *SandboxService) ExecuteClaudeStream(
 	ctx context.Context,
 	sandboxInfo *modal.SandboxInfo,
 	config *modal.ClaudeExecConfig,
 	responseWriter http.ResponseWriter,
-) error {
+) (*modal.ClaudeProcess, error) {
 	// Validate inputs
 	if sandboxInfo == nil {
-		return errors.New("sandboxInfo cannot be nil")
+		return nil, errors.New("sandboxInfo cannot be nil")
 	}
 	if config == nil {
-		return errors.New("config cannot be nil")
+		return nil, errors.New("config cannot be nil")
 	}
 	if config.Prompt == "" {
-		return errors.New("prompt is required")
+		return nil, errors.New("prompt is required")
 	}
 	if responseWriter == nil {
-		return errors.New("responseWriter cannot be nil")
+		return nil, errors.New("responseWriter cannot be nil")
 	}
 
 	// Execute Claude via integration layer
 	claudeProcess, err := s.client.ExecClaude(ctx, sandboxInfo, config)
 	if err != nil {
-		return errors.Wrapf(err, "failed to execute Claude in sandbox %s", sandboxInfo.SandboxID)
+		return nil, errors.Wrapf(err, "failed to execute Claude in sandbox %s", sandboxInfo.SandboxID)
 	}
 
 	// Stream output to HTTP response
+	// This populates both:
+	// 1. Token fields (InputTokens, OutputTokens, CacheTokens) by parsing final summary event
+	// 2. ResponseBody field by capturing all output lines during streaming
 	err = s.client.StreamClaudeOutput(ctx, claudeProcess, responseWriter)
 	if err != nil {
-		return errors.Wrapf(err, "failed to stream Claude output for sandbox %s", sandboxInfo.SandboxID)
+		return nil, errors.Wrapf(err, "failed to stream Claude output for sandbox %s", sandboxInfo.SandboxID)
 	}
 
 	// TODO: Log Claude execution for audit trail
 	// TODO: Track Claude usage for billing
 
-	return nil
+	return claudeProcess, nil
 }
 
 // InitFromS3 initializes volume from S3 bucket.

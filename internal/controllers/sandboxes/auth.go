@@ -28,9 +28,12 @@ func authUpdate(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, int
 }
 
 // SyncSandboxResponse holds response data for S3 sync operations.
+// Updated per design phase 3.1 to include detailed sync metrics.
 type SyncSandboxResponse struct {
 	SandboxID        string `json:"sandbox_id"`
-	FilesProcessed   int    `json:"files_processed"`
+	FilesDownloaded  int    `json:"files_downloaded"`
+	FilesDeleted     int    `json:"files_deleted"`
+	FilesSkipped     int    `json:"files_skipped"`
 	BytesTransferred int64  `json:"bytes_transferred"`
 	DurationMs       int64  `json:"duration_ms"`
 }
@@ -63,8 +66,8 @@ func syncSandbox(_ http.ResponseWriter, req *http.Request) (*SyncSandboxResponse
 		return response.AdminBadRequestError[*SyncSandboxResponse](err)
 	}
 
-	log.Infof("Synced sandbox %s to S3: %d files, %d bytes, %dms",
-		id, stats.FilesProcessed, stats.BytesTransferred, stats.Duration.Milliseconds())
+	log.Infof("Synced sandbox %s to S3: %d downloaded, %d deleted, %d skipped, %d bytes, %dms",
+		id, stats.FilesDownloaded, stats.FilesDeleted, stats.FilesSkipped, stats.BytesTransferred, stats.Duration.Milliseconds())
 
 	// Update database metadata with sync statistics and timestamp
 	metadata, err := sandboxModel.MetaData.Get()
@@ -76,7 +79,9 @@ func syncSandbox(_ http.ResponseWriter, req *http.Request) (*SyncSandboxResponse
 		metadata = &sandbox.MetaData{}
 	}
 	metadata.UpdateLastSync(
-		stats.FilesProcessed,
+		stats.FilesDownloaded,
+		stats.FilesDeleted,
+		stats.FilesSkipped,
 		stats.BytesTransferred,
 		stats.Duration.Milliseconds(),
 	)
@@ -91,7 +96,9 @@ func syncSandbox(_ http.ResponseWriter, req *http.Request) (*SyncSandboxResponse
 	// Return response with sync stats
 	resp := &SyncSandboxResponse{
 		SandboxID:        sandboxModel.ID().String(),
-		FilesProcessed:   stats.FilesProcessed,
+		FilesDownloaded:  stats.FilesDownloaded,
+		FilesDeleted:     stats.FilesDeleted,
+		FilesSkipped:     stats.FilesSkipped,
 		BytesTransferred: stats.BytesTransferred,
 		DurationMs:       stats.Duration.Milliseconds(),
 	}

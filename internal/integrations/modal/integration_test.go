@@ -76,7 +76,7 @@ func TestCompleteSandboxLifecycleWithClaude(t *testing.T) {
 		initStats, err := client.InitVolumeFromS3(ctx, sandboxInfo)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, initStats)
-		t.Logf("✓ Volume initialized: %d files processed in %v", initStats.FilesProcessed, initStats.Duration)
+		t.Logf("✓ Volume initialized: %d files processed in %v", initStats.FilesDownloaded, initStats.Duration)
 
 		// Create a test file in the volume for verification
 		t.Log("Creating test file in volume...")
@@ -130,7 +130,7 @@ func TestCompleteSandboxLifecycleWithClaude(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, syncStats)
 		assert.True(t, syncStats.Duration > 0, "Sync should take some time")
-		t.Logf("✓ Volume synced: %d files in %v", syncStats.FilesProcessed, syncStats.Duration)
+		t.Logf("✓ Volume synced: %d files in %v", syncStats.FilesDownloaded, syncStats.Duration)
 
 		// Step 6: Verify new version created in S3
 		t.Log("Step 6: Verifying new version in S3...")
@@ -267,7 +267,7 @@ func TestCompleteSandboxLifecycleWithClaude(t *testing.T) {
 		t.Log("Initializing from empty S3...")
 		initStats, err := client.InitVolumeFromS3(ctx, sandboxInfo)
 		assert.NoError(t, err)
-		assert.Equal(t, 0, initStats.FilesProcessed, "Should process 0 files from empty S3")
+		assert.Equal(t, 0, initStats.FilesDownloaded, "Should process 0 files from empty S3")
 		t.Log("✓ Init from empty S3 succeeded")
 
 		// Create new file
