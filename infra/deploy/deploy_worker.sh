@@ -6,7 +6,8 @@ ENVIRONMENT="${ENVIRONMENT:-}"
 PORT="${PORT:-8080}"
 SYSTEM_MEMORY="${SYSTEM_MEMORY:-1024}"
 SYSTEM_CPU="${SYSTEM_CPU:-512}"
-TASK_COUNT="${TASK_COUNT:-2}"
+TASK_COUNT="${TASK_COUNT:-1}"
+PUBLIC_IP="${PUBLIC_IP:-ENABLED}"
 
 
 if [[ -z "$APP" ]]; then
@@ -60,5 +61,6 @@ aws cloudformation deploy \
                           "SystemMemory=$SYSTEM_MEMORY" \
                           "SystemCPU=$SYSTEM_CPU" \
                           "TaskCount=$TASK_COUNT" \
+                          "AssignPublicIp=$PUBLIC_IP" \
 
 

@@ -96,7 +96,7 @@ TASK_ARN=$(aws ecs run-task \
   --launch-type FARGATE \
   --cluster $APP-cluster \
   --task-definition $TaskDef \
-  --network-configuration "awsvpcConfiguration={subnets=[$PrivateSubnetA,$PrivateSubnetB],securityGroups=[$SG],assignPublicIp=DISABLED}" \
+  --network-configuration "awsvpcConfiguration={subnets=[$PrivateSubnetA,$PrivateSubnetB],securityGroups=[$SG],assignPublicIp=ENABLED}" \
   --query "tasks[0].taskArn" \
   --output text)
 
