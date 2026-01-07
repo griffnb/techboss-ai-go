@@ -164,3 +164,150 @@ func authListFiles(_ http.ResponseWriter, req *http.Request) (*sandbox_service.F
 
 	return response.Success(files)
 }
+
+// adminGetFileContent retrieves and serves the raw content of a file from a sandbox.
+// This endpoint returns the actual file content directly, not wrapped in JSON.
+// It sets appropriate Content-Type, Content-Disposition, and Content-Length headers.
+//
+// Query parameters:
+// - file_path: Required. Full path to the file (e.g., "/workspace/test.txt")
+// - source: "volume" or "s3" (default: "volume")
+//
+// Response headers:
+// - Content-Type: MIME type based on file extension
+// - Content-Disposition: attachment; filename="<filename>"
+// - Content-Length: Size of the file in bytes
+//
+// Returns:
+// - 200 OK: File content successfully retrieved
+// - 400 Bad Request: Missing file_path parameter or invalid sandbox ID
+// - 404 Not Found: File does not exist at the specified path
+func adminGetFileContent(w http.ResponseWriter, req *http.Request) {
+	// Extract sandbox ID from URL parameter
+	id := chi.URLParam(req, "id")
+
+	// Parse query parameters
+	source := req.URL.Query().Get("source")
+	if source == "" {
+		source = "volume"
+	}
+
+	filePath := req.URL.Query().Get("file_path")
+	if filePath == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("file_path query parameter is required"))
+		return
+	}
+
+	// Load sandbox from database
+	sandboxModel, err := sandbox.Get(req.Context(), types.UUID(id))
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(err.Error()))
+		return
+	}
+
+	// Reconstruct sandbox info for service layer
+	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, sandboxModel.AccountID.Get())
+
+	// Call service to get file content
+	service := sandbox_service.NewSandboxService()
+	fileContent, err := service.GetFileContent(req.Context(), sandboxInfo, source, filePath)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		// Check if error message contains "file not found" to return 404
+		errMsg := err.Error()
+		if len(errMsg) >= 14 && errMsg[:14] == "file not found" {
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte(err.Error()))
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(err.Error()))
+		}
+		return
+	}
+
+	// Set response headers
+	w.Header().Set("Content-Type", fileContent.ContentType)
+	w.Header().Set("Content-Disposition", "attachment; filename=\""+fileContent.FileName+"\"")
+	w.Header().Set("Content-Length", strconv.FormatInt(fileContent.Size, 10))
+
+	// Write content
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(fileContent.Content)
+}
+
+// authGetFileContent retrieves and serves the raw content of a file from a sandbox for authenticated users.
+// The auth framework verifies ownership automatically, ensuring only the sandbox owner can access.
+// This endpoint returns the actual file content directly, not wrapped in JSON.
+// It sets appropriate Content-Type, Content-Disposition, and Content-Length headers.
+//
+// Query parameters:
+// - file_path: Required. Full path to the file (e.g., "/workspace/test.txt")
+// - source: "volume" or "s3" (default: "volume")
+//
+// Response headers:
+// - Content-Type: MIME type based on file extension
+// - Content-Disposition: attachment; filename="<filename>"
+// - Content-Length: Size of the file in bytes
+//
+// Returns:
+// - 200 OK: File content successfully retrieved
+// - 400 Bad Request: Missing file_path parameter or invalid sandbox ID
+// - 404 Not Found: File does not exist at the specified path
+func authGetFileContent(w http.ResponseWriter, req *http.Request) {
+	// Extract sandbox ID from URL parameter
+	id := chi.URLParam(req, "id")
+
+	// Parse query parameters
+	source := req.URL.Query().Get("source")
+	if source == "" {
+		source = "volume"
+	}
+
+	filePath := req.URL.Query().Get("file_path")
+	if filePath == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("file_path query parameter is required"))
+		return
+	}
+
+	// Load sandbox from database
+	sandboxModel, err := sandbox.Get(req.Context(), types.UUID(id))
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(err.Error()))
+		return
+	}
+
+	// Reconstruct sandbox info for service layer
+	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, sandboxModel.AccountID.Get())
+
+	// Call service to get file content
+	service := sandbox_service.NewSandboxService()
+	fileContent, err := service.GetFileContent(req.Context(), sandboxInfo, source, filePath)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		// Check if error message contains "file not found" to return 404
+		errMsg := err.Error()
+		if len(errMsg) >= 14 && errMsg[:14] == "file not found" {
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte(err.Error()))
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(err.Error()))
+		}
+		return
+	}
+
+	// Set response headers
+	w.Header().Set("Content-Type", fileContent.ContentType)
+	w.Header().Set("Content-Disposition", "attachment; filename=\""+fileContent.FileName+"\"")
+	w.Header().Set("Content-Length", strconv.FormatInt(fileContent.Size, 10))
+
+	// Write content
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(fileContent.Content)
+}

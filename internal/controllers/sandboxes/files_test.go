@@ -3,6 +3,7 @@ package sandboxes
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 
@@ -720,5 +721,324 @@ func Test_authListFiles_queryParameters(t *testing.T) {
 		// Assert
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, errCode)
+	})
+}
+
+func Test_adminGetFileContent(t *testing.T) {
+	t.Run("returns 400 when file_path query parameter is missing", func(t *testing.T) {
+		// Arrange - Create test sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-test-content-no-path")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create request without file_path parameter
+		req, err := http.NewRequest("GET", "/admin/sandbox/"+sandboxModel.ID().String()+"/files/content", nil)
+		assert.NoError(t, err)
+
+		// Set URL parameter for chi router
+		req = setChiURLParam(req, sandboxModel.ID().String())
+
+		// Act - Call adminGetFileContent directly
+		w := httptest.NewRecorder()
+		adminGetFileContent(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Contains(t, w.Body.String(), "file_path query parameter is required")
+	})
+
+	t.Run("returns 404 for non-existent file", func(t *testing.T) {
+		// Arrange - Create test sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-test-content-notfound")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create request with non-existent file path
+		params := url.Values{}
+		params.Set("file_path", "/workspace/nonexistent.txt")
+		req, err := http.NewRequest("GET", "/admin/sandbox/"+sandboxModel.ID().String()+"/files/content?"+params.Encode(), nil)
+		assert.NoError(t, err)
+
+		// Set URL parameter for chi router
+		req = setChiURLParam(req, sandboxModel.ID().String())
+
+		// Act - Call adminGetFileContent directly
+		w := httptest.NewRecorder()
+		adminGetFileContent(w, req)
+
+		// Assert - Service returns "file not found" error for non-existent files
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Contains(t, w.Body.String(), "file not found")
+	})
+
+	t.Run("returns 404 for invalid sandbox ID", func(t *testing.T) {
+		// Arrange - Use non-existent sandbox ID
+		params := url.Values{}
+		params.Set("file_path", "/workspace/test.txt")
+		req, err := http.NewRequest("GET", "/admin/sandbox/00000000-0000-0000-0000-000000000000/files/content?"+params.Encode(), nil)
+		assert.NoError(t, err)
+
+		// Set URL parameter for chi router
+		req = setChiURLParam(req, "00000000-0000-0000-0000-000000000000")
+
+		// Act - Call adminGetFileContent directly
+		w := httptest.NewRecorder()
+		adminGetFileContent(w, req)
+
+		// Assert - Returns 404 because sandbox is not connected
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("defaults source to volume when not specified", func(t *testing.T) {
+		// Arrange - Create test sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-test-content-default-source")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create request without source parameter
+		params := url.Values{}
+		params.Set("file_path", "/workspace/test.txt")
+		req, err := http.NewRequest("GET", "/admin/sandbox/"+sandboxModel.ID().String()+"/files/content?"+params.Encode(), nil)
+		assert.NoError(t, err)
+
+		// Set URL parameter for chi router
+		req = setChiURLParam(req, sandboxModel.ID().String())
+
+		// Act - Call adminGetFileContent directly
+		w := httptest.NewRecorder()
+		adminGetFileContent(w, req)
+
+		// Assert - Should return 404 because sandbox is not connected (no active Modal connection)
+		// but it should have successfully defaulted to "volume" source
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Contains(t, w.Body.String(), "file not found")
+	})
+
+	t.Run("uses s3 source when specified", func(t *testing.T) {
+		// Arrange - Create test sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-test-content-s3-source")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create request with s3 source
+		params := url.Values{}
+		params.Set("source", "s3")
+		params.Set("file_path", "/s3-bucket/test.txt")
+		req, err := http.NewRequest("GET", "/admin/sandbox/"+sandboxModel.ID().String()+"/files/content?"+params.Encode(), nil)
+		assert.NoError(t, err)
+
+		// Set URL parameter for chi router
+		req = setChiURLParam(req, sandboxModel.ID().String())
+
+		// Act - Call adminGetFileContent directly
+		w := httptest.NewRecorder()
+		adminGetFileContent(w, req)
+
+		// Assert - Should return 404 because sandbox is not connected
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Contains(t, w.Body.String(), "file not found")
+	})
+}
+
+func Test_authGetFileContent(t *testing.T) {
+	t.Run("returns 400 when file_path query parameter is missing", func(t *testing.T) {
+		// Arrange - Create test sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-test-auth-content-no-path")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create request without file_path parameter
+		req, err := http.NewRequest("GET", "/sandbox/"+sandboxModel.ID().String()+"/files/content", nil)
+		assert.NoError(t, err)
+
+		// Set URL parameter for chi router
+		req = setChiURLParam(req, sandboxModel.ID().String())
+
+		// Act - Call authGetFileContent directly
+		w := httptest.NewRecorder()
+		authGetFileContent(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Contains(t, w.Body.String(), "file_path query parameter is required")
+	})
+
+	t.Run("returns 404 for non-existent file", func(t *testing.T) {
+		// Arrange - Create test sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-test-auth-content-notfound")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create request with non-existent file path
+		params := url.Values{}
+		params.Set("file_path", "/workspace/nonexistent.txt")
+		req, err := http.NewRequest("GET", "/sandbox/"+sandboxModel.ID().String()+"/files/content?"+params.Encode(), nil)
+		assert.NoError(t, err)
+
+		// Set URL parameter for chi router
+		req = setChiURLParam(req, sandboxModel.ID().String())
+
+		// Act - Call authGetFileContent directly
+		w := httptest.NewRecorder()
+		authGetFileContent(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Contains(t, w.Body.String(), "file not found")
+	})
+
+	t.Run("returns 404 for invalid sandbox ID", func(t *testing.T) {
+		// Arrange - Use non-existent sandbox ID
+		params := url.Values{}
+		params.Set("file_path", "/workspace/test.txt")
+		req, err := http.NewRequest("GET", "/sandbox/00000000-0000-0000-0000-000000000000/files/content?"+params.Encode(), nil)
+		assert.NoError(t, err)
+
+		// Set URL parameter for chi router
+		req = setChiURLParam(req, "00000000-0000-0000-0000-000000000000")
+
+		// Act - Call authGetFileContent directly
+		w := httptest.NewRecorder()
+		authGetFileContent(w, req)
+
+		// Assert - Returns 404 because sandbox is not connected
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("defaults source to volume when not specified", func(t *testing.T) {
+		// Arrange - Create test sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-test-auth-content-default-source")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create request without source parameter
+		params := url.Values{}
+		params.Set("file_path", "/workspace/test.txt")
+		req, err := http.NewRequest("GET", "/sandbox/"+sandboxModel.ID().String()+"/files/content?"+params.Encode(), nil)
+		assert.NoError(t, err)
+
+		// Set URL parameter for chi router
+		req = setChiURLParam(req, sandboxModel.ID().String())
+
+		// Act - Call authGetFileContent directly
+		w := httptest.NewRecorder()
+		authGetFileContent(w, req)
+
+		// Assert - Should return 404 because sandbox is not connected
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Contains(t, w.Body.String(), "file not found")
+	})
+
+	t.Run("uses s3 source when specified", func(t *testing.T) {
+		// Arrange - Create test sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-test-auth-content-s3-source")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create request with s3 source
+		params := url.Values{}
+		params.Set("source", "s3")
+		params.Set("file_path", "/s3-bucket/test.txt")
+		req, err := http.NewRequest("GET", "/sandbox/"+sandboxModel.ID().String()+"/files/content?"+params.Encode(), nil)
+		assert.NoError(t, err)
+
+		// Set URL parameter for chi router
+		req = setChiURLParam(req, sandboxModel.ID().String())
+
+		// Act - Call authGetFileContent directly
+		w := httptest.NewRecorder()
+		authGetFileContent(w, req)
+
+		// Assert - Should return 404 because sandbox is not connected
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Contains(t, w.Body.String(), "file not found")
 	})
 }

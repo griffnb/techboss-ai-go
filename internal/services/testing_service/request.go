@@ -82,6 +82,18 @@ func (this *TestRequest[T]) Do(handler func(res http.ResponseWriter, req *http.R
 	return handler(this.Recorder, this.Request)
 }
 
+// DoRaw executes the request against a raw void handler that writes directly to ResponseWriter.
+// Used for handlers like file download endpoints that return raw content instead of JSON.
+// Returns the ResponseRecorder so you can inspect headers, status code, and body.
+func (this *TestRequest[T]) DoRaw(handler func(w http.ResponseWriter, req *http.Request)) (*httptest.ResponseRecorder, error) {
+	if this.Recorder == nil {
+		this.Recorder = httptest.NewRecorder()
+	}
+
+	handler(this.Recorder, this.Request)
+	return this.Recorder, nil
+}
+
 func (this *TestRequest[T]) WithAdmin(adminObj ...*admin.Admin) error {
 	if len(adminObj) == 0 {
 		adminObj = append(adminObj, admin.New())

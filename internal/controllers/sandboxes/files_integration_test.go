@@ -498,3 +498,331 @@ func Test_FileListingIntegration_errorHandling(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, statusCode)
 	})
 }
+
+func Test_FileContentRetrievalIntegration(t *testing.T) {
+	t.Run("adminGetFileContent complete workflow for volume source", func(t *testing.T) {
+		// Arrange: Create sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		// Create sandbox in DB
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-content-volume-test")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create HTTP request
+		params := url.Values{}
+		params.Set("source", "volume")
+		params.Set("file_path", "/workspace/test.txt")
+
+		req, err := testing_service.NewGETRequest[any](
+			"/admin/sandbox/"+sandboxModel.ID().String()+"/files/content",
+			params,
+		)
+		assert.NoError(t, err)
+
+		// Add chi URL params
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("id", sandboxModel.ID().String())
+		req.Request = req.Request.WithContext(context.WithValue(req.Request.Context(), chi.RouteCtxKey, rctx))
+
+		// Act: Call controller
+		w, err := req.DoRaw(adminGetFileContent)
+		assert.NoError(t, err)
+
+		// Assert: Verify response
+		// Note: Will return 404 because sandbox doesn't have actual files
+		// But we're testing the workflow works
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("adminGetFileContent for s3 source", func(t *testing.T) {
+		// Arrange: Create sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-content-s3-test")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create HTTP request with S3 source
+		params := url.Values{}
+		params.Set("source", "s3")
+		params.Set("file_path", "/s3-bucket/data/file.json")
+
+		req, err := testing_service.NewGETRequest[any](
+			"/admin/sandbox/"+sandboxModel.ID().String()+"/files/content",
+			params,
+		)
+		assert.NoError(t, err)
+
+		// Add chi URL params
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("id", sandboxModel.ID().String())
+		req.Request = req.Request.WithContext(context.WithValue(req.Request.Context(), chi.RouteCtxKey, rctx))
+
+		// Act
+		w, err := req.DoRaw(adminGetFileContent)
+		assert.NoError(t, err)
+
+		// Assert: Returns 404 since no actual files
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("returns 400 when file_path missing", func(t *testing.T) {
+		// Arrange: Create sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-content-missing-path")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create HTTP request WITHOUT file_path parameter
+		params := url.Values{}
+		params.Set("source", "volume")
+		// Intentionally omitting file_path
+
+		req, err := testing_service.NewGETRequest[any](
+			"/admin/sandbox/"+sandboxModel.ID().String()+"/files/content",
+			params,
+		)
+		assert.NoError(t, err)
+
+		// Add chi URL params
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("id", sandboxModel.ID().String())
+		req.Request = req.Request.WithContext(context.WithValue(req.Request.Context(), chi.RouteCtxKey, rctx))
+
+		// Act
+		w, err := req.DoRaw(adminGetFileContent)
+		assert.NoError(t, err)
+
+		// Assert: Returns 400 when file_path is missing
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Contains(t, w.Body.String(), "file_path query parameter is required")
+	})
+
+	t.Run("authGetFileContent with ownership verification", func(t *testing.T) {
+		// Arrange: Create sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-content-auth-test")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create HTTP request with auth session
+		params := url.Values{}
+		params.Set("source", "volume")
+		params.Set("file_path", "/workspace/main.go")
+
+		req, err := testing_service.NewGETRequest[any](
+			"/sandbox/"+sandboxModel.ID().String()+"/files/content",
+			params,
+		)
+		assert.NoError(t, err)
+
+		// Set session for authenticated request
+		err = req.WithAccount(builder.Account)
+		assert.NoError(t, err)
+
+		// Add chi URL params
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("id", sandboxModel.ID().String())
+		req.Request = req.Request.WithContext(context.WithValue(req.Request.Context(), chi.RouteCtxKey, rctx))
+
+		// Act
+		w, err := req.DoRaw(authGetFileContent)
+		assert.NoError(t, err)
+
+		// Assert: Returns 404 since no actual files (but auth workflow works)
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("handles various file paths", func(t *testing.T) {
+		// Arrange: Create sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-content-paths-test")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Test cases for various file paths
+		testCases := []struct {
+			name     string
+			filePath string
+		}{
+			{"root level file", "/workspace/README.md"},
+			{"nested directory", "/workspace/src/main.go"},
+			{"deeply nested", "/workspace/src/controllers/users/handler.go"},
+			{"with spaces", "/workspace/my file.txt"},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				params := url.Values{}
+				params.Set("source", "volume")
+				params.Set("file_path", tc.filePath)
+
+				req, err := testing_service.NewGETRequest[any](
+					"/admin/sandbox/"+sandboxModel.ID().String()+"/files/content",
+					params,
+				)
+				assert.NoError(t, err)
+
+				rctx := chi.NewRouteContext()
+				rctx.URLParams.Add("id", sandboxModel.ID().String())
+				req.Request = req.Request.WithContext(context.WithValue(req.Request.Context(), chi.RouteCtxKey, rctx))
+
+				// Act
+				w, err := req.DoRaw(adminGetFileContent)
+				assert.NoError(t, err)
+
+				// Assert: All should return 404 (no actual files)
+				assert.Equal(t, http.StatusNotFound, w.Code)
+			})
+		}
+	})
+
+	t.Run("query parameter combinations", func(t *testing.T) {
+		// Arrange: Create sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-content-combo-test")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Test case 1: Volume source with file_path
+		params1 := url.Values{}
+		params1.Set("source", "volume")
+		params1.Set("file_path", "/workspace/config.yaml")
+
+		req1, err := testing_service.NewGETRequest[any](
+			"/admin/sandbox/"+sandboxModel.ID().String()+"/files/content",
+			params1,
+		)
+		assert.NoError(t, err)
+
+		rctx1 := chi.NewRouteContext()
+		rctx1.URLParams.Add("id", sandboxModel.ID().String())
+		req1.Request = req1.Request.WithContext(context.WithValue(req1.Request.Context(), chi.RouteCtxKey, rctx1))
+
+		w1, err := req1.DoRaw(adminGetFileContent)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusNotFound, w1.Code)
+
+		// Test case 2: S3 source with file_path
+		params2 := url.Values{}
+		params2.Set("source", "s3")
+		params2.Set("file_path", "/bucket/data.csv")
+
+		req2, err := testing_service.NewGETRequest[any](
+			"/admin/sandbox/"+sandboxModel.ID().String()+"/files/content",
+			params2,
+		)
+		assert.NoError(t, err)
+
+		rctx2 := chi.NewRouteContext()
+		rctx2.URLParams.Add("id", sandboxModel.ID().String())
+		req2.Request = req2.Request.WithContext(context.WithValue(req2.Request.Context(), chi.RouteCtxKey, rctx2))
+
+		w2, err := req2.DoRaw(adminGetFileContent)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusNotFound, w2.Code)
+
+		// Test case 3: Default source (should default to volume)
+		params3 := url.Values{}
+		params3.Set("file_path", "/workspace/default.txt")
+		// Intentionally omit source to test default behavior
+
+		req3, err := testing_service.NewGETRequest[any](
+			"/admin/sandbox/"+sandboxModel.ID().String()+"/files/content",
+			params3,
+		)
+		assert.NoError(t, err)
+
+		rctx3 := chi.NewRouteContext()
+		rctx3.URLParams.Add("id", sandboxModel.ID().String())
+		req3.Request = req3.Request.WithContext(context.WithValue(req3.Request.Context(), chi.RouteCtxKey, rctx3))
+
+		w3, err := req3.DoRaw(adminGetFileContent)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusNotFound, w3.Code)
+	})
+
+	t.Run("invalid sandbox ID returns 400", func(t *testing.T) {
+		// Arrange: Use malformed UUID
+		params := url.Values{}
+		params.Set("source", "volume")
+		params.Set("file_path", "/workspace/test.txt")
+
+		req, err := testing_service.NewGETRequest[any](
+			"/admin/sandbox/not-a-valid-uuid/files/content",
+			params,
+		)
+		assert.NoError(t, err)
+
+		// Add chi URL params
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("id", "not-a-valid-uuid")
+		req.Request = req.Request.WithContext(context.WithValue(req.Request.Context(), chi.RouteCtxKey, rctx))
+
+		// Act
+		w, err := req.DoRaw(adminGetFileContent)
+		assert.NoError(t, err)
+
+		// Assert: Returns 400 for invalid UUID
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+}

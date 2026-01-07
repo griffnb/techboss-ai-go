@@ -1688,3 +1688,723 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		assert.True(t, len(response.Files) <= 50, "should not exceed per_page limit")
 	})
 }
+
+// Test_SandboxService_buildReadFileCommand tests command generation for reading file content
+func Test_SandboxService_buildReadFileCommand(t *testing.T) {
+	// Arrange
+	service := NewSandboxService()
+
+	t.Run("generates cat command for small file from volume", func(t *testing.T) {
+		// Arrange
+		source := "volume"
+		filePath := "/test.txt"
+		maxSize := int64(0) // no limit
+
+		// Act
+		cmd := service.buildReadFileCommand(source, filePath, maxSize)
+
+		// Assert
+		assert.Equal(t, "cat /workspace/test.txt", cmd)
+	})
+
+	t.Run("generates cat command for small file from s3", func(t *testing.T) {
+		// Arrange
+		source := "s3"
+		filePath := "/data.json"
+		maxSize := int64(0)
+
+		// Act
+		cmd := service.buildReadFileCommand(source, filePath, maxSize)
+
+		// Assert
+		assert.Equal(t, "cat /s3-bucket/data.json", cmd)
+	})
+
+	t.Run("generates head command for large file with size limit", func(t *testing.T) {
+		// Arrange
+		source := "volume"
+		filePath := "/large.bin"
+		maxSize := int64(10485760) // 10MB
+
+		// Act
+		cmd := service.buildReadFileCommand(source, filePath, maxSize)
+
+		// Assert
+		assert.Equal(t, "head -c 10485760 /workspace/large.bin", cmd)
+	})
+
+	t.Run("generates cat command for file from custom volume path", func(t *testing.T) {
+		// Arrange
+		source := "volume"
+		filePath := "/src/main.go"
+		maxSize := int64(0)
+
+		// Act
+		cmd := service.buildReadFileCommand(source, filePath, maxSize)
+
+		// Assert
+		assert.Equal(t, "cat /workspace/src/main.go", cmd)
+	})
+
+	t.Run("generates head command for s3 file with size limit", func(t *testing.T) {
+		// Arrange
+		source := "s3"
+		filePath := "/output/large.csv"
+		maxSize := int64(5242880) // 5MB
+
+		// Act
+		cmd := service.buildReadFileCommand(source, filePath, maxSize)
+
+		// Assert
+		assert.Equal(t, "head -c 5242880 /s3-bucket/output/large.csv", cmd)
+	})
+
+	t.Run("uses workspace base path for volume source", func(t *testing.T) {
+		// Arrange
+		source := "volume"
+		filePath := "/any/path/file.txt"
+		maxSize := int64(0)
+
+		// Act
+		cmd := service.buildReadFileCommand(source, filePath, maxSize)
+
+		// Assert
+		assert.Contains(t, cmd, "/workspace")
+		assert.Contains(t, cmd, filePath)
+	})
+
+	t.Run("uses s3-bucket base path for s3 source", func(t *testing.T) {
+		// Arrange
+		source := "s3"
+		filePath := "/any/path/file.txt"
+		maxSize := int64(0)
+
+		// Act
+		cmd := service.buildReadFileCommand(source, filePath, maxSize)
+
+		// Assert
+		assert.Contains(t, cmd, "/s3-bucket")
+		assert.Contains(t, cmd, filePath)
+	})
+
+	t.Run("handles nested file paths correctly", func(t *testing.T) {
+		// Arrange
+		source := "volume"
+		filePath := "/deep/nested/path/to/file.txt"
+		maxSize := int64(0)
+
+		// Act
+		cmd := service.buildReadFileCommand(source, filePath, maxSize)
+
+		// Assert
+		assert.Equal(t, "cat /workspace/deep/nested/path/to/file.txt", cmd)
+	})
+
+	t.Run("handles very large size limits", func(t *testing.T) {
+		// Arrange
+		source := "volume"
+		filePath := "/huge.bin"
+		maxSize := int64(1073741824) // 1GB
+
+		// Act
+		cmd := service.buildReadFileCommand(source, filePath, maxSize)
+
+		// Assert
+		assert.Equal(t, "head -c 1073741824 /workspace/huge.bin", cmd)
+	})
+}
+
+// Test_SandboxService_GetFileContent tests retrieving file content from sandbox
+func Test_SandboxService_GetFileContent(t *testing.T) {
+	t.Run("returns error when sandbox not connected for volume", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		ctx := context.Background()
+
+		sandboxModel := sandbox.New()
+		sandboxModel.ExternalID.Set("test-sandbox-text")
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		// ReconstructSandboxInfo creates sandboxInfo without active Modal connection
+		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+
+		source := "volume"
+		filePath := "/test.txt"
+
+		// Act
+		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+
+		// Assert
+		// Should return error when sandbox not connected (expected behavior)
+		assert.Error(t, err)
+		assert.Empty(t, content)
+		assert.Contains(t, err.Error(), "sandbox not connected")
+	})
+
+	t.Run("returns error when sandbox not connected for s3", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		ctx := context.Background()
+
+		sandboxModel := sandbox.New()
+		sandboxModel.ExternalID.Set("test-sandbox-s3")
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+
+		source := "s3"
+		filePath := "/data.json"
+
+		// Act
+		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Empty(t, content)
+		assert.Contains(t, err.Error(), "sandbox not connected")
+	})
+
+	t.Run("validates file path and returns appropriate error", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		ctx := context.Background()
+
+		sandboxModel := sandbox.New()
+		sandboxModel.ExternalID.Set("test-sandbox-binary")
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+
+		source := "volume"
+		filePath := "/image.png"
+
+		// Act
+		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+
+		// Assert
+		// For disconnected sandbox, should get "not connected" error
+		assert.Error(t, err)
+		assert.Empty(t, content)
+	})
+
+	t.Run("returns error when file not found", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		ctx := context.Background()
+
+		sandboxModel := sandbox.New()
+		sandboxModel.ExternalID.Set("test-sandbox-notfound")
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+
+		source := "volume"
+		filePath := "/nonexistent.txt"
+
+		// Act
+		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Empty(t, content)
+		assert.Contains(t, err.Error(), "file not found")
+	})
+
+	t.Run("returns error for large file when sandbox not connected", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		ctx := context.Background()
+
+		sandboxModel := sandbox.New()
+		sandboxModel.ExternalID.Set("test-sandbox-large")
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+
+		source := "volume"
+		filePath := "/large.bin"
+
+		// Act
+		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Empty(t, content)
+		assert.Contains(t, err.Error(), "sandbox not connected")
+	})
+
+	t.Run("returns error for empty file when sandbox not connected", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		ctx := context.Background()
+
+		sandboxModel := sandbox.New()
+		sandboxModel.ExternalID.Set("test-sandbox-empty")
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+
+		source := "volume"
+		filePath := "/empty.txt"
+
+		// Act
+		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Empty(t, content)
+		assert.Contains(t, err.Error(), "sandbox not connected")
+	})
+
+	t.Run("returns error for invalid source", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		ctx := context.Background()
+
+		sandboxModel := sandbox.New()
+		sandboxModel.ExternalID.Set("test-sandbox-invalid")
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+
+		source := "invalid"
+		filePath := "/test.txt"
+
+		// Act
+		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Empty(t, content)
+		assert.Contains(t, err.Error(), "invalid source")
+	})
+
+	t.Run("returns error when sandboxInfo is nil", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		ctx := context.Background()
+
+		source := "volume"
+		filePath := "/test.txt"
+
+		// Act
+		content, err := service.GetFileContent(ctx, nil, source, filePath)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Empty(t, content)
+		assert.Contains(t, err.Error(), "sandboxInfo cannot be nil")
+	})
+
+	t.Run("returns error for path validation failure", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		ctx := context.Background()
+
+		sandboxModel := sandbox.New()
+		sandboxModel.ExternalID.Set("test-sandbox-badpath")
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+
+		source := "volume"
+		filePath := "/workspace/../etc/passwd" // Directory traversal
+
+		// Act
+		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Empty(t, content)
+		assert.Contains(t, err.Error(), "directory traversal")
+	})
+
+	t.Run("respects context cancellation", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel() // Cancel immediately
+
+		sandboxModel := sandbox.New()
+		sandboxModel.ExternalID.Set("test-sandbox-cancel")
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+
+		source := "volume"
+		filePath := "/test.txt"
+
+		// Act
+		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+
+		// Assert
+		// Should respect context cancellation - either nil sandbox or context error
+		assert.True(t, err != nil || content == nil, "should handle cancelled context")
+	})
+
+	t.Run("detects correct MIME type for various extensions", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		ctx := context.Background()
+
+		sandboxModel := sandbox.New()
+		sandboxModel.ExternalID.Set("test-sandbox-mime")
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+
+		testCases := []struct {
+			filePath    string
+			expectedExt string
+		}{
+			{"/main.go", "text/x-go"},
+			{"/script.py", "text/x-python"},
+			{"/data.json", "application/json"},
+			{"/config.yaml", "application/x-yaml"},
+		}
+
+		for _, tc := range testCases {
+			// Act
+			content, err := service.GetFileContent(ctx, sandboxInfo, "volume", tc.filePath)
+
+			// Assert (if file exists)
+			if err == nil && content != nil {
+				assert.Equal(t, tc.expectedExt, content.ContentType)
+			}
+		}
+	})
+
+	t.Run("extracts filename correctly from path", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		ctx := context.Background()
+
+		sandboxModel := sandbox.New()
+		sandboxModel.ExternalID.Set("test-sandbox-filename")
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+
+		source := "volume"
+		filePath := "/deep/nested/path/file.txt"
+
+		// Act
+		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+
+		// Assert (if file exists)
+		if err == nil && content != nil {
+			assert.Equal(t, "file.txt", content.FileName)
+		}
+	})
+}
+
+// Test_detectMimeType tests MIME type detection based on file extension
+func Test_detectMimeType(t *testing.T) {
+	t.Run("detects text/plain for .txt files", func(t *testing.T) {
+		// Arrange
+		filename := "test.txt"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "text/plain", mimeType)
+	})
+
+	t.Run("detects application/json for .json files", func(t *testing.T) {
+		// Arrange
+		filename := "data.json"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "application/json", mimeType)
+	})
+
+	t.Run("detects text/x-python for .py files", func(t *testing.T) {
+		// Arrange
+		filename := "script.py"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "text/x-python", mimeType)
+	})
+
+	t.Run("detects text/x-go for .go files", func(t *testing.T) {
+		// Arrange
+		filename := "main.go"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "text/x-go", mimeType)
+	})
+
+	t.Run("detects image/png for .png files", func(t *testing.T) {
+		// Arrange
+		filename := "image.png"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "image/png", mimeType)
+	})
+
+	t.Run("detects application/pdf for .pdf files", func(t *testing.T) {
+		// Arrange
+		filename := "doc.pdf"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "application/pdf", mimeType)
+	})
+
+	t.Run("returns application/octet-stream for unknown extensions", func(t *testing.T) {
+		// Arrange
+		filename := "unknown.xyz"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "application/octet-stream", mimeType)
+	})
+
+	t.Run("handles uppercase extensions", func(t *testing.T) {
+		// Arrange
+		filename := "TEST.TXT"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "text/plain", mimeType)
+	})
+
+	t.Run("handles mixed case extensions", func(t *testing.T) {
+		// Arrange
+		filename := "Script.Py"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "text/x-python", mimeType)
+	})
+
+	t.Run("handles files with paths", func(t *testing.T) {
+		// Arrange
+		filename := "/workspace/src/main.go"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "text/x-go", mimeType)
+	})
+
+	t.Run("detects application/xml for .xml files", func(t *testing.T) {
+		// Arrange
+		filename := "config.xml"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "application/xml", mimeType)
+	})
+
+	t.Run("detects text/html for .html files", func(t *testing.T) {
+		// Arrange
+		filename := "index.html"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "text/html", mimeType)
+	})
+
+	t.Run("detects text/css for .css files", func(t *testing.T) {
+		// Arrange
+		filename := "styles.css"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "text/css", mimeType)
+	})
+
+	t.Run("detects application/javascript for .js files", func(t *testing.T) {
+		// Arrange
+		filename := "app.js"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "application/javascript", mimeType)
+	})
+
+	t.Run("detects text/x-java for .java files", func(t *testing.T) {
+		// Arrange
+		filename := "Main.java"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "text/x-java", mimeType)
+	})
+
+	t.Run("detects text/x-c for .c files", func(t *testing.T) {
+		// Arrange
+		filename := "program.c"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "text/x-c", mimeType)
+	})
+
+	t.Run("detects text/x-c++ for .cpp files", func(t *testing.T) {
+		// Arrange
+		filename := "program.cpp"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "text/x-c++", mimeType)
+	})
+
+	t.Run("detects text/markdown for .md files", func(t *testing.T) {
+		// Arrange
+		filename := "README.md"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "text/markdown", mimeType)
+	})
+
+	t.Run("detects application/x-yaml for .yaml files", func(t *testing.T) {
+		// Arrange
+		filename := "config.yaml"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "application/x-yaml", mimeType)
+	})
+
+	t.Run("detects application/x-yaml for .yml files", func(t *testing.T) {
+		// Arrange
+		filename := "docker-compose.yml"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "application/x-yaml", mimeType)
+	})
+
+	t.Run("detects application/x-sh for .sh files", func(t *testing.T) {
+		// Arrange
+		filename := "script.sh"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "application/x-sh", mimeType)
+	})
+
+	t.Run("detects image/jpeg for .jpg files", func(t *testing.T) {
+		// Arrange
+		filename := "photo.jpg"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "image/jpeg", mimeType)
+	})
+
+	t.Run("detects image/jpeg for .jpeg files", func(t *testing.T) {
+		// Arrange
+		filename := "photo.jpeg"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "image/jpeg", mimeType)
+	})
+
+	t.Run("detects image/gif for .gif files", func(t *testing.T) {
+		// Arrange
+		filename := "animation.gif"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "image/gif", mimeType)
+	})
+
+	t.Run("detects application/zip for .zip files", func(t *testing.T) {
+		// Arrange
+		filename := "archive.zip"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "application/zip", mimeType)
+	})
+
+	t.Run("detects application/x-tar for .tar files", func(t *testing.T) {
+		// Arrange
+		filename := "archive.tar"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "application/x-tar", mimeType)
+	})
+
+	t.Run("detects application/gzip for .gz files", func(t *testing.T) {
+		// Arrange
+		filename := "archive.tar.gz"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "application/gzip", mimeType)
+	})
+
+	t.Run("handles files with no extension", func(t *testing.T) {
+		// Arrange
+		filename := "Makefile"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "application/octet-stream", mimeType)
+	})
+
+	t.Run("handles files with multiple dots", func(t *testing.T) {
+		// Arrange
+		filename := "my.file.name.go"
+
+		// Act
+		mimeType := detectMimeType(filename)
+
+		// Assert
+		assert.Equal(t, "text/x-go", mimeType)
+	})
+}

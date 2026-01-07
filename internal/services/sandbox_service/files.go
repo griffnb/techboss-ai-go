@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"fmt"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -42,6 +44,15 @@ type FileListResponse struct {
 	Page       int        `json:"page"`
 	PerPage    int        `json:"per_page"`
 	TotalPages int        `json:"total_pages"`
+}
+
+// FileContent represents the content of a file retrieved from a sandbox.
+// Used when returning file content via the file content endpoint.
+type FileContent struct {
+	Content     []byte `json:"content"`
+	ContentType string `json:"content_type"`
+	FileName    string `json:"file_name"`
+	Size        int64  `json:"size"`
 }
 
 // validatePath validates that a file path is safe and within allowed directories.
@@ -418,4 +429,217 @@ func (s *SandboxService) ListFiles(
 	response := paginateFiles(files, opts)
 
 	return response, nil
+}
+
+// detectMimeType returns the MIME type based on file extension.
+// Used to set proper Content-Type headers when serving file content.
+// Returns "application/octet-stream" for unknown file types.
+func detectMimeType(filename string) string {
+	ext := strings.ToLower(filepath.Ext(filename))
+
+	mimeTypes := map[string]string{
+		".txt":  "text/plain",
+		".json": "application/json",
+		".xml":  "application/xml",
+		".html": "text/html",
+		".css":  "text/css",
+		".js":   "application/javascript",
+		".py":   "text/x-python",
+		".go":   "text/x-go",
+		".java": "text/x-java",
+		".c":    "text/x-c",
+		".cpp":  "text/x-c++",
+		".md":   "text/markdown",
+		".yaml": "application/x-yaml",
+		".yml":  "application/x-yaml",
+		".sh":   "application/x-sh",
+		".png":  "image/png",
+		".jpg":  "image/jpeg",
+		".jpeg": "image/jpeg",
+		".gif":  "image/gif",
+		".pdf":  "application/pdf",
+		".zip":  "application/zip",
+		".tar":  "application/x-tar",
+		".gz":   "application/gzip",
+	}
+
+	if mime, ok := mimeTypes[ext]; ok {
+		return mime
+	}
+	return "application/octet-stream"
+}
+
+// buildReadFileCommand constructs a command to read file contents.
+// Uses cat for normal files, head -c for size-limited reads.
+// For volume source: uses /workspace as base path
+// For s3 source: uses /s3-bucket as base path
+// If maxSize > 0: uses head -c to limit bytes read
+// If maxSize = 0: uses cat to read entire file
+func (s *SandboxService) buildReadFileCommand(source, filePath string, maxSize int64) string {
+	// Determine base path
+	var basePath string
+	if source == "s3" {
+		basePath = "/s3-bucket"
+	} else {
+		basePath = "/workspace"
+	}
+
+	// Build full path
+	fullPath := basePath + filePath
+
+	// Use head -c for size-limited reads, cat otherwise
+	if maxSize > 0 {
+		return fmt.Sprintf("head -c %d %s", maxSize, fullPath)
+	}
+	return fmt.Sprintf("cat %s", fullPath)
+}
+
+// GetFileContent retrieves the content of a specific file from the sandbox.
+// It checks if the file exists, determines its size, and reads the content.
+// For files larger than 100MB, it limits the read to the first 100MB.
+// Returns FileContent with the file's content, MIME type, filename, and size.
+// Returns an error if:
+// - sandboxInfo is nil
+// - source is not "volume" or "s3"
+// - path validation fails
+// - file does not exist
+// - command execution fails
+func (s *SandboxService) GetFileContent(
+	ctx context.Context,
+	sandboxInfo *modal.SandboxInfo,
+	source string,
+	filePath string,
+) (*FileContent, error) {
+	// Validate inputs
+	if sandboxInfo == nil {
+		return nil, errors.New("sandboxInfo cannot be nil")
+	}
+
+	if source != "volume" && source != "s3" {
+		return nil, errors.Errorf("invalid source: must be 'volume' or 's3', got '%s'", source)
+	}
+
+	// Prevent directory traversal in the file path
+	if strings.Contains(filePath, "..") {
+		return nil, errors.Wrap(errors.New("invalid path: directory traversal not allowed"), "path validation failed")
+	}
+
+	// Determine base path
+	var basePath string
+	if source == "s3" {
+		basePath = "/s3-bucket"
+	} else {
+		basePath = "/workspace"
+	}
+	fullPath := basePath + filePath
+
+	// Validate the full path is within allowed directories
+	if err := validatePath(fullPath); err != nil {
+		return nil, errors.Wrap(err, "path validation failed")
+	}
+
+	// Check file exists and get size using stat
+	// stat -c '%s' outputs file size in bytes
+	// 2>/dev/null suppresses error output if file doesn't exist
+	statCmd := fmt.Sprintf("stat -c '%%s' %s 2>/dev/null || echo 'FILE_NOT_FOUND'", fullPath)
+
+	// Handle nil Sandbox (reconstructed from DB without active connection)
+	if sandboxInfo.Sandbox == nil {
+		// Check for context cancellation
+		select {
+		case <-ctx.Done():
+			return nil, errors.Wrap(ctx.Err(), "context cancelled")
+		default:
+		}
+
+		// For reconstructed sandboxes without active Modal connection,
+		// return error indicating file cannot be accessed
+		return nil, errors.New("file not found: sandbox not connected")
+	}
+
+	statProcess, err := sandboxInfo.Sandbox.Exec(ctx, []string{"sh", "-c", statCmd}, nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to stat file")
+	}
+
+	// Read stdout from stat command
+	var statOutput bytes.Buffer
+	scanner := bufio.NewScanner(statProcess.Stdout)
+	for scanner.Scan() {
+		statOutput.Write(scanner.Bytes())
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed to read stat output")
+	}
+
+	// Wait for stat command to complete
+	exitCode, err := statProcess.Wait(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to wait for stat completion")
+	}
+
+	if exitCode != 0 {
+		return nil, errors.Errorf("stat command failed with exit code %d", exitCode)
+	}
+
+	// Parse stat output
+	statStr := strings.TrimSpace(statOutput.String())
+	if statStr == "FILE_NOT_FOUND" || statStr == "" {
+		return nil, errors.Errorf("file not found: %s", filePath)
+	}
+
+	size, err := strconv.ParseInt(statStr, 10, 64)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse file size")
+	}
+
+	// Determine max read size (100MB limit)
+	const MaxFileContentSize = 100 * 1024 * 1024 // 100MB
+	var maxSize int64
+	if size > MaxFileContentSize {
+		maxSize = MaxFileContentSize
+	}
+
+	// Build and execute read command
+	readCmd := s.buildReadFileCommand(source, filePath, maxSize)
+	readProcess, err := sandboxInfo.Sandbox.Exec(ctx, []string{"sh", "-c", readCmd}, nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to read file content")
+	}
+
+	// Read file content from stdout
+	var contentBuffer bytes.Buffer
+	contentScanner := bufio.NewScanner(readProcess.Stdout)
+	// Set large buffer for binary content
+	buf := make([]byte, 0, 64*1024)
+	contentScanner.Buffer(buf, int(MaxFileContentSize))
+	for contentScanner.Scan() {
+		contentBuffer.Write(contentScanner.Bytes())
+		contentBuffer.WriteByte('\n')
+	}
+	if err := contentScanner.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed to read file content")
+	}
+
+	// Wait for read command to complete
+	exitCode, err = readProcess.Wait(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to wait for read completion")
+	}
+
+	if exitCode != 0 {
+		return nil, errors.Errorf("read command failed with exit code %d", exitCode)
+	}
+
+	// Create FileContent
+	content := contentBuffer.Bytes()
+	fileName := filepath.Base(filePath)
+	contentType := detectMimeType(fileName)
+
+	return &FileContent{
+		Content:     content,
+		ContentType: contentType,
+		FileName:    fileName,
+		Size:        int64(len(content)),
+	}, nil
 }
