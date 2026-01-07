@@ -18,7 +18,6 @@
 When delegating each task, use this template with the `runSubagent` tool:
 
 ```
-Execute the command /ralph-loop:ralph-loop with the following prompt:
 
 You are implementing task [X] for the Sandbox File Explorer feature.
 
