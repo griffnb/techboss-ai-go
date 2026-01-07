@@ -149,3 +149,4 @@ jobs:
             claude_args: |
               --dangerously-skip-permissions
               --max-iterations 10
+              --debug
