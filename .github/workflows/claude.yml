@@ -148,4 +148,5 @@ jobs:
             plugins: ralph-loop@claude-plugins-official
             claude_args: |
               --dangerously-skip-permissions
+              --max-iterations 10
               --debug
