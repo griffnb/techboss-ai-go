@@ -18,6 +18,7 @@ env:
   DEPLOY_MIGRATION: true
   DEPLOY_TASKMASTER: false
   DEPLOY_TASKWORKER: false
+  PREFIX: ""
 
 # Define environment mappings
 jobs:
@@ -30,6 +31,7 @@ jobs:
       id-token: write
       contents: read
     outputs:
+      prefix: ${{ env.PREFIX }}
       api_image_tag: ${{ steps.build_api.outputs.api_image_tag }}
       taskmaster_image_tag: ${{ steps.build_taskmaster.outputs.taskmaster_image_tag }}
       taskworker_image_tag: ${{ steps.build_taskworker.outputs.taskworker_image_tag }}
@@ -58,13 +60,13 @@ jobs:
         if: env.DEPLOY_API == 'true'
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/api-deploy-role
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ env.PREFIX }}api-deploy-role
           unset-current-credentials: true
       - name: Build API
         if: env.DEPLOY_API == 'true'
         id: build_api
         env:
-          APP: api
+          APP: ${{env.PREFIX}}api
           COMMAND_PATH: "cmd/server"
         run: |
           FULL_OUTPUT=$(bash -ex infra/build/build_image.sh)
@@ -76,13 +78,13 @@ jobs:
         if: env.DEPLOY_MIGRATION == 'true'
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/runner-deploy-role
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{env.PREFIX}}runner-deploy-role
           unset-current-credentials: true
       - name: Build Migration
         if: env.DEPLOY_MIGRATION == 'true'
         id: build_migration
         env:
-          APP: runner
+          APP: ${{env.PREFIX}}runner
           COMMAND_PATH: "cmd/migrations"
         run: |
           FULL_OUTPUT=$(bash -ex infra/build/build_image.sh)
@@ -94,13 +96,13 @@ jobs:
         if: env.DEPLOY_TASKMASTER == 'true'
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/task-master-deploy-role
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{env.PREFIX}}task-master-deploy-role
           unset-current-credentials: true
       - name: Build Taskmaster
         if: env.DEPLOY_TASKMASTER == 'true'
         id: build_taskmaster
         env:
-          APP: task-master
+          APP: ${{env.PREFIX}}task-master
           COMMAND_PATH: "cmd/taskmaster"
         run: |
           FULL_OUTPUT=$(bash -ex infra/build/build_image.sh)
@@ -112,13 +114,13 @@ jobs:
         if: env.DEPLOY_TASKWORKER == 'true'
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/task-worker-deploy-role
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{env.PREFIX}}task-worker-deploy-role
           unset-current-credentials: true
       - name: Build Taskworker
         if: env.DEPLOY_TASKWORKER == 'true'
         id: build_taskworker
         env:
-          APP: task-worker
+          APP: ${{env.PREFIX}}task-worker
           COMMAND_PATH: "cmd/taskworker"
         run: |
           FULL_OUTPUT=$(bash -ex infra/build/build_image.sh)
@@ -130,7 +132,7 @@ jobs:
     if: needs.build.outputs.migration_image_tag != ''
     needs: [build]
     env:
-      APP: runner
+      APP: ${{needs.build.outputs.prefix}}runner
       ENVIRONMENT: production
       SYSTEM_MEMORY: "2048"
       SYSTEM_CPU: "1024"
@@ -148,7 +150,7 @@ jobs:
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/runner-deploy-role
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{env.PREFIX}}runner-deploy-role
       - uses: actions/checkout@v4
       - run: |
               bash -ex infra/deploy/deploy_migration.sh
@@ -159,7 +161,7 @@ jobs:
     if: (success() || needs.deploy_migration.result == 'skipped') && needs.build.outputs.taskmaster_image_tag != ''
     needs: [build, deploy_migration]
     env:
-      APP: task-master
+      APP: ${{needs.build.outputs.prefix}}task-master
       ENVIRONMENT: production
       SYSTEM_MEMORY: "2048"
       SYSTEM_CPU: "1024"
@@ -177,7 +179,7 @@ jobs:
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/task-master-deploy-role
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{env.PREFIX}}task-master-deploy-role
       - uses: actions/checkout@v4
       - run: |
               bash -ex infra/deploy/deploy_worker.sh
@@ -187,7 +189,7 @@ jobs:
     if: (success() || needs.deploy_migration.result == 'skipped') && needs.build.outputs.taskworker_image_tag != ''
     needs: [build, deploy_migration]
     env:
-      APP: task-worker
+      APP: ${{needs.build.outputs.prefix}}task-worker
       ENVIRONMENT: production
       SYSTEM_MEMORY: "3072"
       SYSTEM_CPU: "1024"
@@ -206,7 +208,7 @@ jobs:
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/task-worker-deploy-role
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{env.PREFIX}}task-worker-deploy-role
       - uses: actions/checkout@v4
       - run: |
               bash -ex infra/deploy/deploy_worker.sh
@@ -216,7 +218,7 @@ jobs:
     if: (success() || needs.deploy_migration.result == 'skipped') && needs.build.outputs.api_image_tag != ''
     needs: [build, deploy_migration]
     env:
-      APP: api
+      APP: ${{needs.build.outputs.prefix}}api
       ENVIRONMENT: production
       SYSTEM_MEMORY: "3072"
       SYSTEM_CPU: "1024"
@@ -235,7 +237,7 @@ jobs:
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/api-deploy-role
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{env.PREFIX}}api-deploy-role
       - uses: actions/checkout@v4
       - run: |
               bash -ex infra/deploy/deploy_web.sh

@@ -18,6 +18,8 @@
 When delegating each task, use this template with the `runSubagent` tool:
 
 ```
+Execute the command /ralph-loop:ralph-loop with the following prompt:
+
 You are implementing task [X] for the Sandbox File Explorer feature.
 
 **TASK**: [Copy exact task description from tasks.md]
@@ -26,19 +28,19 @@ You are implementing task [X] for the Sandbox File Explorer feature.
 - [List specific requirement numbers from requirements.md that this task addresses]
 
 **MANDATORY: READ THESE FILES FIRST** (before writing any code):
-- /Users/griffnb/projects/techboss/techboss-ai-go/AGENTS.md - Project rules and patterns
-- /Users/griffnb/projects/techboss/techboss-ai-go/.github/instructions/go.instructions.md - Go coding standards
-- /Users/griffnb/projects/techboss/techboss-ai-go/.github/instructions/test.instructions.md - Testing standards
-- /Users/griffnb/projects/techboss/techboss-ai-go/docs/CONTROLLERS.md - Controller patterns
-- /Users/griffnb/projects/techboss/techboss-ai-go/docs/MODELS.md - Model patterns (if applicable)
-- /Users/griffnb/projects/techboss/techboss-ai-go/.agents/specs/sandbox-file-explorer/requirements.md - Feature requirements
-- /Users/griffnb/projects/techboss/techboss-ai-go/.agents/specs/sandbox-file-explorer/design.md - Feature design
+- ./techboss/techboss-ai-go/AGENTS.md - Project rules and patterns
+- ./techboss/techboss-ai-go/.github/instructions/go.instructions.md - Go coding standards
+- ./techboss/techboss-ai-go/.github/instructions/test.instructions.md - Testing standards
+- ./techboss/techboss-ai-go/docs/CONTROLLERS.md - Controller patterns
+- ./techboss/techboss-ai-go/docs/MODELS.md - Model patterns (if applicable)
+- ./techboss/techboss-ai-go/.agents/specs/sandbox-file-explorer/requirements.md - Feature requirements
+- ./techboss/techboss-ai-go/.agents/specs/sandbox-file-explorer/design.md - Feature design
 
 **EXISTING PATTERNS TO FOLLOW** (read these files for reference):
-- /Users/griffnb/projects/techboss/techboss-ai-go/internal/controllers/sandboxes/sandbox.go - Controller function pattern
-- /Users/griffnb/projects/techboss/techboss-ai-go/internal/controllers/sandboxes/setup.go - Route setup pattern
-- /Users/griffnb/projects/techboss/techboss-ai-go/internal/services/sandbox_service/sandbox_service.go - Service structure
-- /Users/griffnb/projects/techboss/techboss-ai-go/internal/services/sandbox_service/state.go - File operation patterns
+- ./techboss/techboss-ai-go/internal/controllers/sandboxes/sandbox.go - Controller function pattern
+- ./techboss/techboss-ai-go/internal/controllers/sandboxes/setup.go - Route setup pattern
+- ./techboss/techboss-ai-go/internal/services/sandbox_service/sandbox_service.go - Service structure
+- ./techboss/techboss-ai-go/internal/services/sandbox_service/state.go - File operation patterns
 
 **CRITICAL TDD WORKFLOW** (MANDATORY - NO EXCEPTIONS):
 1. 🔴 **RED**: Write the test FIRST (it will fail)
@@ -88,9 +90,9 @@ runSubagent({
 ## Implementation Tasks
 
 **BEFORE STARTING**: Ensure you have read:
-- `/Users/griffnb/projects/techboss/techboss-ai-go/AGENTS.md`
-- `/Users/griffnb/projects/techboss/techboss-ai-go/.github/instructions/go.instructions.md`
-- `/Users/griffnb/projects/techboss/techboss-ai-go/.github/instructions/test.instructions.md`
+- `./techboss/techboss-ai-go/AGENTS.md`
+- `./techboss/techboss-ai-go/.github/instructions/go.instructions.md`
+- `./techboss/techboss-ai-go/.github/instructions/test.instructions.md`
 
 ---
 

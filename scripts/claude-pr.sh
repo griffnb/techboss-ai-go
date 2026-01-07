@@ -28,7 +28,7 @@ if [[ "$TASK" == *.md ]] || [[ -f "$TASK" ]]; then
     
     # Create prompt message
     PR_TITLE="Claude: ${FOLDER_NAME}"
-    PR_BODY="@claude Start implementing the ${FOLDER_NAME} tasks from ${TASK}, delegating each task to sub-agents as documented."
+    PR_BODY="@claude USING /ralph-loop:ralph-loop -> Start implementing the ${FOLDER_NAME} tasks from ${TASK}, delegating each task to sub-agents as documented."
     COMMIT_MSG="Claude task: ${FOLDER_NAME} from ${TASK}"
     
     echo "📂 Task folder: ${FOLDER_NAME}"
