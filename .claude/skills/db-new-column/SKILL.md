@@ -1,6 +1,6 @@
 ---
 name: new-column
-description: conventions for new columns
+description: database column setup.  Use when you need to create or update a database column
 ---
 
 
@@ -44,3 +44,6 @@ Settings *fields.StructField[*Settings] `column:"settings" type:"jsonb" default:
 - `StructField[T]` – JSONB/struct columns
 
 All fields provide `.Set(val)` and `.Get()` methods.  Struct fields have a `.GetI()` for when errors do not need to be checked
+
+## Additional resources
+- For usage examples, see [examples.md](examples.md)

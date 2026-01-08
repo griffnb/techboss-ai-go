@@ -2,19 +2,29 @@
   "enabledMcpjsonServers": ["code_tools"],
   "enableAllProjectMcpServers": true,
   "enabledPlugins": {
-    "ralph-loop@claude-plugins-official": true
+    "ralph-loop@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true
   },
   "permissions": {
     "allow": [
       "mcp__code_tools",
+      "mcp__ui_code_tools",
       "Read(./**)"
     ],
-    "deny": [
-      "Bash(curl:*)",
-      "Read(./.env)",
-      "Read(./.env.*)",
-      "Read(./.configs/**)"
-    ],
-    "ask": []
+   "deny": ["Read(*.env)", "Read(*.env.*)", "Read(*/.configs/**)"]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/capture-session-learnings.sh",
+            "timeout": 600
+          }
+        ]
+      }
+    ]
   }
 }

@@ -1,6 +1,6 @@
 ---
 name: model-queries
-description: Building database queries with the Options API
+description: Building database queries with the Options API. Use when you need to query a model by creating a new query or updating an existing one
 ---
 
 # Building Database Queries
@@ -175,3 +175,6 @@ func AddJoinData(options *model.Options) {
 
 - [model-usage](../model-usage/SKILL.md) - How to use models and access fields
 - [model-conventions](../model-conventions/SKILL.md) - Standards and conventions
+
+## Additional resources
+- For usage examples, see [examples.md](examples.md)

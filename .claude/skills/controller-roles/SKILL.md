@@ -1,6 +1,6 @@
 ---
 name: controller-roles
-description: Role-based access control with RoleHandler
+description: Controller role handling.  Use when you need to setup a api endpoint with the right permissions and roles
 ---
 
 # Role-Based Access Control
@@ -140,3 +140,7 @@ r.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
 ## Related Skills
 - [controller-handlers](../controller-handlers/SKILL.md) - Writing handler functions
 - [controller-generation](../controller-generation/SKILL.md) - Code generation
+
+
+## Additional resources
+- For usage examples, see [examples.md](examples.md)
