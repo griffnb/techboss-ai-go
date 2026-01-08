@@ -145,8 +145,8 @@ jobs:
         with:
             use_bedrock: "true"
             github_token: ${{ secrets.GITHUB_TOKEN }}
-            #plugins: ralph-loop@claude-plugins-official
+            plugins: ralph-loop@claude-plugins-official
             claude_args: |
               --dangerously-skip-permissions
-            #  --max-iterations 10
-            #  --debug
+              --max-iterations 10
+              --debug
