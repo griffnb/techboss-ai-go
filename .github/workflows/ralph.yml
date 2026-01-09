@@ -169,8 +169,6 @@ jobs:
           #plugins: "gopls-lsp@claude-plugins-official"  
           prompt: /ralph-loop ${{ needs.check-mention.outputs.trigger-body }}   
           trigger_phrase: "@ralph"
-          assignee_trigger: "ralph"
-          label_trigger: "ralph"
           claude_args: |
             --dangerously-skip-permissions
 
