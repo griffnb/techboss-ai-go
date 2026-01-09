@@ -2,13 +2,14 @@
 
 # Ralph Loop Watcher for GitHub Actions
 # Monitors .claude/ralph-loop.local.md and writes updates to GitHub Step Summary
-# Run this as a background process: ./ralph-watcher.sh &
+# Run this as a background process: nohup ./ralph-watcher.sh &
 
-set -euo pipefail
+# Don't use set -e as we want the loop to continue even if commands fail
+set -uo pipefail
 
 RALPH_STATE=".claude/ralph-loop.local.md"
 LAST_ITERATION=0
-INITIALIZED=false
+INITIALIZED="false"
 POLL_INTERVAL="${RALPH_WATCHER_INTERVAL:-5}"
 
 # Check if running in GitHub Actions
@@ -17,29 +18,37 @@ if [[ -z "${GITHUB_STEP_SUMMARY:-}" ]]; then
   GITHUB_STEP_SUMMARY="/dev/stdout"
 fi
 
+echo "Ralph watcher started, monitoring $RALPH_STATE every ${POLL_INTERVAL}s"
+echo "Writing to GITHUB_STEP_SUMMARY: $GITHUB_STEP_SUMMARY"
+
 while true; do
   sleep "$POLL_INTERVAL"
   
   if [[ -f "$RALPH_STATE" ]]; then
-    # Parse frontmatter
-    FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$RALPH_STATE" 2>/dev/null || echo "")
-    ITERATION=$(echo "$FRONTMATTER" | grep '^iteration:' | sed 's/iteration: *//' || echo "0")
-    MAX_ITERATIONS=$(echo "$FRONTMATTER" | grep '^max_iterations:' | sed 's/max_iterations: *//' || echo "0")
-    COMPLETION_PROMISE=$(echo "$FRONTMATTER" | grep '^completion_promise:' | sed 's/completion_promise: *//' | sed 's/^"\(.*\)"$/\1/' || echo "")
-    STARTED_AT=$(echo "$FRONTMATTER" | grep '^started_at:' | sed 's/started_at: *//' | sed 's/^"\(.*\)"$/\1/' || echo "")
+    # Parse frontmatter - use || true to prevent exit on grep no-match
+    FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$RALPH_STATE" 2>/dev/null) || true
+    ITERATION=$(echo "$FRONTMATTER" | grep '^iteration:' | sed 's/iteration: *//' 2>/dev/null) || true
+    MAX_ITERATIONS=$(echo "$FRONTMATTER" | grep '^max_iterations:' | sed 's/max_iterations: *//' 2>/dev/null) || true
+    COMPLETION_PROMISE=$(echo "$FRONTMATTER" | grep '^completion_promise:' | sed 's/completion_promise: *//' | sed 's/^"\(.*\)"$/\1/' 2>/dev/null) || true
+    STARTED_AT=$(echo "$FRONTMATTER" | grep '^started_at:' | sed 's/started_at: *//' | sed 's/^"\(.*\)"$/\1/' 2>/dev/null) || true
+    
+    # Default empty values
+    ITERATION="${ITERATION:-0}"
+    MAX_ITERATIONS="${MAX_ITERATIONS:-0}"
     
     # Extract prompt (everything after second ---)
-    PROMPT=$(awk '/^---$/{i++; next} i>=2' "$RALPH_STATE" 2>/dev/null | head -5 || echo "")
+    PROMPT=$(awk '/^---$/{i++; next} i>=2' "$RALPH_STATE" 2>/dev/null | head -5) || true
     
     # Initialize summary on first detection
-    if [[ "$INITIALIZED" != "true" ]] && [[ -n "$ITERATION" ]]; then
-      INITIALIZED=true
+    if [[ "$INITIALIZED" == "false" ]] && [[ -n "$ITERATION" ]] && [[ "$ITERATION" != "0" ]]; then
+      INITIALIZED="true"
       MAX_DISPLAY="$MAX_ITERATIONS"
       [[ "$MAX_ITERATIONS" == "0" ]] && MAX_DISPLAY="unlimited"
       
       PROMISE_DISPLAY="_none_"
       [[ -n "$COMPLETION_PROMISE" ]] && [[ "$COMPLETION_PROMISE" != "null" ]] && PROMISE_DISPLAY="\`$COMPLETION_PROMISE\`"
       
+      echo "Initializing Ralph Loop summary..."
       cat >> "$GITHUB_STEP_SUMMARY" <<INIT_EOF
 ## 🔄 Ralph Loop Initialized
 
@@ -66,6 +75,7 @@ INIT_EOF
       MAX_DISPLAY="∞"
       [[ "$MAX_ITERATIONS" =~ ^[0-9]+$ ]] && [[ $MAX_ITERATIONS -gt 0 ]] && MAX_DISPLAY="$MAX_ITERATIONS"
       
+      echo "Logging iteration $ITERATION..."
       cat >> "$GITHUB_STEP_SUMMARY" <<ITER_EOF
 ### 🔄 Iteration $ITERATION / $MAX_DISPLAY
 - **Time**: $(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -76,6 +86,7 @@ ITER_EOF
   else
     # State file removed = loop completed or stopped
     if [[ "$INITIALIZED" == "true" ]]; then
+      echo "Ralph loop completed, writing final summary..."
       cat >> "$GITHUB_STEP_SUMMARY" <<DONE_EOF
 ### ✅ Ralph Loop Completed
 - **Ended At**: $(date -u +%Y-%m-%dT%H:%M:%SZ)

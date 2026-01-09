@@ -154,9 +154,14 @@ jobs:
     
       - name: Start Ralph Loop Watcher
         run: |
-          .claude/hooks/scripts/ralph-watcher.sh &
+          # Use nohup to keep the watcher running after this step ends
+          # Redirect output to a log file for debugging
+          nohup .claude/hooks/scripts/ralph-watcher.sh > /tmp/ralph-watcher.log 2>&1 &
           echo $! > /tmp/ralph_watcher.pid
+          disown
           echo "Ralph watcher started (PID: $(cat /tmp/ralph_watcher.pid))"
+          sleep 2  # Give it time to start
+          cat /tmp/ralph-watcher.log || true
 
       - name: Run Claude Code
         id: claude
@@ -196,7 +201,33 @@ jobs:
       #      head -100 "$f" 2>/dev/null
       #    done
       #    echo "::endgroup::"
-          
+
+      - name: Dump Ralph Watcher Log
+        if: always()
+        run: |
+          echo "=== Ralph Watcher Log ==="
+          if [[ -f /tmp/ralph-watcher.log ]]; then
+            cat /tmp/ralph-watcher.log
+          else
+            echo "No watcher log found"
+          fi
+          echo ""
+          echo "=== Ralph State File ==="
+          if [[ -f .claude/ralph-loop.local.md ]]; then
+            cat .claude/ralph-loop.local.md
+          else
+            echo "State file removed (loop completed)"
+          fi
+          # Check if watcher is still running
+          if [[ -f /tmp/ralph_watcher.pid ]]; then
+            PID=$(cat /tmp/ralph_watcher.pid)
+            if ps -p "$PID" > /dev/null 2>&1; then
+              echo "Watcher still running (PID: $PID), killing..."
+              kill "$PID" || true
+            else
+              echo "Watcher process already exited"
+            fi
+          fi
 
       - name: Run Learnings
         id: learnings
