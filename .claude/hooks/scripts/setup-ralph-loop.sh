@@ -7,8 +7,8 @@ set -euo pipefail
 
 # Parse arguments
 PROMPT_PARTS=()
-MAX_ITERATIONS=0
-COMPLETION_PROMISE="null"
+MAX_ITERATIONS=5
+COMPLETION_PROMISE="<promise>COMPLETE</promise>"
 
 # Parse options and positional arguments
 while [[ $# -gt 0 ]]; do
@@ -24,7 +24,7 @@ ARGUMENTS:
   PROMPT...    Initial prompt to start the loop (can be multiple words without quotes)
 
 OPTIONS:
-  --max-iterations <n>           Maximum iterations before auto-stop (default: unlimited)
+  --max-iterations <n>           Maximum iterations before auto-stop (default: 5)
   --completion-promise '<text>'  Promise phrase (USE QUOTES for multi-word)
   -h, --help                     Show this help message
 

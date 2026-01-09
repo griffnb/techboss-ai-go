@@ -109,6 +109,9 @@ Provide a summary in this format:
 - {file-path-2}
 
 **Next Steps:** {What user should do next, if anything}
+
+** How many ralph iterations it took**
+
 ```
 
 ## Final Steps
