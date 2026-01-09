@@ -7,9 +7,16 @@ hide-from-slash-command-tool: "true"
 
 # Ralph Loop Command
 
-Execute the setup script to initialize the Ralph loop:
+Execute the setup script to initialize the Ralph loop: 
 
 Bash("${CLAUDE_PROJECT_DIR}/.claude/hooks/scripts/setup-ralph-loop.sh" $ARGUMENTS)
+
+
+the bash script above expects arguments of the prompt youve been asked to do, so if you dont see it below, please add it before calling the tool
+<example>
+Bash("${CLAUDE_PROJECT_DIR}/.claude/hooks/scripts/setup-ralph-loop.sh \"Complete the tasks in file xyz\")
+</example>
+
 
 Please work on the task. When you try to exit, the Ralph loop will feed the SAME PROMPT back to you for the next iteration. You'll see your previous work in files and git history, allowing you to iterate and improve.
 
