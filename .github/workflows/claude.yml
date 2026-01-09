@@ -143,16 +143,17 @@ jobs:
           AWS_SECRET_ACCESS_KEY: "fake-bedrock-secret-key"
 
         with:
-            use_bedrock: "true"
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-            plugins: "ralph-loop@claude-plugins-official\ngopls-lsp@claude-plugins-official"
-            prompt: |
-              use /ralph-loop Implement the tasks mentioned in the PRs and Issues in this repository. Do one task at a time.
-              If the arguments of the bash command setup-ralph-loop.sh are not provided already, they are:
-              setup-ralph-loop.sh {Prompt} --max-iterations 5 --completion-promise "<promise>COMPLETE</promise>"              
-            claude_args: |
-              --dangerously-skip-permissions
-              --debug
+          use_bedrock: "true"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          plugins: "ralph-loop@claude-plugins-official\ngopls-lsp@claude-plugins-official"
+          prompt: |
+            use /ralph-loop Implement the tasks mentioned in the PRs and Issues in this repository. Do one task at a time.
+            If the arguments of the bash command setup-ralph-loop.sh are not provided already, they are:
+            setup-ralph-loop.sh {Prompt} --max-iterations 5 --completion-promise "<promise>COMPLETE</promise>"
+            **IMPORTANT** If you are not able to access the setup-ralph-loop.sh script, make a comment on the PR and exit.              
+          claude_args: |
+            --dangerously-skip-permissions
+            --debug
       - name: Run Learnings
         id: learnings
         uses: anthropics/claude-code-action@v1
@@ -165,10 +166,10 @@ jobs:
           AWS_SECRET_ACCESS_KEY: "fake-bedrock-secret-key"
 
         with:
-            use_bedrock: "true"
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-            plugins: "gopls-lsp@claude-plugins-official"
-            prompt: /learning-analyzer-ci You are analyzing a completed development session to extract learnings.
-            claude_args: |
+          use_bedrock: "true"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          plugins: gopls-lsp@claude-plugins-official
+          prompt: /learning-analyzer-ci You are analyzing a completed development session to extract learnings.
+          claude_args: |
               --dangerously-skip-permissions
               --continue
