@@ -78,3 +78,141 @@ When writing specs or delegating to agents, be crystal clear about:
 4. **WHY** this matters (separation of concerns, testability, maintainability)
 
 Don't assume agents will infer architectural patterns - be explicit and reference existing good examples.
+
+## Date: 2026-01-09
+
+### Issue: Pointer Semantics for Recursive Go Data Structures (Tree Building)
+
+**What I learned:**
+
+When implementing recursive data structures in Go (like file trees), the choice between value slices `[]T` and pointer slices `[]*T` for the `Children` field is critical for proper nesting.
+
+**The Problem:**
+
+Initially, `FileTreeNode.Children` was defined as `[]FileTreeNode` (value slice):
+
+```go
+type FileTreeNode struct {
+    Name        string
+    Path        string
+    IsDirectory bool
+    Children    []FileTreeNode  // ❌ Value semantics - WRONG
+}
+```
+
+This caused nested children (3+ levels deep) to not be properly populated. The tree building algorithm would iterate through nodes and append children, but due to Go's value semantics, we were working with **copies** instead of **references**, so parent-child mutations were lost.
+
+**The Solution:**
+
+Changed to `[]*FileTreeNode` (pointer slice):
+
+```go
+type FileTreeNode struct {
+    Name        string
+    Path        string
+    IsDirectory bool
+    Children    []*FileTreeNode  // ✅ Pointer semantics - CORRECT
+}
+```
+
+**Why This Matters:**
+
+- **Value semantics** (`[]FileTreeNode`): When you iterate over a slice and modify elements, you're working with copies. Any mutations (like appending children) don't persist to the original nodes.
+- **Pointer semantics** (`[]*FileTreeNode`): Maintains references to actual nodes in memory, allowing mutations to persist correctly through the tree hierarchy.
+
+**Code Example:**
+
+```go
+// Building tree with O(n) algorithm using map
+nodeMap := make(map[string]*FileTreeNode)
+nodeMap[rootPath] = root
+
+for _, file := range sortedFiles {
+    node := &FileTreeNode{
+        Name:        file.Name,
+        Path:        file.Path,
+        IsDirectory: file.IsDirectory,
+        Children:    []*FileTreeNode{},  // Pointer slice
+    }
+    nodeMap[file.Path] = node
+
+    // Find parent and append child - this works because we use pointers
+    parentNode := nodeMap[parentPath]
+    parentNode.Children = append(parentNode.Children, node)  // Mutation persists!
+}
+```
+
+**Testing Pattern:**
+
+Always test recursive structures with **3+ levels of nesting** to catch pointer semantic issues:
+
+```go
+t.Run("handles deep nesting (3+ levels)", func(t *testing.T) {
+    files := []FileInfo{
+        {Path: "/workspace/src", IsDirectory: true},
+        {Path: "/workspace/src/api", IsDirectory: true},
+        {Path: "/workspace/src/api/handlers", IsDirectory: true},
+        {Path: "/workspace/src/api/handlers/user.go", IsDirectory: false},
+    }
+
+    tree, err := service.BuildFileTree(files, "/workspace")
+
+    // Navigate 3+ levels deep to verify nesting works
+    assert.Equal(t, 1, len(tree.Children))  // src
+    srcNode := tree.Children[0]
+    assert.Equal(t, 1, len(srcNode.Children))  // api
+    apiNode := srcNode.Children[0]
+    assert.Equal(t, 1, len(apiNode.Children))  // handlers
+    handlersNode := apiNode.Children[0]
+    assert.Equal(t, 1, len(handlersNode.Children))  // user.go
+}
+```
+
+**Additional Patterns Used:**
+
+1. **Two-pass tree building with O(n) efficiency:**
+   - First pass: Create all nodes and add to map
+   - Second pass: Link children to parents using map lookups
+   - Sorting by path depth ensures parents exist before children
+
+2. **Empty state handling:**
+   - Return valid empty structures (root node with no children) instead of errors
+   - Better API UX - clients can always iterate over Children without nil checks
+
+3. **Map for O(1) lookups:**
+   - `nodeMap := make(map[string]*FileTreeNode)` enables efficient parent lookups
+   - Alternative approaches (nested loops) would be O(n²)
+
+**Impact:**
+
+- ✅ Tree building algorithm works correctly for any depth
+- ✅ All 9 test cases passing (including 3+ level nesting)
+- ✅ O(n) performance maintained
+- ✅ Clean, maintainable code
+
+**How to improve future implementations:**
+
+1. **Default to pointer slices for recursive structures:**
+   - ❌ `Children []NodeType`
+   - ✅ `Children []*NodeType`
+
+2. **Always test deep nesting (3+ levels):**
+   - Shallow tests (1-2 levels) won't catch pointer semantic issues
+   - Tree/graph structures need deep traversal tests
+
+3. **Use maps for parent-child relationships:**
+   - `nodeMap[path] = &node` pattern enables O(1) lookups
+   - Sort by path depth to ensure parents exist first
+
+4. **Reference existing examples:**
+   - This pattern is now documented in `internal/services/sandbox_service/files.go`
+   - See `BuildFileTree()` method and associated tests
+
+**Files involved:**
+- `internal/services/sandbox_service/files.go` - Tree structure implementation
+- `internal/services/sandbox_service/files_test.go` - 9 comprehensive test cases
+- `internal/controllers/sandboxes/files.go` - Controller endpoints using tree structure
+
+**Key takeaway:**
+
+For recursive data structures in Go (trees, graphs, linked lists), always use pointer slices for child relationships. Test with 3+ levels of nesting to verify mutations persist correctly through the hierarchy.
