@@ -151,31 +151,12 @@ jobs:
           mkdir -p ./.configs
           cp ./infra/unit_test.json ./.configs/unit_test.json          
           make install-lint & make install-deadcode & make install-generate & wait 
-      
-      - name: Start Claude Session Logger
+    
+      - name: Start Ralph Loop Watcher
         run: |
-          mkdir -p ~/.claude/projects
-          # Periodic dump every 30 seconds - outputs directly to this step's log
-          (
-            LAST_LINES=0
-            while true; do
-              sleep 30
-              echo "::group::=== Claude Session Dump $(date) ==="
-              for f in ~/.claude/projects/*/*.jsonl ~/.claude/*.jsonl; do
-                if [[ -f "$f" ]]; then
-                  CURRENT_LINES=$(wc -l < "$f")
-                  if [[ $CURRENT_LINES -gt $LAST_LINES ]]; then
-                    echo "--- New content in $f (lines $LAST_LINES to $CURRENT_LINES) ---"
-                    tail -n +$((LAST_LINES + 1)) "$f" | jq -r 'if .type then "[\(.type)] \(.message // .content // .)" else . end' 2>/dev/null || tail -n +$((LAST_LINES + 1)) "$f"
-                    LAST_LINES=$CURRENT_LINES
-                  fi
-                fi
-              done
-              echo "::endgroup::"
-            done
-          ) &
-          echo $! > /tmp/session_logger.pid
-          echo "Session logger started (PID: $(cat /tmp/session_logger.pid))"
+          .claude/hooks/scripts/ralph-watcher.sh &
+          echo $! > /tmp/ralph_watcher.pid
+          echo "Ralph watcher started (PID: $(cat /tmp/ralph_watcher.pid))"
 
       - name: Run Claude Code
         id: claude
@@ -198,23 +179,23 @@ jobs:
             --output-format stream-json
             --debug
             --verbose
-      
-      - name: Dump Claude Session Logs
-        if: ${{ always() || cancelled() }}
-        run: |
-          echo "=== Final Claude Session Dump ==="
-          find ~/.claude -type f \( -name "*.jsonl" -o -name "*.json" -o -name "*.log" \) 2>/dev/null | while read f; do
-            echo "::group::$f"
-            cat "$f" | jq -r 'if .type then "[\(.type)] \(.message // .content // .)" else . end' 2>/dev/null || cat "$f"
-            echo "::endgroup::"
-          done
-          # Also check for any claude-related files in temp
-          echo "::group::Temp files"
-          find /tmp -name "*claude*" -type f 2>/dev/null | head -20 | while read f; do
-            echo "--- $f ---"
-            head -100 "$f" 2>/dev/null
-          done
-          echo "::endgroup::"
+          
+      #- name: Dump Claude Session Logs
+      #  if: ${{ always() || cancelled() }}
+      #  run: |
+      #    echo "=== Final Claude Session Dump ==="
+      #    find ~/.claude -type f \( -name "*.jsonl" -o -name "*.json" -o -name "*.log" \) 2>/dev/null | while read f; do
+      #      echo "::group::$f"
+      #      cat "$f" | jq -r 'if .type then "[\(.type)] \(.message // .content // .)" else . end' 2>/dev/null || cat "$f"
+      #      echo "::endgroup::"
+      #    done
+      #    # Also check for any claude-related files in temp
+      #    echo "::group::Temp files"
+      #    find /tmp -name "*claude*" -type f 2>/dev/null | head -20 | while read f; do
+      #      echo "--- $f ---"
+      #      head -100 "$f" 2>/dev/null
+      #    done
+      #    echo "::endgroup::"
           
 
       - name: Run Learnings
