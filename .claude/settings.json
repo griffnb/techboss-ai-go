@@ -1,10 +1,7 @@
 {
   "enabledMcpjsonServers": ["code_tools"],
   "enableAllProjectMcpServers": true,
-  "enabledPlugins": {
-    "ralph-loop@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true
-  },
+
   "permissions": {
     "allow": ["mcp__code_tools", "mcp__ui_code_tools", "Read(./**)"],
     "deny": ["Read(*.env)", "Read(*.env.*)", "Read(*/.configs/**)"]
