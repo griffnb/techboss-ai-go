@@ -311,3 +311,118 @@ func authGetFileContent(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(fileContent.Content)
 }
+
+// adminGetFileTree retrieves a hierarchical tree structure of files in a sandbox.
+// It extracts the sandbox ID from URL, parses query parameters (source, path),
+// loads the sandbox, lists files, and builds a tree structure.
+//
+// Query parameters:
+// - source: "volume" or "s3" (default: "volume")
+// - path: Root path to list from (default: "" = workspace root)
+// - recursive: Include subdirectories (default: true)
+//
+// Returns FileTreeNode with nested children structure and HTTP status.
+func adminGetFileTree(_ http.ResponseWriter, req *http.Request) (*sandbox_service.FileTreeNode, int, error) {
+	// Extract sandbox ID from URL parameter
+	id := chi.URLParam(req, "id")
+
+	// Parse query parameters into FileListOptions
+	opts, err := parseFileListOptions(req)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.AdminBadRequestError[*sandbox_service.FileTreeNode](err)
+	}
+
+	// Load sandbox from database
+	sandboxModel, err := sandbox.Get(req.Context(), types.UUID(id))
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.AdminBadRequestError[*sandbox_service.FileTreeNode](err)
+	}
+
+	// Reconstruct sandbox info for service layer
+	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, sandboxModel.AccountID.Get())
+
+	// Call service to list files first
+	service := sandbox_service.NewSandboxService()
+	fileList, err := service.ListFiles(req.Context(), sandboxInfo, opts)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.AdminBadRequestError[*sandbox_service.FileTreeNode](err)
+	}
+
+	// Determine root path based on source
+	rootPath := "/workspace"
+	if opts.Source == "s3" {
+		rootPath = "/s3-bucket"
+	}
+	if opts.Path != "" && opts.Path != "/" {
+		rootPath = opts.Path
+	}
+
+	// Build tree structure from flat file list
+	tree, err := service.BuildFileTree(fileList.Files, rootPath)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.AdminBadRequestError[*sandbox_service.FileTreeNode](err)
+	}
+
+	return response.Success(tree)
+}
+
+// authGetFileTree retrieves a hierarchical tree structure of files in a sandbox for authenticated users.
+// The auth framework verifies ownership automatically, ensuring only the sandbox owner can access.
+//
+// Query parameters:
+// - source: "volume" or "s3" (default: "volume")
+// - path: Root path to list from (default: "" = workspace root)
+// - recursive: Include subdirectories (default: true)
+//
+// Returns FileTreeNode with nested children structure and HTTP status.
+func authGetFileTree(_ http.ResponseWriter, req *http.Request) (*sandbox_service.FileTreeNode, int, error) {
+	// Extract sandbox ID from URL parameter
+	id := chi.URLParam(req, "id")
+
+	// Parse query parameters into FileListOptions
+	opts, err := parseFileListOptions(req)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[*sandbox_service.FileTreeNode]()
+	}
+
+	// Load sandbox from database
+	sandboxModel, err := sandbox.Get(req.Context(), types.UUID(id))
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[*sandbox_service.FileTreeNode]()
+	}
+
+	// Reconstruct sandbox info for service layer
+	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, sandboxModel.AccountID.Get())
+
+	// Call service to list files first
+	service := sandbox_service.NewSandboxService()
+	fileList, err := service.ListFiles(req.Context(), sandboxInfo, opts)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[*sandbox_service.FileTreeNode]()
+	}
+
+	// Determine root path based on source
+	rootPath := "/workspace"
+	if opts.Source == "s3" {
+		rootPath = "/s3-bucket"
+	}
+	if opts.Path != "" && opts.Path != "/" {
+		rootPath = opts.Path
+	}
+
+	// Build tree structure from flat file list
+	tree, err := service.BuildFileTree(fileList.Files, rootPath)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[*sandbox_service.FileTreeNode]()
+	}
+
+	return response.Success(tree)
+}

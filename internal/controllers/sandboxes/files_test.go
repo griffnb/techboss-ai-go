@@ -1042,3 +1042,198 @@ func Test_authGetFileContent(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "file not found")
 	})
 }
+
+// Test_adminGetFileTree tests the adminGetFileTree controller function
+func Test_adminGetFileTree(t *testing.T) {
+	t.Run("returns tree structure for valid sandbox", func(t *testing.T) {
+		// Arrange - Create test sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-test-admin-tree")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create request
+		params := url.Values{}
+		params.Set("source", "volume")
+		req, err := testing_service.NewGETRequest[*sandbox_service.FileTreeNode](
+			"/"+sandboxModel.ID().String()+"/files/tree",
+			params,
+		)
+		assert.NoError(t, err)
+
+		// Set URL parameter for chi router
+		req.Request = setChiURLParam(req.Request, sandboxModel.ID().String())
+
+		// Act
+		resp, errCode, err := req.Do(adminGetFileTree)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, errCode)
+		assert.NEmpty(t, resp)
+		assert.Equal(t, "workspace", resp.Name)
+		assert.Equal(t, "/workspace", resp.Path)
+		assert.True(t, resp.IsDirectory)
+	})
+
+	t.Run("returns error for invalid sandbox ID", func(t *testing.T) {
+		// Arrange
+		params := url.Values{}
+		params.Set("source", "volume")
+		req, err := testing_service.NewGETRequest[*sandbox_service.FileTreeNode](
+			"/invalid-id/files/tree",
+			params,
+		)
+		assert.NoError(t, err)
+
+		// Set URL parameter for chi router
+		req.Request = setChiURLParam(req.Request, "invalid-id")
+
+		// Act
+		_, errCode, err := req.Do(adminGetFileTree)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusBadRequest, errCode)
+	})
+
+	t.Run("accepts s3 source parameter", func(t *testing.T) {
+		// Arrange - Create test sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-test-admin-tree-s3")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create request with s3 source
+		params := url.Values{}
+		params.Set("source", "s3")
+		req, err := testing_service.NewGETRequest[*sandbox_service.FileTreeNode](
+			"/"+sandboxModel.ID().String()+"/files/tree",
+			params,
+		)
+		assert.NoError(t, err)
+
+		// Set URL parameter for chi router
+		req.Request = setChiURLParam(req.Request, sandboxModel.ID().String())
+
+		// Act
+		resp, errCode, err := req.Do(adminGetFileTree)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, errCode)
+		assert.NEmpty(t, resp)
+		assert.Equal(t, "s3-bucket", resp.Name)
+	})
+}
+
+// Test_authGetFileTree tests the authGetFileTree controller function
+func Test_authGetFileTree(t *testing.T) {
+	t.Run("returns tree structure for authenticated user's sandbox", func(t *testing.T) {
+		// Arrange - Create test sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-test-auth-tree")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create request with authentication
+		params := url.Values{}
+		params.Set("source", "volume")
+		req, err := testing_service.NewGETRequest[*sandbox_service.FileTreeNode](
+			"/"+sandboxModel.ID().String()+"/files/tree",
+			params,
+		)
+		assert.NoError(t, err)
+
+		// Set account for authentication
+		err = req.WithAccount(builder.Account)
+		assert.NoError(t, err)
+
+		// Set URL parameter for chi router
+		req.Request = setChiURLParam(req.Request, sandboxModel.ID().String())
+
+		// Act
+		resp, errCode, err := req.Do(authGetFileTree)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, errCode)
+		assert.NEmpty(t, resp)
+		assert.Equal(t, "workspace", resp.Name)
+		assert.Equal(t, "/workspace", resp.Path)
+		assert.True(t, resp.IsDirectory)
+	})
+
+	t.Run("accepts s3 source parameter", func(t *testing.T) {
+		// Arrange - Create test sandbox
+		builder := testing_service.New().WithAccount()
+		err := builder.SaveAll()
+		assert.NoError(t, err)
+		defer builder.CleanupAll(testtools.CleanupModel)
+
+		sandboxModel := sandbox.New()
+		sandboxModel.AccountID.Set(builder.Account.ID())
+		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.ExternalID.Set("sb-test-auth-tree-s3")
+		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+		sandboxModel.MetaData.Set(&sandbox.MetaData{})
+		err = sandboxModel.Save(nil)
+		assert.NoError(t, err)
+		defer testtools.CleanupModel(sandboxModel)
+
+		// Create request with s3 source
+		params := url.Values{}
+		params.Set("source", "s3")
+		req, err := testing_service.NewGETRequest[*sandbox_service.FileTreeNode](
+			"/"+sandboxModel.ID().String()+"/files/tree",
+			params,
+		)
+		assert.NoError(t, err)
+
+		// Set account for authentication
+		err = req.WithAccount(builder.Account)
+		assert.NoError(t, err)
+
+		// Set URL parameter for chi router
+		req.Request = setChiURLParam(req.Request, sandboxModel.ID().String())
+
+		// Act
+		resp, errCode, err := req.Do(authGetFileTree)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, errCode)
+		assert.NEmpty(t, resp)
+		assert.Equal(t, "s3-bucket", resp.Name)
+	})
+}

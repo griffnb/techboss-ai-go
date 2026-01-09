@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/griffnb/core/lib/testtools/assert"
 	"github.com/griffnb/core/lib/types"
@@ -2406,5 +2407,226 @@ func Test_detectMimeType(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, "text/x-go", mimeType)
+	})
+}
+
+// Test_SandboxService_BuildFileTree tests the BuildFileTree method that converts
+// a flat list of FileInfo into a hierarchical FileTreeNode structure.
+func Test_SandboxService_BuildFileTree(t *testing.T) {
+	t.Run("converts flat file list to tree structure", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		files := []FileInfo{
+			{Name: "workspace", Path: "/workspace", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "src", Path: "/workspace/src", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "main.go", Path: "/workspace/src/main.go", IsDirectory: false, Size: 100, ModifiedAt: time.Now()},
+			{Name: "README.md", Path: "/workspace/README.md", IsDirectory: false, Size: 50, ModifiedAt: time.Now()},
+		}
+
+		// Act
+		tree, err := service.BuildFileTree(files, "/workspace")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.NEmpty(t, tree)
+		assert.Equal(t, "workspace", tree.Name)
+		assert.Equal(t, "/workspace", tree.Path)
+		assert.True(t, tree.IsDirectory)
+		assert.Equal(t, 2, len(tree.Children)) // Should have 'src' directory and 'README.md' file
+	})
+
+	t.Run("handles nested directories with 3+ levels", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		files := []FileInfo{
+			{Name: "workspace", Path: "/workspace", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "src", Path: "/workspace/src", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "api", Path: "/workspace/src/api", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "handlers", Path: "/workspace/src/api/handlers", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "user.go", Path: "/workspace/src/api/handlers/user.go", IsDirectory: false, Size: 200, ModifiedAt: time.Now()},
+		}
+
+		// Act
+		tree, err := service.BuildFileTree(files, "/workspace")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.NEmpty(t, tree)
+		// Navigate to verify 3+ levels deep
+		assert.Equal(t, 1, len(tree.Children)) // src
+		srcNode := tree.Children[0]
+		assert.Equal(t, "src", srcNode.Name)
+		assert.Equal(t, 1, len(srcNode.Children)) // api
+		apiNode := srcNode.Children[0]
+		assert.Equal(t, "api", apiNode.Name)
+		assert.Equal(t, 1, len(apiNode.Children)) // handlers
+		handlersNode := apiNode.Children[0]
+		assert.Equal(t, "handlers", handlersNode.Name)
+		assert.Equal(t, 1, len(handlersNode.Children)) // user.go
+		assert.Equal(t, "user.go", handlersNode.Children[0].Name)
+		assert.Equal(t, false, handlersNode.Children[0].IsDirectory)
+	})
+
+	t.Run("handles files and directories at same level", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		files := []FileInfo{
+			{Name: "workspace", Path: "/workspace", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "src", Path: "/workspace/src", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "tests", Path: "/workspace/tests", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "README.md", Path: "/workspace/README.md", IsDirectory: false, Size: 50, ModifiedAt: time.Now()},
+			{Name: ".gitignore", Path: "/workspace/.gitignore", IsDirectory: false, Size: 10, ModifiedAt: time.Now()},
+		}
+
+		// Act
+		tree, err := service.BuildFileTree(files, "/workspace")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.NEmpty(t, tree)
+		assert.Equal(t, 4, len(tree.Children)) // src, tests, README.md, .gitignore
+	})
+
+	t.Run("returns empty tree for empty file list", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		files := []FileInfo{}
+
+		// Act
+		tree, err := service.BuildFileTree(files, "/workspace")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.NEmpty(t, tree)
+		assert.Equal(t, "workspace", tree.Name)
+		assert.Equal(t, "/workspace", tree.Path)
+		assert.True(t, tree.IsDirectory)
+		assert.Equal(t, 0, len(tree.Children))
+	})
+
+	t.Run("handles single file", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		files := []FileInfo{
+			{Name: "workspace", Path: "/workspace", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "README.md", Path: "/workspace/README.md", IsDirectory: false, Size: 50, ModifiedAt: time.Now()},
+		}
+
+		// Act
+		tree, err := service.BuildFileTree(files, "/workspace")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.NEmpty(t, tree)
+		assert.Equal(t, 1, len(tree.Children))
+		assert.Equal(t, "README.md", tree.Children[0].Name)
+		assert.Equal(t, false, tree.Children[0].IsDirectory)
+	})
+
+	t.Run("preserves file metadata in tree nodes", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		modTime := time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC)
+		files := []FileInfo{
+			{Name: "workspace", Path: "/workspace", IsDirectory: true, Size: 0, ModifiedAt: modTime},
+			{Name: "test.txt", Path: "/workspace/test.txt", IsDirectory: false, Size: 12345, ModifiedAt: modTime},
+		}
+
+		// Act
+		tree, err := service.BuildFileTree(files, "/workspace")
+
+		// Assert
+		assert.NoError(t, err)
+		fileNode := tree.Children[0]
+		assert.Equal(t, int64(12345), fileNode.Size)
+		assert.Equal(t, modTime, fileNode.ModifiedAt)
+	})
+
+	t.Run("handles complex directory structure with multiple branches", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		files := []FileInfo{
+			{Name: "workspace", Path: "/workspace", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "src", Path: "/workspace/src", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "api", Path: "/workspace/src/api", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "api.go", Path: "/workspace/src/api/api.go", IsDirectory: false, Size: 100, ModifiedAt: time.Now()},
+			{Name: "models", Path: "/workspace/src/models", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "user.go", Path: "/workspace/src/models/user.go", IsDirectory: false, Size: 200, ModifiedAt: time.Now()},
+			{Name: "tests", Path: "/workspace/tests", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "api_test.go", Path: "/workspace/tests/api_test.go", IsDirectory: false, Size: 300, ModifiedAt: time.Now()},
+		}
+
+		// Act
+		tree, err := service.BuildFileTree(files, "/workspace")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(tree.Children)) // src and tests at root level
+
+		// Verify src branch
+		srcNode := tree.Children[0]
+		assert.Equal(t, "src", srcNode.Name)
+		assert.Equal(t, 2, len(srcNode.Children)) // api and models
+
+		// Verify tests branch
+		var testsNode *FileTreeNode
+		for _, child := range tree.Children {
+			if child.Name == "tests" {
+				testsNode = child
+				break
+			}
+		}
+		assert.NEmpty(t, testsNode)
+		assert.Equal(t, 1, len(testsNode.Children)) // api_test.go
+	})
+
+	t.Run("handles s3-bucket root path", func(t *testing.T) {
+		// Arrange
+		service := NewSandboxService()
+		files := []FileInfo{
+			{Name: "s3-bucket", Path: "/s3-bucket", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "data.json", Path: "/s3-bucket/data.json", IsDirectory: false, Size: 500, ModifiedAt: time.Now()},
+		}
+
+		// Act
+		tree, err := service.BuildFileTree(files, "/s3-bucket")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.NEmpty(t, tree)
+		assert.Equal(t, "s3-bucket", tree.Name)
+		assert.Equal(t, "/s3-bucket", tree.Path)
+		assert.Equal(t, 1, len(tree.Children))
+	})
+
+	t.Run("sorts and processes files in correct order", func(t *testing.T) {
+		// Arrange - provide files in random order
+		service := NewSandboxService()
+		files := []FileInfo{
+			{Name: "test.go", Path: "/workspace/src/test.go", IsDirectory: false, Size: 100, ModifiedAt: time.Now()},
+			{Name: "workspace", Path: "/workspace", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "src", Path: "/workspace/src", IsDirectory: true, Size: 0, ModifiedAt: time.Now()},
+			{Name: "README.md", Path: "/workspace/README.md", IsDirectory: false, Size: 50, ModifiedAt: time.Now()},
+		}
+
+		// Act
+		tree, err := service.BuildFileTree(files, "/workspace")
+
+		// Assert - should still build correct hierarchy despite random order
+		assert.NoError(t, err)
+		assert.NEmpty(t, tree)
+		assert.Equal(t, 2, len(tree.Children))
+
+		// Find src node
+		var srcNode *FileTreeNode
+		for _, child := range tree.Children {
+			if child.Name == "src" {
+				srcNode = child
+				break
+			}
+		}
+		assert.NEmpty(t, srcNode)
+		assert.Equal(t, 1, len(srcNode.Children))
+		assert.Equal(t, "test.go", srcNode.Children[0].Name)
 	})
 }

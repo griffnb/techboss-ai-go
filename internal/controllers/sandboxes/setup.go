@@ -38,6 +38,10 @@ func Setup(coreRouter *router.CoreRouter) {
 			adminR.Get("/{id}/files/content", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_READ_ADMIN: adminGetFileContent,
 			}))
+			// GET /admin/sandbox/{id}/files/tree - Get hierarchical tree structure of files
+			adminR.Get("/{id}/files/tree", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_READ_ADMIN: response.StandardRequestWrapper(adminGetFileTree),
+			}))
 		})
 		r.Group(func(adminR chi.Router) {
 			adminR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
@@ -70,6 +74,10 @@ func Setup(coreRouter *router.CoreRouter) {
 			// GET /sandbox/{id}/files/content - Get file content from sandbox
 			authR.Get("/{id}/files/content", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_ANY_AUTHORIZED: authGetFileContent,
+			}))
+			// GET /sandbox/{id}/files/tree - Get hierarchical tree structure of files
+			authR.Get("/{id}/files/tree", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authGetFileTree),
 			}))
 		})
 
