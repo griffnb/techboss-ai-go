@@ -1,19 +1,20 @@
 {
   "enabledMcpjsonServers": ["code_tools"],
   "enableAllProjectMcpServers": true,
-
+  "enabledPlugins": {
+    "gopls-lsp@claude-plugins-official": true
+  },
   "permissions": {
     "allow": ["mcp__code_tools", "mcp__ui_code_tools", "Read(./**)"],
     "deny": ["Read(*.env)", "Read(*.env.*)", "Read(*/.configs/**)"]
   },
   "hooks": {
-    "SessionStart": [
+    "Stop": [
       {
-        "matcher": "startup",
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/fix_ralph.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/scripts/stop-ralph-hook.sh"
           }
         ]
       }
