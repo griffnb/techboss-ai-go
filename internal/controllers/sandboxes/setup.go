@@ -30,6 +30,14 @@ func Setup(coreRouter *router.CoreRouter) {
 			adminR.Get("/count", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_READ_ADMIN: response.StandardRequestWrapper(adminCount),
 			}))
+			// GET /admin/sandbox/{id}/files - List files in sandbox volume or S3
+			adminR.Get("/{id}/files", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_READ_ADMIN: response.StandardRequestWrapper(adminListFiles),
+			}))
+			// GET /admin/sandbox/{id}/files/content - Get file content from sandbox
+			adminR.Get("/{id}/files/content", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_READ_ADMIN: adminGetFileContent,
+			}))
 		})
 		r.Group(func(adminR chi.Router) {
 			adminR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
@@ -54,6 +62,14 @@ func Setup(coreRouter *router.CoreRouter) {
 			}))
 			authR.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authGet),
+			}))
+			// GET /sandbox/{id}/files - List files in sandbox volume or S3
+			authR.Get("/{id}/files", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authListFiles),
+			}))
+			// GET /sandbox/{id}/files/content - Get file content from sandbox
+			authR.Get("/{id}/files/content", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: authGetFileContent,
 			}))
 		})
 

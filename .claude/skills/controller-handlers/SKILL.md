@@ -1,6 +1,6 @@
 ---
 name: controller-handlers
-description: Writing controller handler functions
+description: controller and API setup and basic patterns. Use when you need controller permissions, controller post data, controller params and queries, or setup a new controller or API route
 ---
 
 # Writing Controller Handlers
@@ -210,3 +210,7 @@ if accountObj.ID_.Get() != session.AccountID {
 
 - [controller-roles](../controller-roles/SKILL.md) - Role-based access control
 - [model-usage](../../model-usage/SKILL.md) - Working with models
+
+
+## Additional resources
+- For usage examples, see [examples.md](examples.md)

@@ -9,7 +9,7 @@ The system uses `core_generate` to automatically create standard CRUD operations
 
 ## Code Generation Command
 
-Add this directive to your `setup.go` file:
+Add this directive to the controller folders `setup.go` file:
 
 ```go
 //go:generate core_gen controller Account -modelPackage=account
@@ -127,3 +127,7 @@ go generate path/to/file
 
 - [controller-handlers](../controller-handlers/SKILL.md) - Writing custom handlers
 - [controller-roles](../controller-roles/SKILL.md) - Role-based access control
+
+
+## Additional resources
+- For usage examples, see [examples.md](examples.md)

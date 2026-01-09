@@ -56,7 +56,21 @@ description: Use to build proper go unit tests
 - Use `testing_service.Builder` to build objects, be sure to extend this as objects change
 - Tests must be **isolated** (no shared state)
 - Tests must be **deterministic** (no flaky tests)
+- Keep tests in the same package (white-box testing)
+- Use `_test` package suffix for black-box testing
+- Name test files with `_test.go` suffix
+- Place test files next to the code they test
 
+### Writing Tests
+- Create test fixtures using `system_testing.BuildSystem()` inside of an `init()` if the functions require database or config
+- Use table-driven tests for multiple test cases
+- Name tests descriptively using `Test_functionName_scenario`
+- Use subtests with `t.Run` for better organization
+- Test both success and error cases
+- Use `lib/testtools/assert` package which is a simple local testing package
+- Clean up resources using  `defer testtools.CleanupModel(x)` if creating models
+- Use `./internal/services/testing_service/builder.go` to create common objects like accounts, users, etc
+- If tests seem to be creating alot of new common objects, add it to the builder.go file
 
 ### Example TDD Session:
 
@@ -125,9 +139,9 @@ import (
     "net/url"
     "testing"
 
-    "github.com/CrowdShield/atlas-go/internal/common/system_testing"
-    "github.com/CrowdShield/atlas-go/internal/models/example"
-    "github.com/CrowdShield/atlas-go/internal/services/testing_service"
+    "github.com/BotBuilders/go-the-schwartz/internal/common/system_testing"
+    "github.com/BotBuilders/go-the-schwartz/internal/models/example"
+    "github.com/BotBuilders/go-the-schwartz/internal/services/testing_service"
 )
 
 func init() {

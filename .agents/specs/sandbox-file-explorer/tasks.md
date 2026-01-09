@@ -1,37 +1,18 @@
 # Sandbox File Explorer - Implementation Tasks
 
-## CRITICAL: Task Execution Instructions for Main Agent
 
-**DO NOT IMPLEMENT TASKS YOURSELF.** Your role is to delegate each task to a specialized sub-agent, one task at a time.
-
-### Task Delegation Process
+### Task  Process MUST FOLLOW 
 
 1. **Work Sequentially**: Execute tasks in the order listed below
-2. **One Task Per Sub-Agent**: Launch a new sub-agent for each individual task checkbox
-3. **Complete Context**: Provide the sub-agent with ALL necessary context (see template below)
-4. **Wait for Completion**: Do not move to next task until current sub-agent completes successfully
-5. **Track Progress**: Mark tasks as complete (✓) after sub-agent finishes and all tests pass
-6. **Update Learnings**: After each task, if the sub-agent discovered new information that impacts future tasks, ensure it's added to the Learnings section
+2. **One Task At a time**
+3. **Validate Success Criteria is completed**
+5. **Track Progress**: Mark tasks as complete (✓)
 
-### Sub-Agent Prompt Template
 
-When delegating each task, use this template with the `runSubagent` tool:
-
-```
-
-You are implementing task [X] for the Sandbox File Explorer feature.
-
-**TASK**: [Copy exact task description from tasks.md]
-
-**REQUIREMENTS THIS TASK SATISFIES**:
-- [List specific requirement numbers from requirements.md that this task addresses]
 
 **MANDATORY: READ THESE FILES FIRST** (before writing any code):
 - ./techboss/techboss-ai-go/AGENTS.md - Project rules and patterns
 - ./techboss/techboss-ai-go/.github/instructions/go.instructions.md - Go coding standards
-- ./techboss/techboss-ai-go/.github/instructions/test.instructions.md - Testing standards
-- ./techboss/techboss-ai-go/docs/CONTROLLERS.md - Controller patterns
-- ./techboss/techboss-ai-go/docs/MODELS.md - Model patterns (if applicable)
 - ./techboss/techboss-ai-go/.agents/specs/sandbox-file-explorer/requirements.md - Feature requirements
 - ./techboss/techboss-ai-go/.agents/specs/sandbox-file-explorer/design.md - Feature design
 
@@ -73,27 +54,8 @@ You are implementing task [X] for the Sandbox File Explorer feature.
 - Tested, working code that integrates with existing patterns
 - All tests passing
 - No hanging or orphaned code
-```
 
-### Example Sub-Agent Invocation
 
-```typescript
-runSubagent({
-  description: "Implement ListFiles service method",
-  prompt: `[Use template above with specific task details]`
-})
-```
-
----
-
-## Implementation Tasks
-
-**BEFORE STARTING**: Ensure you have read:
-- `./techboss/techboss-ai-go/AGENTS.md`
-- `./techboss/techboss-ai-go/.github/instructions/go.instructions.md`
-- `./techboss/techboss-ai-go/.github/instructions/test.instructions.md`
-
----
 
 ### Phase 1: Core File Listing (MVP)
 
@@ -419,14 +381,5 @@ runSubagent({
 
 ---
 
-## Learnings
 
-*Sub-agents: Add any new information discovered during implementation that impacts future tasks or is important for maintenance.*
-
-### What Was Learned
-
-- (Empty - to be filled by sub-agents during implementation)
-
-### How This Impacts Future Work
-
-- (Empty - to be filled by sub-agents during implementation)
+**IMPORTANT** Check off what has been completed

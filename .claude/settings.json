@@ -1,20 +1,21 @@
 {
   "enabledMcpjsonServers": ["code_tools"],
   "enableAllProjectMcpServers": true,
-  "enabledPlugins": {
-    "ralph-loop@claude-plugins-official": true
-  },
+  
   "permissions": {
-    "allow": [
-      "mcp__code_tools",
-      "Read(./**)"
-    ],
-    "deny": [
-      "Bash(curl:*)",
-      "Read(./.env)",
-      "Read(./.env.*)",
-      "Read(./.configs/**)"
-    ],
-    "ask": []
+    "allow": ["mcp__code_tools", "mcp__ui_code_tools", "Read(./**)"],
+    "deny": ["Read(*.env)", "Read(*.env.*)", "Read(*/.configs/**)"]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/scripts/stop-ralph-hook.sh"
+          }
+        ]
+      }
+    ]
   }
 }
