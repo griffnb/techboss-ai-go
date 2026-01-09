@@ -150,7 +150,8 @@ jobs:
             use /ralph-loop Implement the tasks mentioned in the PRs and Issues in this repository. Do one task at a time.
             If the arguments of the bash command setup-ralph-loop.sh are not provided already, they are:
             setup-ralph-loop.sh {Prompt} --max-iterations 5 --completion-promise "<promise>COMPLETE</promise>"
-            **IMPORTANT** If you are not able to access the setup-ralph-loop.sh script, make a comment on the PR and exit.              
+            **IMPORTANT** If you are not able to access the setup-ralph-loop.sh script, make a comment on the PR and exit. 
+            otherwise add the contents of .claude/ralph-loop.local.md to the PR comment on the beginning of every loop.             
           claude_args: |
             --dangerously-skip-permissions
             --debug
@@ -168,7 +169,7 @@ jobs:
         with:
           use_bedrock: "true"
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          plugins: gopls-lsp@claude-plugins-official
+          plugins: "gopls-lsp@claude-plugins-official"
           prompt: /learning-analyzer-ci You are analyzing a completed development session to extract learnings.
           claude_args: |
               --dangerously-skip-permissions
