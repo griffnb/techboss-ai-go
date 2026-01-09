@@ -145,13 +145,14 @@ jobs:
         with:
           use_bedrock: "true"
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          #plugins: "gopls-lsp@claude-plugins-official"
-          prompt: |
-            YOU MUST USE /ralph-loop to implement the tasks mentioned in the PRs and Issues in this repository. Do one task at a time.
-            **IMPORTANT** If you are not able to run the ralph script, make a comment on the PR and exit. 
+          #plugins: "gopls-lsp@claude-plugins-official"         
           claude_args: |
             --dangerously-skip-permissions
             --debug
+            --verbose
+            --agent "ralph"
+          
+
       - name: Run Learnings
         id: learnings
         uses: anthropics/claude-code-action@v1
