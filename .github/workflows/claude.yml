@@ -145,6 +145,7 @@ jobs:
         with:
             use_bedrock: "true"
             github_token: ${{ secrets.GITHUB_TOKEN }}
+            plugins: "ralph-loop@claude-plugins-official\ngopls-lsp@claude-plugins-official"
             prompt: |
               use /ralph-loop Implement the tasks mentioned in the PRs and Issues in this repository. Do one task at a time.
               If the arguments of the bash command setup-ralph-loop.sh are not provided already, they are:
@@ -166,9 +167,7 @@ jobs:
         with:
             use_bedrock: "true"
             github_token: ${{ secrets.GITHUB_TOKEN }}
-            plugins: |
-              ralph-loop@claude-plugins-official
-              gopls-lsp@claude-plugins-official
+            plugins: "gopls-lsp@claude-plugins-official"
             prompt: /learning-analyzer-ci You are analyzing a completed development session to extract learnings.
             claude_args: |
               --dangerously-skip-permissions
