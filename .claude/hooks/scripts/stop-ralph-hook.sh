@@ -6,6 +6,22 @@
 
 set -euo pipefail
 
+# Get script directory for calling sibling scripts
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Helper function to update GitHub PR comment
+update_github_comment() {
+  local action="$1"
+  local iteration="$2"
+  local max_iter="$3"
+  local promise="$4"
+  local message="${5:-}"
+  
+  if [[ -f "$SCRIPT_DIR/ralph-github-comment.sh" ]]; then
+    "$SCRIPT_DIR/ralph-github-comment.sh" "$action" "$iteration" "$max_iter" "$promise" "$message" 2>/dev/null || true
+  fi
+}
+
 # Read hook input from stdin (advanced stop hook API)
 HOOK_INPUT=$(cat)
 
@@ -32,6 +48,7 @@ if [[ ! "$ITERATION" =~ ^[0-9]+$ ]]; then
   echo "" >&2
   echo "   This usually means the state file was manually edited or corrupted." >&2
   echo "   Ralph loop is stopping. Run /ralph-loop again to start fresh." >&2
+  update_github_comment "error" "0" "$MAX_ITERATIONS" "$COMPLETION_PROMISE" "State file corrupted"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -43,6 +60,7 @@ if [[ ! "$MAX_ITERATIONS" =~ ^[0-9]+$ ]]; then
   echo "" >&2
   echo "   This usually means the state file was manually edited or corrupted." >&2
   echo "   Ralph loop is stopping. Run /ralph-loop again to start fresh." >&2
+  update_github_comment "error" "$ITERATION" "0" "$COMPLETION_PROMISE" "State file corrupted"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -50,6 +68,9 @@ fi
 # Check if max iterations reached
 if [[ $MAX_ITERATIONS -gt 0 ]] && [[ $ITERATION -ge $MAX_ITERATIONS ]]; then
   echo "🛑 Ralph loop: Max iterations ($MAX_ITERATIONS) reached."
+  echo "::warning title=🛑 Ralph Loop Stopped::Max iterations ($MAX_ITERATIONS) reached" >> .claude/ralph-events.log
+  echo "- **🛑 Stopped** at $(date -u +%Y-%m-%dT%H:%M:%SZ) - Max iterations reached" >> .claude/ralph-summary.md
+  update_github_comment "stopped" "$ITERATION" "$MAX_ITERATIONS" "$COMPLETION_PROMISE" "Max iterations reached"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -100,6 +121,7 @@ if [[ $? -ne 0 ]]; then
   echo "   Error: $LAST_OUTPUT" >&2
   echo "   This may indicate a transcript format issue" >&2
   echo "   Ralph loop is stopping." >&2
+  update_github_comment "error" "$ITERATION" "$MAX_ITERATIONS" "$COMPLETION_PROMISE" "Failed to parse transcript"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -107,6 +129,7 @@ fi
 if [[ -z "$LAST_OUTPUT" ]]; then
   echo "⚠️  Ralph loop: Assistant message contained no text content" >&2
   echo "   Ralph loop is stopping." >&2
+  update_github_comment "error" "$ITERATION" "$MAX_ITERATIONS" "$COMPLETION_PROMISE" "Empty assistant message"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -122,6 +145,9 @@ if [[ "$COMPLETION_PROMISE" != "null" ]] && [[ -n "$COMPLETION_PROMISE" ]]; then
   # == in [[ ]] does glob pattern matching which breaks with *, ?, [ characters
   if [[ -n "$PROMISE_TEXT" ]] && [[ "$PROMISE_TEXT" = "$COMPLETION_PROMISE" ]]; then
     echo "✅ Ralph loop: Detected <promise>$COMPLETION_PROMISE</promise>"
+    echo "::notice title=✅ Ralph Loop Complete::Promise fulfilled after $ITERATION iterations" >> .claude/ralph-events.log
+    echo "- **✅ Complete** at $(date -u +%Y-%m-%dT%H:%M:%SZ) - Promise fulfilled" >> .claude/ralph-summary.md
+    update_github_comment "complete" "$ITERATION" "$MAX_ITERATIONS" "$COMPLETION_PROMISE" "Promise fulfilled! 🎉"
     rm "$RALPH_STATE_FILE"
     exit 0
   fi
@@ -129,6 +155,15 @@ fi
 
 # Not complete - continue loop with SAME PROMPT
 NEXT_ITERATION=$((ITERATION + 1))
+
+# Log iteration to events file for GitHub Actions watcher
+MAX_DISPLAY="∞"
+[[ $MAX_ITERATIONS -gt 0 ]] && MAX_DISPLAY="$MAX_ITERATIONS"
+echo "::notice title=🔄 Ralph Iteration $NEXT_ITERATION::Continuing ($NEXT_ITERATION/$MAX_DISPLAY)" >> .claude/ralph-events.log
+echo "- **Iteration $NEXT_ITERATION** started at $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> .claude/ralph-summary.md
+
+# Update GitHub PR comment with iteration progress
+update_github_comment "iteration" "$NEXT_ITERATION" "$MAX_ITERATIONS" "$COMPLETION_PROMISE" "Starting iteration $NEXT_ITERATION"
 
 # Extract prompt (everything after the closing ---)
 # Skip first --- line, skip until second --- line, then print everything after

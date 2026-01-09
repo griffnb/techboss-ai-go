@@ -152,17 +152,6 @@ jobs:
           cp ./infra/unit_test.json ./.configs/unit_test.json          
           make install-lint & make install-deadcode & make install-generate & wait 
     
-      - name: Start Ralph Loop Watcher
-        run: |
-          # Use nohup to keep the watcher running after this step ends
-          # Redirect output to a log file for debugging
-          nohup .claude/hooks/scripts/ralph-watcher.sh > /tmp/ralph-watcher.log 2>&1 &
-          echo $! > /tmp/ralph_watcher.pid
-          disown
-          echo "Ralph watcher started (PID: $(cat /tmp/ralph_watcher.pid))"
-          sleep 2  # Give it time to start
-          cat /tmp/ralph-watcher.log || true
-
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
@@ -184,6 +173,29 @@ jobs:
             --output-format stream-json
             --debug
             --verbose
+
+      - name: Collect Ralph Summary
+        if: always()
+        run: |
+          echo "=== Ralph Events Log ==="
+          if [[ -f .claude/ralph-events.log ]]; then
+            cat .claude/ralph-events.log
+            # Output events as annotations now that we're in a regular step
+            while read -r line; do
+              echo "$line"
+            done < .claude/ralph-events.log
+          else
+            echo "No events log found"
+          fi
+          
+          echo ""
+          echo "=== Adding to Job Summary ==="
+          if [[ -f .claude/ralph-summary.md ]]; then
+            cat .claude/ralph-summary.md >> "$GITHUB_STEP_SUMMARY"
+            echo "Summary added"
+          else
+            echo "No summary file found"
+          fi
           
       #- name: Dump Claude Session Logs
       #  if: ${{ always() || cancelled() }}
@@ -201,42 +213,6 @@ jobs:
       #      head -100 "$f" 2>/dev/null
       #    done
       #    echo "::endgroup::"
-
-      - name: Dump Ralph Watcher Log
-        if: always()
-        run: |
-          echo "=== Ralph Watcher Log ==="
-          if [[ -f /tmp/ralph-watcher.log ]]; then
-            cat /tmp/ralph-watcher.log
-          else
-            echo "No watcher log found"
-          fi
-          echo ""
-          echo "=== GITHUB_STEP_SUMMARY file contents ==="
-          echo "File: $GITHUB_STEP_SUMMARY"
-          if [[ -f "$GITHUB_STEP_SUMMARY" ]]; then
-            echo "Size: $(wc -c < "$GITHUB_STEP_SUMMARY") bytes"
-            cat "$GITHUB_STEP_SUMMARY"
-          else
-            echo "Summary file does not exist!"
-          fi
-          echo ""
-          echo "=== Ralph State File ==="
-          if [[ -f .claude/ralph-loop.local.md ]]; then
-            cat .claude/ralph-loop.local.md
-          else
-            echo "State file removed (loop completed)"
-          fi
-          # Check if watcher is still running
-          if [[ -f /tmp/ralph_watcher.pid ]]; then
-            PID=$(cat /tmp/ralph_watcher.pid)
-            if ps -p "$PID" > /dev/null 2>&1; then
-              echo "Watcher still running (PID: $PID), killing..."
-              kill "$PID" || true
-            else
-              echo "Watcher process already exited"
-            fi
-          fi
 
       - name: Run Learnings
         id: learnings

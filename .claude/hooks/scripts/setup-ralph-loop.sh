@@ -149,6 +149,32 @@ started_at: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 $PROMPT
 EOF
 
+# Write event for GitHub Actions watcher
+MAX_DISPLAY="$MAX_ITERATIONS"
+[[ "$MAX_ITERATIONS" == "0" ]] && MAX_DISPLAY="unlimited"
+mkdir -p .claude
+echo "::notice title=🔄 Ralph Loop Started::Iteration 1 | Max: $MAX_DISPLAY | Promise: ${COMPLETION_PROMISE:-none}" >> .claude/ralph-events.log
+
+# Also write to summary file for final collection
+{
+  echo "## 🔄 Ralph Loop"
+  echo ""
+  echo "| Setting | Value |"
+  echo "|---------|-------|"
+  echo "| **Started At** | $(date -u +%Y-%m-%dT%H:%M:%SZ) |"
+  echo "| **Max Iterations** | $MAX_DISPLAY |"
+  echo "| **Completion Promise** | \`${COMPLETION_PROMISE:-none}\` |"
+  echo ""
+  echo "### Iterations"
+  echo "- **Iteration 1** started at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+} >> .claude/ralph-summary.md
+
+# Post/update GitHub PR comment with status
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$SCRIPT_DIR/ralph-github-comment.sh" ]]; then
+  "$SCRIPT_DIR/ralph-github-comment.sh" "start" "1" "$MAX_ITERATIONS" "$COMPLETION_PROMISE" "Loop initialized" 2>/dev/null || true
+fi
+
 # Output setup message
 cat <<EOF
 🔄 Ralph loop activated in this session!
