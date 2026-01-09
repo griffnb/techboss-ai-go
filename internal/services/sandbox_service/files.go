@@ -55,6 +55,19 @@ type FileContent struct {
 	Size        int64  `json:"size"`
 }
 
+// FileTreeNode represents a node in a hierarchical file tree structure.
+// Used for tree-based file listing views where files and directories are
+// organized in a parent-child relationship. Each node contains its own
+// metadata and can have child nodes (subdirectories or files).
+type FileTreeNode struct {
+	Name        string          `json:"name"`
+	Path        string          `json:"path"`
+	IsDirectory bool            `json:"is_directory"`
+	Size        int64           `json:"size,omitempty"`
+	ModifiedAt  time.Time       `json:"modified_at,omitempty"`
+	Children    []*FileTreeNode `json:"children,omitempty"`
+}
+
 // validatePath validates that a file path is safe and within allowed directories.
 // It prevents directory traversal attacks and ensures paths are within
 // /workspace or /s3-bucket directories.
@@ -642,4 +655,123 @@ func (s *SandboxService) GetFileContent(
 		FileName:    fileName,
 		Size:        int64(len(content)),
 	}, nil
+}
+
+// BuildFileTree converts a flat list of FileInfo into a hierarchical tree structure.
+// It creates a FileTreeNode root and organizes all files/directories as children
+// based on their path hierarchy. The algorithm sorts files by path to ensure
+// parents are processed before children, then uses a map for O(n) lookups.
+//
+// Parameters:
+// - files: flat list of FileInfo structs from ListFiles
+// - rootPath: the root directory path (e.g., "/workspace" or "/s3-bucket")
+//
+// Returns:
+// - *FileTreeNode: root node with nested children structure
+// - error: if tree building fails
+//
+// For empty file lists, returns a valid root node with no children.
+// The tree structure uses pointer slices for Children to maintain references
+// and allow proper nesting through multiple levels.
+func (s *SandboxService) BuildFileTree(files []FileInfo, rootPath string) (*FileTreeNode, error) {
+	// Extract root name from rootPath (e.g., "/workspace" -> "workspace")
+	rootName := rootPath
+	if idx := strings.LastIndex(rootPath, "/"); idx != -1 {
+		rootName = rootPath[idx+1:]
+	}
+
+	// Create root node
+	root := &FileTreeNode{
+		Name:        rootName,
+		Path:        rootPath,
+		IsDirectory: true,
+		Children:    []*FileTreeNode{},
+	}
+
+	// Handle empty file list
+	if len(files) == 0 {
+		return root, nil
+	}
+
+	// Create a map for O(1) lookups: path -> node
+	nodeMap := make(map[string]*FileTreeNode)
+	nodeMap[rootPath] = root
+
+	// Sort files by path to ensure parents come before children
+	// This is critical for building the tree correctly
+	sortedFiles := make([]FileInfo, len(files))
+	copy(sortedFiles, files)
+	// Simple bubble sort by path length first, then alphabetically
+	for i := 0; i < len(sortedFiles); i++ {
+		for j := i + 1; j < len(sortedFiles); j++ {
+			// Sort by path depth (number of slashes) first, then alphabetically
+			iDepth := strings.Count(sortedFiles[i].Path, "/")
+			jDepth := strings.Count(sortedFiles[j].Path, "/")
+			if iDepth > jDepth || (iDepth == jDepth && sortedFiles[i].Path > sortedFiles[j].Path) {
+				sortedFiles[i], sortedFiles[j] = sortedFiles[j], sortedFiles[i]
+			}
+		}
+	}
+
+	// Build tree by iterating through sorted files
+	for _, file := range sortedFiles {
+		// Skip if this is the root path itself (already created)
+		if file.Path == rootPath {
+			// Update root metadata if it's in the file list
+			root.Size = file.Size
+			root.ModifiedAt = file.ModifiedAt
+			continue
+		}
+
+		// Create node for this file
+		node := &FileTreeNode{
+			Name:        file.Name,
+			Path:        file.Path,
+			IsDirectory: file.IsDirectory,
+			Size:        file.Size,
+			ModifiedAt:  file.ModifiedAt,
+			Children:    []*FileTreeNode{},
+		}
+
+		// Add to node map
+		nodeMap[file.Path] = node
+
+		// Find parent directory path
+		parentPath := file.Path
+		if idx := strings.LastIndex(parentPath, "/"); idx != -1 {
+			parentPath = parentPath[:idx]
+		}
+
+		// Find parent node in map
+		parentNode, exists := nodeMap[parentPath]
+		if !exists {
+			// Parent doesn't exist yet - this shouldn't happen with sorted files
+			// Create parent as a directory node
+			parentName := parentPath
+			if idx := strings.LastIndex(parentPath, "/"); idx != -1 {
+				parentName = parentPath[idx+1:]
+			}
+			parentNode = &FileTreeNode{
+				Name:        parentName,
+				Path:        parentPath,
+				IsDirectory: true,
+				Children:    []*FileTreeNode{},
+			}
+			nodeMap[parentPath] = parentNode
+
+			// Also need to attach this parent to ITS parent
+			grandParentPath := parentPath
+			if idx := strings.LastIndex(grandParentPath, "/"); idx != -1 {
+				grandParentPath = grandParentPath[:idx]
+			}
+			if grandParentNode, gpExists := nodeMap[grandParentPath]; gpExists {
+				grandParentNode.Children = append(grandParentNode.Children, parentNode)
+			}
+		}
+
+		// Append current node to parent's children
+		parentNode.Children = append(parentNode.Children, node)
+	}
+
+	return root, nil
 }
