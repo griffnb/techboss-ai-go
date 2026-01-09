@@ -1,4 +1,4 @@
-name: Claude Code
+name: Ralph Code
 
 on:
   # Manual trigger - easiest way to run on any branch
@@ -9,7 +9,7 @@ on:
         required: false
         type: string
       task:
-        description: 'Task description for Claude'
+        description: 'Task description for Ralph'
         required: false
         type: string
       pr_number:
@@ -55,20 +55,20 @@ jobs:
             TRIGGER_BODY="$TASK_INPUT"
           
           # Comment mentions (but NOT from github-actions bot to avoid duplicates)
-          elif [[ "${{ github.event_name }}" == "issue_comment" ]] && [[ "${{ github.event.comment.user.login }}" != "github-actions[bot]" ]] && [[ "${{ contains(github.event.comment.body, '@claude') }}" == "true" ]]; then
+          elif [[ "${{ github.event_name }}" == "issue_comment" ]] && [[ "${{ github.event.comment.user.login }}" != "github-actions[bot]" ]] && [[ "${{ contains(github.event.comment.body, '@ralph') }}" == "true" ]]; then
             SHOULD_RUN="true"
             TRIGGER_BODY="$COMMENT_BODY"
-          elif [[ "${{ github.event_name }}" == "pull_request_review_comment" ]] && [[ "${{ contains(github.event.comment.body, '@claude') }}" == "true" ]]; then
+          elif [[ "${{ github.event_name }}" == "pull_request_review_comment" ]] && [[ "${{ contains(github.event.comment.body, '@ralph') }}" == "true" ]]; then
             SHOULD_RUN="true"
             TRIGGER_BODY="$COMMENT_BODY"
-          elif [[ "${{ github.event_name }}" == "pull_request_review" ]] && [[ "${{ contains(github.event.review.body, '@claude') }}" == "true" ]]; then
+          elif [[ "${{ github.event_name }}" == "pull_request_review" ]] && [[ "${{ contains(github.event.review.body, '@ralph') }}" == "true" ]]; then
             SHOULD_RUN="true"
             TRIGGER_BODY="$REVIEW_BODY"
           
           # Issue triggers
           elif [[ "${{ github.event_name }}" == "issues" ]]; then
-            # @claude mention or label
-            if [[ "${{ contains(github.event.issue.body, '@claude') }}" == "true" ]] || [[ "${{ contains(github.event.issue.title, '@claude') }}" == "true" ]] || [[ "${{ contains(github.event.issue.labels.*.name, 'claude') }}" == "true" ]]; then
+            # @ralph mention or label
+            if [[ "${{ contains(github.event.issue.body, '@ralph') }}" == "true" ]] || [[ "${{ contains(github.event.issue.title, '@ralph') }}" == "true" ]] || [[ "${{ contains(github.event.issue.labels.*.name, 'claude') }}" == "true" ]]; then
               SHOULD_RUN="true"
               TRIGGER_BODY="$ISSUE_TITLE: $ISSUE_BODY"
             fi
@@ -125,7 +125,7 @@ jobs:
               issue_number: ${{ github.event.inputs.pr_number }},
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '@claude ${{ github.event.inputs.task }}'
+              body: '@ralph ${{ github.event.inputs.task }}'
             })
       
       - uses: actions/setup-go@v5
@@ -167,8 +167,52 @@ jobs:
           use_bedrock: "true"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           #plugins: "gopls-lsp@claude-plugins-official"  
+          prompt: /ralph-loop ${{ needs.check-mention.outputs.trigger-body }}   
+          trigger_phrase: "@ralph"
+          assignee_trigger: "ralph"
+          label_trigger: "ralph"
           claude_args: |
             --dangerously-skip-permissions
+
+      - name: Collect Ralph Summary
+        if: always()
+        run: |
+          echo "=== Ralph Events Log ==="
+          if [[ -f .claude/ralph-events.log ]]; then
+            cat .claude/ralph-events.log
+            # Output events as annotations now that we're in a regular step
+            while read -r line; do
+              echo "$line"
+            done < .claude/ralph-events.log
+          else
+            echo "No events log found"
+          fi
+          
+          echo ""
+          echo "=== Adding to Job Summary ==="
+          if [[ -f .claude/ralph-summary.md ]]; then
+            cat .claude/ralph-summary.md >> "$GITHUB_STEP_SUMMARY"
+            echo "Summary added"
+          else
+            echo "No summary file found"
+          fi
+          
+      #- name: Dump Claude Session Logs
+      #  if: ${{ always() || cancelled() }}
+      #  run: |
+      #    echo "=== Final Claude Session Dump ==="
+      #    find ~/.claude -type f \( -name "*.jsonl" -o -name "*.json" -o -name "*.log" \) 2>/dev/null | while read f; do
+      #      echo "::group::$f"
+      #      cat "$f" | jq -r 'if .type then "[\(.type)] \(.message // .content // .)" else . end' 2>/dev/null || cat "$f"
+      #      echo "::endgroup::"
+      #    done
+      #    # Also check for any claude-related files in temp
+      #    echo "::group::Temp files"
+      #    find /tmp -name "*claude*" -type f 2>/dev/null | head -20 | while read f; do
+      #      echo "--- $f ---"
+      #      head -100 "$f" 2>/dev/null
+      #    done
+      #    echo "::endgroup::"
 
       - name: Run Learnings
         id: learnings
