@@ -1,7 +1,7 @@
 {
   "enabledMcpjsonServers": ["code_tools"],
   "enableAllProjectMcpServers": true,
-  
+
   "permissions": {
     "allow": ["mcp__code_tools", "mcp__ui_code_tools", "Read(./**)"],
     "deny": ["Read(*.env)", "Read(*.env.*)", "Read(*/.configs/**)"]
@@ -17,5 +17,10 @@
         ]
       }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh",
+    "padding": 0
   }
 }

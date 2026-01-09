@@ -1,7 +1,6 @@
 ---
 description: "Start Ralph Loop in current session"
 argument-hint: "PROMPT [--max-iterations N] [--completion-promise TEXT]"
-allowed-tools: ["Bash(${CLAUDE_PROJECT_DIR}/scripts/setup-ralph-loop.sh:*)"]
 hide-from-slash-command-tool: "true"
 ---
 
@@ -9,11 +8,11 @@ hide-from-slash-command-tool: "true"
 
 Execute the setup script to initialize the Ralph loop: 
 
-Bash("${CLAUDE_PROJECT_DIR}/.claude/hooks/scripts/setup-ralph-loop.sh" $ARGUMENTS)
+Bash("./.claude/hooks/scripts/setup-ralph-loop.sh" {User Prompt Here})
 
 the bash script above expects arguments of the user prompt you've been asked to do, so if you dont see it below, please add it before calling the tool
 <example>
-Bash("${CLAUDE_PROJECT_DIR}/.claude/hooks/scripts/setup-ralph-loop.sh \"Complete the tasks in file xyz\")
+Bash("./.claude/hooks/scripts/setup-ralph-loop.sh \"Complete the tasks in file xyz\")
 </example>
 
 
