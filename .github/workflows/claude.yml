@@ -212,6 +212,15 @@ jobs:
             echo "No watcher log found"
           fi
           echo ""
+          echo "=== GITHUB_STEP_SUMMARY file contents ==="
+          echo "File: $GITHUB_STEP_SUMMARY"
+          if [[ -f "$GITHUB_STEP_SUMMARY" ]]; then
+            echo "Size: $(wc -c < "$GITHUB_STEP_SUMMARY") bytes"
+            cat "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Summary file does not exist!"
+          fi
+          echo ""
           echo "=== Ralph State File ==="
           if [[ -f .claude/ralph-loop.local.md ]]; then
             cat .claude/ralph-loop.local.md

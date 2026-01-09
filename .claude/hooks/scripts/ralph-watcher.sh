@@ -18,6 +18,12 @@ if [[ -z "${GITHUB_STEP_SUMMARY:-}" ]]; then
   GITHUB_STEP_SUMMARY="/dev/stdout"
 fi
 
+# Helper function to write to summary with explicit sync
+write_summary() {
+  printf '%s\n' "$1" >> "$GITHUB_STEP_SUMMARY"
+  sync 2>/dev/null || true
+}
+
 echo "Ralph watcher started, monitoring $RALPH_STATE every ${POLL_INTERVAL}s"
 echo "Writing to GITHUB_STEP_SUMMARY: $GITHUB_STEP_SUMMARY"
 
@@ -49,23 +55,29 @@ while true; do
       [[ -n "$COMPLETION_PROMISE" ]] && [[ "$COMPLETION_PROMISE" != "null" ]] && PROMISE_DISPLAY="\`$COMPLETION_PROMISE\`"
       
       echo "Initializing Ralph Loop summary..."
-      cat >> "$GITHUB_STEP_SUMMARY" <<INIT_EOF
-## 🔄 Ralph Loop Initialized
-
-| Setting | Value |
-|---------|-------|
-| **Started At** | $STARTED_AT |
-| **Max Iterations** | $MAX_DISPLAY |
-| **Completion Promise** | $PROMISE_DISPLAY |
-
-### Prompt
-\`\`\`
-$PROMPT
-\`\`\`
-
----
-
-INIT_EOF
+      {
+        echo "## 🔄 Ralph Loop Initialized"
+        echo ""
+        echo "| Setting | Value |"
+        echo "|---------|-------|"
+        echo "| **Started At** | $STARTED_AT |"
+        echo "| **Max Iterations** | $MAX_DISPLAY |"
+        echo "| **Completion Promise** | $PROMISE_DISPLAY |"
+        echo ""
+        echo "### Prompt"
+        echo "\`\`\`"
+        echo "$PROMPT"
+        echo "\`\`\`"
+        echo ""
+        echo "---"
+        echo ""
+      } >> "$GITHUB_STEP_SUMMARY"
+      sync 2>/dev/null || true
+      
+      # Debug: show what we wrote
+      echo "Wrote to summary file. Current contents:"
+      cat "$GITHUB_STEP_SUMMARY" 2>/dev/null | head -20 || echo "(could not read)"
+      
       echo "::notice title=Ralph Loop Started::Max iterations: $MAX_DISPLAY | Promise: ${COMPLETION_PROMISE:-none}"
     fi
     
@@ -76,23 +88,27 @@ INIT_EOF
       [[ "$MAX_ITERATIONS" =~ ^[0-9]+$ ]] && [[ $MAX_ITERATIONS -gt 0 ]] && MAX_DISPLAY="$MAX_ITERATIONS"
       
       echo "Logging iteration $ITERATION..."
-      cat >> "$GITHUB_STEP_SUMMARY" <<ITER_EOF
-### 🔄 Iteration $ITERATION / $MAX_DISPLAY
-- **Time**: $(date -u +%Y-%m-%dT%H:%M:%SZ)
-
-ITER_EOF
+      {
+        echo "### 🔄 Iteration $ITERATION / $MAX_DISPLAY"
+        echo "- **Time**: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        echo ""
+      } >> "$GITHUB_STEP_SUMMARY"
+      sync 2>/dev/null || true
+      
       echo "::notice title=Ralph Iteration $ITERATION::Progressing..."
     fi
   else
     # State file removed = loop completed or stopped
     if [[ "$INITIALIZED" == "true" ]]; then
       echo "Ralph loop completed, writing final summary..."
-      cat >> "$GITHUB_STEP_SUMMARY" <<DONE_EOF
-### ✅ Ralph Loop Completed
-- **Ended At**: $(date -u +%Y-%m-%dT%H:%M:%SZ)
-- **Final Iteration**: $LAST_ITERATION
-
-DONE_EOF
+      {
+        echo "### ✅ Ralph Loop Completed"
+        echo "- **Ended At**: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        echo "- **Final Iteration**: $LAST_ITERATION"
+        echo ""
+      } >> "$GITHUB_STEP_SUMMARY"
+      sync 2>/dev/null || true
+      
       echo "::notice title=Ralph Loop Complete::Finished after $LAST_ITERATION iterations"
       exit 0
     fi
