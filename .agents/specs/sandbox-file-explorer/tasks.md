@@ -1,5 +1,6 @@
 # Sandbox File Explorer - Implementation Tasks
 
+**BEFORE BEGINNING, VERIFY THE PREVIOUS TASKS ARE COMPLETED IF ITS NOT CHECKED OFF**
 
 ### Task  Process MUST FOLLOW 
 
