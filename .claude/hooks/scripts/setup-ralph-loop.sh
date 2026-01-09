@@ -172,7 +172,7 @@ echo "::notice title=🔄 Ralph Loop Started::Iteration 1 | Max: $MAX_DISPLAY | 
 # Post/update GitHub PR comment with status
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [[ -f "$SCRIPT_DIR/ralph-github-comment.sh" ]]; then
-  "$SCRIPT_DIR/ralph-github-comment.sh" "start" "1" "$MAX_ITERATIONS" "$COMPLETION_PROMISE" "Loop initialized" 2>/dev/null || true
+  "$SCRIPT_DIR/ralph-github-comment.sh" "start" "1" "$MAX_ITERATIONS" "$COMPLETION_PROMISE" "Loop initialized" "$PROMPT" 2>/dev/null || true
 fi
 
 # Output setup message

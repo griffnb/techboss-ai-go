@@ -10,6 +10,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Helper function to update GitHub PR comment
+# Uses global LOOP_PROMPT variable for the prompt text
 update_github_comment() {
   local action="$1"
   local iteration="$2"
@@ -18,7 +19,7 @@ update_github_comment() {
   local message="${5:-}"
   
   if [[ -f "$SCRIPT_DIR/ralph-github-comment.sh" ]]; then
-    "$SCRIPT_DIR/ralph-github-comment.sh" "$action" "$iteration" "$max_iter" "$promise" "$message" 2>/dev/null || true
+    "$SCRIPT_DIR/ralph-github-comment.sh" "$action" "$iteration" "$max_iter" "$promise" "$message" "${LOOP_PROMPT:-}" 2>/dev/null || true
   fi
 }
 
@@ -39,6 +40,9 @@ ITERATION=$(echo "$FRONTMATTER" | grep '^iteration:' | sed 's/iteration: *//')
 MAX_ITERATIONS=$(echo "$FRONTMATTER" | grep '^max_iterations:' | sed 's/max_iterations: *//')
 # Extract completion_promise and strip surrounding quotes if present
 COMPLETION_PROMISE=$(echo "$FRONTMATTER" | grep '^completion_promise:' | sed 's/completion_promise: *//' | sed 's/^"\(.*\)"$/\1/')
+
+# Extract prompt text early (everything after the closing ---)
+LOOP_PROMPT=$(awk '/^---$/{i++; next} i>=2' "$RALPH_STATE_FILE")
 
 # Validate numeric fields before arithmetic operations
 if [[ ! "$ITERATION" =~ ^[0-9]+$ ]]; then

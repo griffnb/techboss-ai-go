@@ -12,6 +12,7 @@ ITERATION="${2:-1}"
 MAX_ITERATIONS="${3:-5}"
 COMPLETION_PROMISE="${4:-}"
 MESSAGE="${5:-}"
+PROMPT="${6:-}"
 
 # Check for required environment variables
 if [[ -z "${GITHUB_TOKEN:-}" ]]; then
@@ -127,6 +128,15 @@ COMMENT_BODY="${COMMENT_MARKER}
 | **Last Updated** | ${TIMESTAMP} |
 
 "
+
+# Add prompt section if provided
+if [[ -n "$PROMPT" ]]; then
+  COMMENT_BODY="${COMMENT_BODY}
+### 📝 Task
+> ${PROMPT}
+
+"
+fi
 
 # Add message if provided
 if [[ -n "$MESSAGE" ]]; then
