@@ -167,9 +167,18 @@ jobs:
           use_bedrock: "true"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           #plugins: "gopls-lsp@claude-plugins-official"  
-          prompt: /ralph-loop ${{ needs.check-mention.outputs.trigger-body }}   
+          prompt: |
+            /ralph-loop-actions ${{ needs.check-mention.outputs.trigger-body }}
+            <GithubContext>
+            Repository: ${{ github.repository }}
+            PR Number: ${{ github.event.pull_request.number }}
+            PR Title: ${{ github.event.pull_request.title }}
+            PR Author: ${{ github.event.pull_request.user.login }}
+            PR Branch: ${{ github.head_ref }} -> ${{ github.base_ref }}
+            PR State: ${{ github.event.pull_request.state }}
+            </GithubContext>
           trigger_phrase: "@ralph"
-          track_progress: true
+          #track_progress: true
           claude_args: |
             --dangerously-skip-permissions
 
@@ -228,7 +237,8 @@ jobs:
           use_bedrock: "true"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           #plugins: "gopls-lsp@claude-plugins-official"
-          prompt: /learning-analyzer-ci You are analyzing a completed development session to extract learnings.
+          prompt: CRITICAL USE /learning-analyzer-ci You are analyzing a completed development session to extract learnings.
+          # track_progress runs it in tag mode so it comes with a big prompt, but may not run skills right
           track_progress: true
           claude_args: |
               --dangerously-skip-permissions

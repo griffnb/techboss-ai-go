@@ -32,6 +32,4 @@ This ensures the checklist remains an accurate reflection of project progress an
 3. Update documentation if adding new patterns
 
 
-
-
 **IMPORTANT Before you begin, always launch the context-fetcher sub agent to gather the information required for the task.**
