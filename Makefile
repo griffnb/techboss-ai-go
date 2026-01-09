@@ -41,4 +41,22 @@ claude: ## Create Claude PR - Usage: make claude BRANCH=feature-name TASK="descr
 	fi; \
 	BASE_BRANCH=$${BRANCH:-development}; \
 	./scripts/claude-pr.sh "$(TASK)" "$$BASE_BRANCH"
+
+
+.PHONY: ralph
+ralph: ## Create Ralph PR - Usage: make ralph BRANCH=feature-name TASK
+	@if [ -z "$(TASK)" ]; then \
+		echo "❌ Error: TASK is required"; \
+		echo "Usage: make ralph BRANCH=my-feature TASK=\"Add user authentication\""; \
+		exit 1; \
+	fi; \
+	BASE_BRANCH=$${BRANCH:-development}; \
+	./scripts/ralph-pr.sh "$(TASK)" "$$BASE_BRANCH"
 	
+.PHONY: wiggum
+wiggum: ## Run claude ralph-loop for task implementation
+	@echo "Running claude ralph-loop for task: $(TASK)"; \
+	MAX_ITER=$${MAX_ITERATIONS:-5}; \
+	COMPLETION_PROMISE=$${COMPLETION_PROMISE:-<promise>COMPLETE</promise>}; \
+	PROMPT="Start implementing the tasks from $(TASK), Do only one at a time"; \
+	claude "/ralph-loop:ralph-loop $$PROMPT --max-iterations=$$MAX_ITER --completion-promise=$$COMPLETION_PROMISE"
