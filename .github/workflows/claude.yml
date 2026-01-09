@@ -145,12 +145,13 @@ jobs:
         with:
           use_bedrock: "true"
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          #plugins: "gopls-lsp@claude-plugins-official"         
+          #plugins: "gopls-lsp@claude-plugins-official"  
+          prompt: /ralph-loop ${{ github.event.inputs.task }}   
           claude_args: |
             --dangerously-skip-permissions
             --debug
             --verbose
-            --agent "ralph"
+            --output-format text
           
 
       - name: Run Learnings
