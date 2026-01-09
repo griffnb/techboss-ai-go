@@ -1,14 +1,13 @@
 # Sandbox File Explorer - Implementation Tasks
 
 
-### Task  Process
+### Task  Process MUST FOLLOW 
 
 1. **Work Sequentially**: Execute tasks in the order listed below
-2. **One Task Per Sub-Agent**: Launch a new sub-agent for each individual task checkbox
-3. **Complete Context**: Provide the sub-agent with ALL necessary context (see template below)
-4. **Wait for Completion**: Do not move to next task until current sub-agent completes successfully
-5. **Track Progress**: Mark tasks as complete (✓) after sub-agent finishes and all tests pass
-6. **Update Learnings**: After each task, if the sub-agent discovered new information that impacts future tasks, ensure it's added to the Learnings section
+2. **One Task At a time**
+3. **Validate Success Criteria is completed**
+5. **Track Progress**: Mark tasks as complete (✓)
+
 
 
 **MANDATORY: READ THESE FILES FIRST** (before writing any code):
@@ -381,3 +380,6 @@
   - **Requirements**: All requirements
 
 ---
+
+
+**IMPORTANT** Check off what has been completed
