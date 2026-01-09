@@ -36,32 +36,52 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       should-run: ${{ steps.check.outputs.should-run }}
+      trigger-body: ${{ steps.check.outputs.trigger-body }}
     steps:
       - id: check
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          REVIEW_BODY: ${{ github.event.review.body }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          TASK_INPUT: ${{ github.event.inputs.task }}
         run: |
           SHOULD_RUN="false"
+          TRIGGER_BODY=""
           
           # Manual trigger - always run
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             SHOULD_RUN="true"
+            TRIGGER_BODY="$TASK_INPUT"
           
           # Comment mentions (but NOT from github-actions bot to avoid duplicates)
           elif [[ "${{ github.event_name }}" == "issue_comment" ]] && [[ "${{ github.event.comment.user.login }}" != "github-actions[bot]" ]] && [[ "${{ contains(github.event.comment.body, '@claude') }}" == "true" ]]; then
             SHOULD_RUN="true"
+            TRIGGER_BODY="$COMMENT_BODY"
           elif [[ "${{ github.event_name }}" == "pull_request_review_comment" ]] && [[ "${{ contains(github.event.comment.body, '@claude') }}" == "true" ]]; then
             SHOULD_RUN="true"
+            TRIGGER_BODY="$COMMENT_BODY"
           elif [[ "${{ github.event_name }}" == "pull_request_review" ]] && [[ "${{ contains(github.event.review.body, '@claude') }}" == "true" ]]; then
             SHOULD_RUN="true"
+            TRIGGER_BODY="$REVIEW_BODY"
           
           # Issue triggers
           elif [[ "${{ github.event_name }}" == "issues" ]]; then
             # @claude mention or label
             if [[ "${{ contains(github.event.issue.body, '@claude') }}" == "true" ]] || [[ "${{ contains(github.event.issue.title, '@claude') }}" == "true" ]] || [[ "${{ contains(github.event.issue.labels.*.name, 'claude') }}" == "true" ]]; then
               SHOULD_RUN="true"
+              TRIGGER_BODY="$ISSUE_TITLE: $ISSUE_BODY"
             fi
           fi
           
           echo "should-run=$SHOULD_RUN" >> $GITHUB_OUTPUT
+          
+          # Use EOF delimiter for multiline body
+          {
+            echo "trigger-body<<EOF"
+            echo "$TRIGGER_BODY"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
   claude:
     needs: check-mention
@@ -146,13 +166,9 @@ jobs:
           use_bedrock: "true"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           #plugins: "gopls-lsp@claude-plugins-official"  
-          #prompt: /ralph-loop ${{ github.event.inputs.task }}   
+          prompt: /ralph-loop ${{ needs.check-mention.outputs.trigger-body }}   
           claude_args: |
             --dangerously-skip-permissions
-            --debug
-            --verbose
-            --output-format text
-            --agent ralph
           
 
       - name: Run Learnings
