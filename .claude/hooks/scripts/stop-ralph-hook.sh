@@ -24,6 +24,45 @@ MAX_ITERATIONS=$(echo "$FRONTMATTER" | grep '^max_iterations:' | sed 's/max_iter
 # Extract completion_promise and strip surrounding quotes if present
 COMPLETION_PROMISE=$(echo "$FRONTMATTER" | grep '^completion_promise:' | sed 's/completion_promise: *//' | sed 's/^"\(.*\)"$/\1/')
 
+# GitHub Actions tracking - log iteration progress
+log_github_actions_iteration() {
+  local status="$1"
+  local message="$2"
+  
+  if [[ "${GITHUB_ACTIONS:-}" != "true" ]]; then
+    return 0
+  fi
+
+  local timestamp
+  timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+  local max_iter_display
+  if [[ $MAX_ITERATIONS -gt 0 ]]; then
+    max_iter_display="$MAX_ITERATIONS"
+  else
+    max_iter_display="∞"
+  fi
+
+  # Append to GitHub Step Summary
+  cat >> "${GITHUB_STEP_SUMMARY:-/dev/null}" <<ITER_EOF
+
+### $status Iteration $ITERATION / $max_iter_display
+- **Time**: $timestamp
+- **Status**: $message
+
+ITER_EOF
+
+  # Emit workflow command for live visibility in logs
+  if [[ "$status" == "🔄" ]]; then
+    echo "::notice title=Ralph Iteration $ITERATION::$message"
+  elif [[ "$status" == "✅" ]]; then
+    echo "::notice title=Ralph Loop Complete::$message"
+  elif [[ "$status" == "🛑" ]]; then
+    echo "::warning title=Ralph Loop Stopped::$message"
+  elif [[ "$status" == "⚠️" ]]; then
+    echo "::error title=Ralph Loop Error::$message"
+  fi
+}
+
 # Validate numeric fields before arithmetic operations
 if [[ ! "$ITERATION" =~ ^[0-9]+$ ]]; then
   echo "⚠️  Ralph loop: State file corrupted" >&2
@@ -32,6 +71,7 @@ if [[ ! "$ITERATION" =~ ^[0-9]+$ ]]; then
   echo "" >&2
   echo "   This usually means the state file was manually edited or corrupted." >&2
   echo "   Ralph loop is stopping. Run /ralph-loop again to start fresh." >&2
+  log_github_actions_iteration "⚠️" "State file corrupted - iteration field invalid"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -50,6 +90,7 @@ fi
 # Check if max iterations reached
 if [[ $MAX_ITERATIONS -gt 0 ]] && [[ $ITERATION -ge $MAX_ITERATIONS ]]; then
   echo "🛑 Ralph loop: Max iterations ($MAX_ITERATIONS) reached."
+  log_github_actions_iteration "🛑" "Max iterations ($MAX_ITERATIONS) reached - loop terminated"
   rm "$RALPH_STATE_FILE"
   exit 0
 fi
@@ -122,6 +163,7 @@ if [[ "$COMPLETION_PROMISE" != "null" ]] && [[ -n "$COMPLETION_PROMISE" ]]; then
   # == in [[ ]] does glob pattern matching which breaks with *, ?, [ characters
   if [[ -n "$PROMISE_TEXT" ]] && [[ "$PROMISE_TEXT" = "$COMPLETION_PROMISE" ]]; then
     echo "✅ Ralph loop: Detected <promise>$COMPLETION_PROMISE</promise>"
+    log_github_actions_iteration "✅" "Completion promise fulfilled: $COMPLETION_PROMISE"
     rm "$RALPH_STATE_FILE"
     exit 0
   fi
@@ -129,6 +171,9 @@ fi
 
 # Not complete - continue loop with SAME PROMPT
 NEXT_ITERATION=$((ITERATION + 1))
+
+# Log iteration progress to GitHub Actions
+log_github_actions_iteration "🔄" "Continuing to iteration $NEXT_ITERATION"
 
 # Extract prompt (everything after the closing ---)
 # Skip first --- line, skip until second --- line, then print everything after

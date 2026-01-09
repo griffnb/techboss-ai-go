@@ -149,6 +149,53 @@ started_at: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 $PROMPT
 EOF
 
+# GitHub Actions tracking - write to job summary if running in CI
+write_github_actions_summary() {
+  if [[ "${GITHUB_ACTIONS:-}" != "true" ]]; then
+    return 0
+  fi
+
+  local max_iter_display
+  if [[ $MAX_ITERATIONS -gt 0 ]]; then
+    max_iter_display="$MAX_ITERATIONS"
+  else
+    max_iter_display="unlimited"
+  fi
+
+  local promise_display
+  if [[ "$COMPLETION_PROMISE" != "null" ]] && [[ -n "$COMPLETION_PROMISE" ]]; then
+    promise_display="\`${COMPLETION_PROMISE//\"/}\`"
+  else
+    promise_display="_none (runs forever)_"
+  fi
+
+  # Write to GitHub Step Summary
+  cat >> "${GITHUB_STEP_SUMMARY:-/dev/null}" <<SUMMARY_EOF
+## 🔄 Ralph Loop Initialized
+
+| Setting | Value |
+|---------|-------|
+| **Started At** | $(date -u +%Y-%m-%dT%H:%M:%SZ) |
+| **Max Iterations** | $max_iter_display |
+| **Completion Promise** | $promise_display |
+
+### Prompt
+\`\`\`
+$PROMPT
+\`\`\`
+
+---
+_Ralph Loop is now active. Iterations will be logged below._
+
+SUMMARY_EOF
+
+  # Also emit a notice annotation for visibility
+  echo "::notice title=Ralph Loop Started::Max iterations: $max_iter_display | Promise: ${COMPLETION_PROMISE:-none}"
+}
+
+# Call GitHub Actions tracking
+write_github_actions_summary
+
 # Output setup message
 cat <<EOF
 🔄 Ralph loop activated in this session!
