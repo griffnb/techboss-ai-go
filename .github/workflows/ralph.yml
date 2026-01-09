@@ -169,6 +169,7 @@ jobs:
           #plugins: "gopls-lsp@claude-plugins-official"  
           prompt: /ralph-loop ${{ needs.check-mention.outputs.trigger-body }}   
           trigger_phrase: "@ralph"
+          track_progress: true
           claude_args: |
             --dangerously-skip-permissions
 
@@ -228,6 +229,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           #plugins: "gopls-lsp@claude-plugins-official"
           prompt: /learning-analyzer-ci You are analyzing a completed development session to extract learnings.
+          track_progress: true
           claude_args: |
               --dangerously-skip-permissions
               --continue
