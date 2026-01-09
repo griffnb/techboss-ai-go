@@ -145,8 +145,31 @@ jobs:
         with:
             use_bedrock: "true"
             github_token: ${{ secrets.GITHUB_TOKEN }}
-            plugins: ralph-loop@claude-plugins-official
+            prompt: |
+              use /ralph-loop Implement the tasks mentioned in the PRs and Issues in this repository. Do one task at a time.
+              If the arguments of the bash command setup-ralph-loop.sh are not provided already, they are:
+              setup-ralph-loop.sh {Prompt} --max-iterations 5 --completion-promise "<promise>COMPLETE</promise>"              
             claude_args: |
               --dangerously-skip-permissions
-              --max-iterations 10
               --debug
+      - name: Run Learnings
+        id: learnings
+        uses: anthropics/claude-code-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          CLAUDE_CODE_USE_BEDROCK: 1
+          AWS_REGION: us-east-1
+          AWS_BEARER_TOKEN_BEDROCK: ${{ secrets.AWS_BEARER_TOKEN_BEDROCK }}
+          AWS_ACCESS_KEY_ID: "fake-bedrock-key-id"
+          AWS_SECRET_ACCESS_KEY: "fake-bedrock-secret-key"
+
+        with:
+            use_bedrock: "true"
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            plugins: |
+              ralph-loop@claude-plugins-official
+              gopls-lsp@claude-plugins-official
+            prompt: /learning-analyzer-ci You are analyzing a completed development session to extract learnings.
+            claude_args: |
+              --dangerously-skip-permissions
+              --continue

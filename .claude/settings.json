@@ -6,29 +6,17 @@
     "gopls-lsp@claude-plugins-official": true
   },
   "permissions": {
-    "allow": [
-      "mcp__code_tools",
-      "mcp__ui_code_tools",
-      "Read(./**)"
-    ],
-   "deny": ["Read(*.env)", "Read(*.env.*)", "Read(*/.configs/**)"]
+    "allow": ["mcp__code_tools", "mcp__ui_code_tools", "Read(./**)"],
+    "deny": ["Read(*.env)", "Read(*.env.*)", "Read(*/.configs/**)"]
   },
   "hooks": {
-    "SessionStart": [{
-      "matcher": "startup",
-      "hooks": [{
-        "type": "command",
-        "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/fix_ralph.sh"
-      }]
-    }],
-    "Stop": [
+    "SessionStart": [
       {
-        "matcher": "*",
+        "matcher": "startup",
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/capture-session-learnings.sh",
-            "timeout": 600
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scripts/fix_ralph.sh"
           }
         ]
       }

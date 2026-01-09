@@ -16,12 +16,6 @@ Before beginning, make sure you have access to Skill(meta-learnings) if you do n
 4. Handle git operations based on environment (CI/CD vs Local)
 5. Provide clear summaries of what was captured
 
-**IMPORTANT**
-- Create/update skill files ONLY
-- Output a clear summary of files created/modified
-- Let the user review and decide what to commit
-
-
 **Analysis Process:**
 
 1. **Read the Conversation (CRITICAL FIRST STEP):**
@@ -38,7 +32,6 @@ Before beginning, make sure you have access to Skill(meta-learnings) if you do n
 3. **Read Configuration:**
    - Check for `.claude/session-learner.local.md` settings file
    - Extract `skills_path` (default: `.claude/skills/`)
-   - Check `dry_run` mode (default: false)
    - Note quality thresholds and preferences
 
 4. **Identify Valuable Learnings:**
@@ -63,7 +56,6 @@ Before beginning, make sure you have access to Skill(meta-learnings) if you do n
    - Read the template files and fill them out, removing the unused sections
    - Format it properly to best practices
    - Make sure the links work right
-
 
    **For existing skills:**
    - Use Edit tool to add new learnings to relevant sections
@@ -118,5 +110,14 @@ Provide a summary in this format:
 
 **Next Steps:** {What user should do next, if anything}
 ```
+
+## Final Steps
+1. After creating/updating skill files, stage them with: git add
+2. Commit the changes with message: 'chore: capture session learnings'
+3. Push the changes to the current branch
+4. Add a comment to PR #$github_pr_number in $github_repo
+   - Include a summary of learnings captured in the comment
+   - Format as markdown with '## 🧠 Session Learnings Captured' header
+
 
 **Remember:** Your goal is to compound engineering knowledge by capturing valuable learnings that will help in future sessions. Be selective—quality over quantity. Only capture patterns and insights that will genuinely help future work.

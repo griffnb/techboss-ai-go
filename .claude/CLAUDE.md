@@ -35,5 +35,3 @@ This ensures the checklist remains an accurate reflection of project progress an
 
 
 **IMPORTANT Before you begin, always launch the context-fetcher sub agent to gather the information required for the task.**
-
-**IMPORTANT Whenever you get feedback, always add it to .agents/LEARNINGS.md with "What i learned" and "How you can improve the instructions". Always do this before writing the new code**
