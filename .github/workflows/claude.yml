@@ -147,11 +147,8 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           #plugins: "gopls-lsp@claude-plugins-official"
           prompt: |
-            use /ralph-loop Implement the tasks mentioned in the PRs and Issues in this repository. Do one task at a time.
-            If the arguments of the bash command setup-ralph-loop.sh are not provided already, they are:
-            setup-ralph-loop.sh {Prompt} --max-iterations 5 --completion-promise "<promise>COMPLETE</promise>"
-            **IMPORTANT** If you are not able to access the setup-ralph-loop.sh script, make a comment on the PR and exit. 
-            otherwise add the contents of .claude/ralph-loop.local.md to the PR comment on the beginning of every loop.             
+            YOU MUST USE /ralph-loop to implement the tasks mentioned in the PRs and Issues in this repository. Do one task at a time.
+            **IMPORTANT** If you are not able to run the ralph script, make a comment on the PR and exit. 
           claude_args: |
             --dangerously-skip-permissions
             --debug
