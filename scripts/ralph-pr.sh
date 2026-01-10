@@ -1,12 +1,13 @@
 #!/bin/bash
-# Quick Claude PR Creator
-# Usage: ./scripts/claude-pr.sh "task description" [base-branch]
-#        ./scripts/claude-pr.sh "./agents/specs/task-name/tasks.md" [base-branch]
+# Quick Ralph PR Creator
+# Usage: ./scripts/ralph-pr.sh "task description" [base-branch]
+#        ./scripts/ralph-pr.sh "./agents/specs/task-name/tasks.md" [base-branch]
 
 set -e
 
 TASK="$1"
-BASE_BRANCH="${2:-development}"
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+BASE_BRANCH="${2:-$CURRENT_BRANCH}"
 
 if [ -z "$TASK" ]; then
     echo "Usage: $0 \"task description\" [base-branch]"

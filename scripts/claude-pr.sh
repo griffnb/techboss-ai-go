@@ -6,7 +6,8 @@
 set -e
 
 TASK="$1"
-BASE_BRANCH="${2:-development}"
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+BASE_BRANCH="${2:-$CURRENT_BRANCH}"
 
 if [ -z "$TASK" ]; then
     echo "Usage: $0 \"task description\" [base-branch]"

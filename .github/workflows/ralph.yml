@@ -83,7 +83,7 @@ jobs:
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
-  claude:
+  ralph:
     needs: check-mention
     if: needs.check-mention.outputs.should-run == 'true'
     runs-on: ubuntu-latest
@@ -116,18 +116,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
       
-      - name: Create task comment (if manual trigger with task)
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.task != '' && github.event.inputs.pr_number != ''
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: ${{ github.event.inputs.pr_number }},
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '@ralph ${{ github.event.inputs.task }}'
-            })
-      
       - uses: actions/setup-go@v5
         with:
             go-version-file: go.mod     
@@ -152,7 +140,7 @@ jobs:
           cp ./infra/unit_test.json ./.configs/unit_test.json          
           make install-lint & make install-deadcode & make install-generate & wait 
     
-      - name: Run Claude Code
+      - name: Run Ralph Code
         id: claude
         uses: anthropics/claude-code-action@v1
         env:
