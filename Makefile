@@ -24,39 +24,10 @@ help: ## Show this help message
 include ./scripts/makes/core.mk
 
 
+
 # Docker targets
 .PHONY: docker-up-local
 docker-up-local: ## Start Docker services, be sure to setup /etc/hosts entry for local-techboss
 	sudo ifconfig lo0 alias 127.10.0.1/8
 	ifconfig lo0 | grep 127.10.0.1
 	docker compose -f infra/docker-compose-local.yml up
-
-
-.PHONY: claude
-claude: ## Create Claude PR - Usage: make claude BRANCH=feature-name TASK="description"
-	@if [ -z "$(TASK)" ]; then \
-		echo "❌ Error: TASK is required"; \
-		echo "Usage: make claude BRANCH=my-feature TASK=\"Add user authentication\""; \
-		exit 1; \
-	fi; \
-	BASE_BRANCH=$${BRANCH:-development}; \
-	./scripts/claude-pr.sh "$(TASK)" "$$BASE_BRANCH"
-
-
-.PHONY: ralph
-ralph: ## Create Ralph PR - Usage: make ralph BRANCH=feature-name TASK
-	@if [ -z "$(TASK)" ]; then \
-		echo "❌ Error: TASK is required"; \
-		echo "Usage: make ralph BRANCH=my-feature TASK=\"Add user authentication\""; \
-		exit 1; \
-	fi; \
-	BASE_BRANCH=$${BRANCH:-development}; \
-	./scripts/ralph-pr.sh "$(TASK)" "$$BASE_BRANCH"
-	
-.PHONY: wiggum
-wiggum: ## Run claude ralph-loop for task implementation
-	@echo "Running claude ralph-loop for task: $(TASK)"; \
-	MAX_ITER=$${MAX_ITERATIONS:-5}; \
-	COMPLETION_PROMISE=$${COMPLETION_PROMISE:-<promise>COMPLETE</promise>}; \
-	PROMPT="Start implementing the tasks from $(TASK), Do only one at a time"; \
-	claude "/ralph-loop:ralph-loop $$PROMPT --max-iterations=$$MAX_ITER --completion-promise=$$COMPLETION_PROMISE"

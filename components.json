@@ -7,5 +7,8 @@
         "Authorization": "token ${GITHUB_TOKEN}"
       }
     }
+  },
+  "replacements": {
+    "griffnb/example": "griffnb/techboss-ai-go"
   }
 }

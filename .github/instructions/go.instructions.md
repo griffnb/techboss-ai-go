@@ -9,7 +9,7 @@ applyTo: '**/*.go,**/go.mod,**/go.sum'
 **MANDATORY REQUIREMENT**: Before making ANY changes to this codebase, you MUST:
 
 
-1. **Read the PRD first**: All requirements and decisions are based on `/docs/PRD.md` - this is the single source of truth
+1. **Read the PRD first if it exists**: All requirements and decisions are based on `/docs/PRD.md` - this is the single source of truth
 2. **Follow the documentation**: All implementation details are documented in Instructions for models are in
 `./docs/MODELS.md`
 
@@ -20,7 +20,7 @@ Instructions for controllers are in
 4. **Verify against PRD**: Every implementation decision should trace back to a requirement in the PRD
 5. **UPDATE CHECKLISTS**: ALWAYS update `/docs/{FEATURE}_TODO.md` when completing phases or major features
 
-6. Avoid scanning lots of files looking for implementations, use `#code_tools docs` to look at packages and functions.
+6. Avoid scanning lots of files looking for implementations, use `#code_tools/docs` to look at packages and functions.
 7. If go docs are missing from a function or package, and you learn something important about it, ADD TO YOUR TODO LIST THAT YOU NEED TO UPDATE THAT GO DOC WITH WHAT YOU LEARNED
 
 ## 🔄 CHECKLIST UPDATE POLICY

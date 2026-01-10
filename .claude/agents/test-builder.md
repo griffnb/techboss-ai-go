@@ -139,9 +139,9 @@ import (
     "net/url"
     "testing"
 
-    "github.com/BotBuilders/go-the-schwartz/internal/common/system_testing"
-    "github.com/BotBuilders/go-the-schwartz/internal/models/example"
-    "github.com/BotBuilders/go-the-schwartz/internal/services/testing_service"
+    "github.com/griffnb/techboss-ai-go/internal/common/system_testing"
+    "github.com/griffnb/techboss-ai-go/internal/models/example"
+    "github.com/griffnb/techboss-ai-go/internal/services/testing_service"
 )
 
 func init() {

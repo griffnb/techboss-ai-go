@@ -158,6 +158,5 @@ user.MiddleName.IsNull()
 - [model-queries](../model-queries/SKILL.md) - Building database queries
 - [model-conventions](../model-conventions/SKILL.md) - Standards and field type reference
 
-
 ## Additional resources
 - For usage examples, see [examples.md](examples.md)

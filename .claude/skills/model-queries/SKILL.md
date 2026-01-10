@@ -11,7 +11,7 @@ All database queries use the `Options` struct with generated column helpers for 
 
 ```go
 func GetJoined(ctx context.Context, id types.UUID) (*AdminJoined, error) {
-    mocker, ok := model.GetMocker[mocker](ctx)
+    mocker, ok := model.GetMocker[*Mocker](ctx,PACKAGE)
 	if ok {
 		return mocker.GetByExternalID(ctx, externalID)
 	}
@@ -97,10 +97,10 @@ Columns.Email.Column()    // Returns "table_name.email"
 
 **AVOID ADHOC QUERIES**
 - they should always be in a function
-- the mocker interface inside of queries.go should be updated
+- the mocker struct inside of queries.go should be updated
 - all functions must check mocker context
 ```go
-    mocker, ok := model.GetMocker[mocker](ctx)
+    mocker, ok := model.GetMocker[*Mocker](ctx,PACKAGE)
 	if ok {
 		return mocker.GetByExternalID(ctx, externalID)
 	}
@@ -112,7 +112,7 @@ Columns.Email.Column()    // Returns "table_name.email"
 
 ```go
 func GetByEmail(ctx context.Context, email string) (*User, error) {
-    mocker, ok := model.GetMocker[mocker](ctx)
+    mocker, ok := model.GetMocker[*Mocker](ctx,PACKAGE)
 	if ok {
 		return mocker.GetByExternalID(ctx, externalID)
 	}
@@ -129,7 +129,7 @@ func GetByEmail(ctx context.Context, email string) (*User, error) {
 
 ```go
 func GetActiveUsers(ctx context.Context, minAge int, roles []int) ([]*User, error) {
-    mocker, ok := model.GetMocker[mocker](ctx)
+    mocker, ok := model.GetMocker[*Mocker](ctx,PACKAGE)
 	if ok {
 		return mocker.GetByExternalID(ctx, externalID)
 	}
@@ -175,6 +175,7 @@ func AddJoinData(options *model.Options) {
 
 - [model-usage](../model-usage/SKILL.md) - How to use models and access fields
 - [model-conventions](../model-conventions/SKILL.md) - Standards and conventions
+
 
 ## Additional resources
 - For usage examples, see [examples.md](examples.md)

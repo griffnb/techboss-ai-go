@@ -10,6 +10,8 @@ on:
       - 'cmd/**'
       - 'go.mod'
   pull_request:
+    branches:
+      - development
     paths:
       - 'internal/**'
       - 'cmd/**'

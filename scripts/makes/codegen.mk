@@ -51,12 +51,56 @@ generate-only: ## Run code generation only without installing
 	'
 
 
-.PHONY: ts-gen
-ts-gen: ## Run TypeScript operations on a table (Usage: make ts-gen TABLE=tablename)
-	SYS_ENV=$(SYS_ENV) CONFIG_FILE=$(CONFIG_FILE) REGION=$(REGION) go run ./cmd/ts --table="$(TABLE)"
-
-
 .PHONY: config-schema
 config-schema: ## Generate JSON schema for config files
 	go run internal/environment/schema/generate-config-schema.go > internal/environment/schema/config-schema.json
 	@echo "Generated config-schema.json"
+
+
+.PHONY: code-gen-ts
+code-gen-ts: ## Create TypeScript models (Usage: make code-gen-ts ModelName [package_name=package])
+	@bash -c '\
+		MODEL_NAME="$(filter-out $@,$(MAKECMDGOALS))"; \
+		PACKAGE_NAME=$$(grep "^module " go.mod | sed "s/module //"); \
+		if [ -z "$$MODEL_NAME" ]; then \
+			echo "Error: Model name required. Usage: make code-gen-ts ModelName"; \
+			exit 1; \
+		fi; \
+		PKG="$(package_name)"; \
+		if [ -z "$$PKG" ]; then \
+			PKG=""; \
+		fi; \
+		GOPACKAGE=$$PACKAGE_NAME core_gen typescript "$$MODEL_NAME" "-modelPackage=$$PKG"; \
+	'
+%:
+	@:
+
+
+
+# Capture arguments after target for claude/ralph commands
+# Usage: make claude "do this task" or make ralph "implement feature"
+ifneq (,$(filter claude ralph wiggum,$(firstword $(MAKECMDGOALS))))
+  TASK := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(TASK):;@:)
+endif
+
+.PHONY: claude
+claude: ## Create Claude PR - Usage: make claude "description"
+	@if [ -z "$(TASK)" ]; then \
+		echo "❌ Error: TASK is required"; \
+		echo "Usage: make claude \"Add user authentication\""; \
+		exit 1; \
+	fi; \
+	BASE_BRANCH=$${BRANCH:-development}; \
+	./scripts/claude-pr.sh "$(TASK)" "$$BASE_BRANCH"
+
+
+.PHONY: ralph
+ralph: ## Create Ralph PR - Usage: make ralph "description"
+	@if [ -z "$(TASK)" ]; then \
+		echo "❌ Error: TASK is required"; \
+		echo "Usage: make ralph \"Add user authentication\""; \
+		exit 1; \
+	fi; \
+	BASE_BRANCH=$${BRANCH:-development}; \
+	./scripts/ralph-pr.sh "$(TASK)" "$$BASE_BRANCH"

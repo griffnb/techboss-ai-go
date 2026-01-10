@@ -1,3 +1,34 @@
 {
-  "recommendations": ["tooltitudeteam.tooltitude","usernamehw.errorlens","github.copilot","github.copilot-chat","golang.go"]
+  "recommendations": [
+    "astro-build.astro-vscode",
+    "bradgashler.htmltagwrap",
+    "bradlc.vscode-tailwindcss",
+    "connor4312.esbuild-problem-matchers",
+    "dbaeumer.vscode-eslint",
+    "docker.docker",
+    "eamodio.gitlens",
+    "esbenp.prettier-vscode",
+    "figma.figma-vscode-extension",
+    "formulahendry.auto-rename-tag",
+    "github.vscode-github-actions",
+    "github.vscode-pull-request-github",
+    "golang.go",
+    "gruntfuggly.todo-tree",
+    "janne252.fontawesome-autocomplete",
+    "jpmartinez.plop-generator-workspace",
+    "kddejong.vscode-cfn-lint",
+    "keyzog.plop-path",
+    "mechatroner.rainbow-csv",
+    "ms-azuretools.vscode-containers",
+    "ms-playwright.playwright",
+    "ms-vscode-remote.remote-containers",
+    "ms-vscode.extension-test-runner",
+    "ms-vscode.makefile-tools",
+    "pkief.material-icon-theme",
+    "satansdeer.plop",
+    "tooltitudeteam.tooltitude",
+    "unifiedjs.vscode-mdx",
+    "usernamehw.errorlens",
+    "vitest.explorer"
+  ]
 }

@@ -181,5 +181,6 @@ All model operations are thread-safe by default. Models use internal mutexes to 
 - [model-usage](../model-usage/SKILL.md) - Using models and fields
 - [model-queries](../model-queries/SKILL.md) - Building database queries
 
+
 ## Additional resources
 - For usage examples, see [examples.md](examples.md)

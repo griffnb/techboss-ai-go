@@ -26,7 +26,7 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined,
     // Get the URL parameter
     id := chi.URLParam(req, "id")
 
-    // Fetch the model using the repository pattern
+    // Fetch the model using package fetchers
     accountObj, err := account.GetJoined(req.Context(), types.UUID(id))
     if err != nil {
         log.ErrorContext(err, req.Context())
@@ -52,9 +52,9 @@ user := userSession.User // The authenticated user
 
 **Request Data:**
 ```go
-// For POST/PUT endpoints, get JSON data
-rawdata := request.GetJSONPostData(req)
-data := request.ConvertPost(rawdata)
+// For POST/PUT endpoints that are not the standard CRUD, get the post data into a struct
+data,err := request.GetJSONPostAs[*MyInputStruct](req)
+
 ```
 
 ## 3. `request.BuildIndexParams` - Auto Query Building
@@ -116,7 +116,7 @@ userSession := request.GetReqSession(req)
 
 ## 5. Code Generation and CRUD Endpoints
 
-The system uses `core_generate` to automatically create standard CRUD operations:
+The system uses `core_gen` to automatically create standard CRUD operations:
 
 **Code Generation Command:**
 ```go
@@ -175,173 +175,141 @@ The route name is used in:
 
 This convention ensures consistency across the entire application and makes the API predictable for consumers.
 
-## 7. Conversation Streaming Endpoint
+## 7. Testing Controllers
 
-The conversation streaming endpoint provides Server-Sent Events (SSE) streaming for conversational AI interactions with sandbox environments. This endpoint is conversation-centric, tracking all messages, token usage, and executing lifecycle hooks.
+### Basic Controller Test Pattern
 
-### Endpoint Details
+Every controller should have tests that verify functionality. Use the `testing_service.TestRequest` pattern for creating test requests:
 
-**Route:** `POST /conversation/{conversationId}/sandbox/{sandboxId}`
+```go
+package example_controller
 
-**Authentication:** Required (any authorized user)
+func init() {
+    system_testing.BuildSystem()
+}
 
-**Content-Type:** `application/json`
+func TestExampleIndex(t *testing.T) {
+    req, err := testing_service.NewGETRequest[[]*example.ExampleJoined]("/", nil)
+    if err != nil {
+        t.Fatalf("Failed to create test request: %v", err)
+    }
 
-**Response Type:** `text/event-stream` (Server-Sent Events)
+    err = req.WithAdmin() // or WithAccount() for public endpoints
+    if err != nil {
+        t.Fatalf("Failed to create test request: %v", err)
+    }
 
-### URL Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `conversationId` | UUID | Conversation identifier (created if doesn't exist) |
-| `sandboxId` | UUID | Sandbox identifier (reserved for future use) |
-
-### Request Body
-
-```json
-{
-  "prompt": "Write a function to calculate fibonacci numbers",
-  "provider": 1,
-  "agent_id": "550e8400-e29b-41d4-a716-446655440000"
+    resp, errCode, err := req.Do(exampleIndex)
+    if err != nil {
+        t.Fatalf("Request failed: %v", err)
+    }
+    if errCode != http.StatusOK {
+        t.Fatalf("Expected status code 200, got %d", errCode)
+    }
+    // Additional assertions on resp...
 }
 ```
 
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `prompt` | string | Yes | - | User message to send to Claude |
-| `provider` | int | No | 1 | Sandbox provider (1 = PROVIDER_CLAUDE_CODE) |
-| `agent_id` | UUID | Yes | - | Agent ID for the conversation |
+### Testing Search Functionality
 
-### Response Format
+Every controller with a `search.go` file **must** have a search test to ensure the search configuration doesn't break:
 
-The endpoint streams responses using Server-Sent Events (SSE). Each event contains JSON data:
-
-```
-event: message
-data: {"type":"text","content":"Here's a fibonacci function..."}
-
-event: message
-data: {"type":"tool_use","id":"tool_123","name":"bash","input":{"command":"python fib.py"}}
-
-event: done
-data: {"status":"complete"}
-```
-
-### Error Responses
-
-| Status Code | Description | Cause |
-|-------------|-------------|-------|
-| 400 Bad Request | Invalid request format | Missing or empty prompt, invalid JSON |
-| 401 Unauthorized | Authentication required | Missing or invalid session token |
-| 500 Internal Server Error | Server error | Conversation creation failed, sandbox initialization failed |
-
-### Lifecycle Hooks
-
-This endpoint executes lifecycle hooks at specific points:
-
-1. **OnColdStart** (CRITICAL): Executed when a new sandbox is created. If this fails, the request returns 500 error.
-2. **OnMessage**: Executed when saving user and assistant messages (non-critical).
-3. **OnStreamFinish**: Executed after streaming completes, syncs to S3 and updates stats (non-critical).
-
-### Example Usage
-
-**Using curl:**
-
-```bash
-curl -X POST https://api.example.com/conversation/550e8400-e29b-41d4-a716-446655440000/sandbox/any-id \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "prompt": "Create a Python script to process CSV files",
-    "agent_id": "agent-uuid-here"
-  }'
-```
-
-**Using JavaScript (EventSource):**
-
-```javascript
-const response = await fetch('/conversation/conv-id/sandbox/sandbox-id', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer YOUR_TOKEN'
-  },
-  body: JSON.stringify({
-    prompt: 'Write a function to reverse a string',
-    agent_id: 'agent-uuid-here'
-  })
-});
-
-const eventSource = new EventSource(response.url);
-eventSource.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  console.log('Received:', data);
-};
-```
-
-### Implementation Notes
-
-**Session Access:**
 ```go
-userSession := request.GetReqSession(req)
-accountID := userSession.User.ID()
+func TestExampleSearch(t *testing.T) {
+    params := url.Values{}
+    params.Add("q", "search term")
+    
+    req, err := testing_service.NewGETRequest[[]*example.ExampleJoined]("/", params)
+    if err != nil {
+        t.Fatalf("Failed to create test request: %v", err)
+    }
+
+    err = req.WithAdmin() // or WithAccount() depending on controller type
+    if err != nil {
+        t.Fatalf("Failed to create test request: %v", err)
+    }
+
+    resp, errCode, err := req.Do(exampleIndex)
+    if err != nil {
+        t.Fatalf("Request failed: %v", err)
+    }
+    if errCode != http.StatusOK {
+        t.Fatalf("Expected status code 200, got %d", errCode)
+    }
+    // Search should not crash - results can be empty, that's OK
+}
 ```
 
-**Conversation Creation:**
-The endpoint automatically creates conversations if they don't exist, using the provided `conversationId` and `agent_id`.
+### Test Authentication Patterns
 
-**Sandbox Initialization:**
-If the conversation doesn't have an active sandbox, one is created and initialized:
-- OnColdStart hook executes (syncs from S3)
-- If initialization fails, the request returns 500 error
-- Subsequent requests reuse the same sandbox
-
-**Token Tracking:**
-Token usage is automatically tracked and stored in conversation statistics:
-- Input tokens (prompt and context)
-- Output tokens (generated response)
-- Cache tokens (cached content)
-
-**Error Handling:**
-- Critical errors (conversation/sandbox creation, OnColdStart) return HTTP errors
-- Non-critical errors (message saving, S3 sync) are logged but don't fail the request
-- Once streaming starts, errors are logged but the stream continues to prevent client disconnection
-
-### Architecture Flow
-
-```
-1. User Request → streamClaude() handler
-2. Parse request body and validate
-3. Get or create conversation (PostgreSQL)
-4. Ensure sandbox exists:
-   - If new sandbox: Create → Execute OnColdStart (S3 sync) → Save to DB
-   - If existing sandbox: Reconstruct from DB
-5. Stream with hooks:
-   - Save user message → OnMessage hook
-   - Execute Claude streaming
-   - Parse token usage from stream
-   - Save assistant message → OnMessage hook
-   - Execute OnStreamFinish hook (S3 sync + stats update)
-6. Return streaming response to client
+**Admin Controllers**: Use `req.WithAdmin()` for testing admin endpoints:
+```go
+err = req.WithAdmin() // Creates test admin user with ROLE_ADMIN
 ```
 
-### Migration from Legacy Endpoint
+**Public Controllers**: Use `req.WithAccount()` for testing public authenticated endpoints:
+```go
+err = req.WithAccount() // Creates test account user with ROLE_FAMILY_ADMIN
+```
 
-**Old Endpoint:** `POST /sandboxes/{id}/claude`
+**Custom Users**: Pass specific user objects if needed:
+```go
+adminUser := admin.New()
+adminUser.Role.Set(constants.ROLE_READ_ADMIN)
+adminUser.Save(nil)
 
-**New Endpoint:** `POST /conversation/{conversationId}/sandbox/{sandboxId}`
+err = req.WithAdmin(adminUser)
+```
 
-**Key Changes:**
-- Conversation-centric instead of sandbox-centric
-- Automatic conversation creation
-- Token tracking and statistics
-- Message persistence
-- Lifecycle hooks for S3 sync
+### Request Types and Parameters
 
-**Migration Steps:**
-1. Update client to use new endpoint URL format
-2. Include `agent_id` in request body
-3. Handle conversation IDs (generate UUID on client side)
-4. Update response parsing if needed (format is similar)
+**GET Requests with Query Parameters**:
+```go
+params := url.Values{}
+params.Add("name", "test")
+params.Add("limit", "10")
+req, err := testing_service.NewGETRequest[ResponseType]("/", params)
+```
 
-See the Sandbox Service README for more details on lifecycle hooks and state file management.
+**POST Requests with JSON Body**:
+```go
+body := map[string]any{}{
+    "name": "Test Item",
+    "status": "active",
+}
+req, err := testing_service.NewPOSTRequest[ResponseType]("/", nil, body)
+```
+
+**IMPORTANT** if you are testing model updates or creation, the format is
+```go
+body := map[string]any{}{
+    "data":map[string]any{
+        "name": "Test Item",
+        "status": "active",
+    }
+}
+```
+
+**PUT Requests for Updates**:
+```go
+body := map[string]interface{}{
+    "name": "Updated Name",
+}
+req, err := testing_service.NewPUTRequest[ResponseType]("/uuid-of-object", nil, body)
+```
+
+### Testing Best Practices
+
+1. **Always use `system_testing.BuildSystem()`** in `init()` for database setup
+2. **Test both success and error cases** 
+3. **Clean up test data** using `defer testtools.CleanupModel(x)` if creating models
+4. **Use descriptive test names** like `TestAccountIndex_WithValidUser_ReturnsAccounts`
+5. **Verify HTTP status codes** and response structure
+6. **Use table-driven tests** for multiple scenarios:
+
+### Running Tests
+
+Use the `#code_tools` to run tests:
+- `#code_tools run_tests ./internal/controllers/accounts` - Test specific controller
+- `#code_tools run_tests` - Run all tests
+- Tests must pass before committing changes

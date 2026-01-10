@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "code_tools": {
+      "type": "local",
+      "command": "./scripts/make_mcp.sh",
+      "tools": [
+        "docker_up_copilot",
+        "docs",
+        "format",
+        "lint",
+        "make_object",
+        "make_public_object",
+        "rebuild_unit_test_db",
+        "run_tests"
+      ],
+      "args": []
+    },
+    "context7": {
+      "type": "local",
+      "command": "npx",
+      "tools": ["get-library-docs", "resolve-library-id"],
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    }
+  }
+}

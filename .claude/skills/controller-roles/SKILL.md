@@ -57,7 +57,7 @@ helpers.RoleHandler(helpers.RoleHandlerMap{
 The `RoleHandler` automatically injects the session into the request context, making it available via:
 
 ```go
-userSession := helpers.GetReqSession(req)
+userSession := request.GetReqSession(req)
 ```
 
 **Session Fields:**
@@ -140,7 +140,6 @@ r.Get("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
 ## Related Skills
 - [controller-handlers](../controller-handlers/SKILL.md) - Writing handler functions
 - [controller-generation](../controller-generation/SKILL.md) - Code generation
-
 
 ## Additional resources
 - For usage examples, see [examples.md](examples.md)

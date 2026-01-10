@@ -35,11 +35,11 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined,
     accountObj, err := account.GetJoined(req.Context(), types.UUID(id))
     if err != nil {
         log.ErrorContext(err, req.Context())
-        return helpers.AdminBadRequestError[*account.AccountJoined](err)
+        return response.AdminBadRequestError[*account.AccountJoined](err)
     }
 
     // Return success with the model data
-    return helpers.Success(accountObj)
+    return response.Success(accountObj)
 }
 ```
 
@@ -48,7 +48,7 @@ func adminGet(_ http.ResponseWriter, req *http.Request) (*account.AccountJoined,
 ### Success Response
 
 ```go
-return helpers.Success(data)
+return response.Success(data)
 ```
 
 Returns: `(data, http.StatusOK, nil)`
@@ -59,15 +59,15 @@ For admin endpoints - returns full error details:
 
 ```go
 // Bad request with error message
-return helpers.AdminBadRequestError[*ModelType](err)
+return response.AdminBadRequestError[*ModelType](err)
 // Returns: (zeroValue, http.StatusBadRequest, err)
 
 // Not found
-return helpers.AdminNotFoundError[*ModelType]()
+return response.AdminNotFoundError[*ModelType]()
 // Returns: (zeroValue, http.StatusNotFound, standardError)
 
 // Forbidden
-return helpers.AdminForbiddenError[*ModelType]()
+return response.AdminForbiddenError[*ModelType]()
 // Returns: (zeroValue, http.StatusForbidden, standardError)
 ```
 
@@ -77,15 +77,15 @@ For public endpoints - returns sanitized error messages:
 
 ```go
 // Bad request (generic public error)
-return helpers.PublicBadRequestError[*ModelType]()
+return response.PublicBadRequestError[*ModelType]()
 // Returns: (zeroValue, http.StatusBadRequest, publicError)
 
 // Not found
-return helpers.PublicNotFoundError[*ModelType]()
+return response.PublicNotFoundError[*ModelType]()
 // Returns: (zeroValue, http.StatusNotFound, publicError)
 
 // Forbidden
-return helpers.PublicForbiddenError[*ModelType]()
+return response.PublicForbiddenError[*ModelType]()
 // Returns: (zeroValue, http.StatusForbidden, publicError)
 ```
 
@@ -105,7 +105,7 @@ name := chi.URLParam(req, "name")
 
 ```go
 // Get the current user session (available in all authenticated endpoints)
-userSession := helpers.GetReqSession(req) // returns a session object
+userSession := request.GetReqSession(req) // returns a session object
 userObj := helpers.GetLoadedUser(req) // returns the actual user object, not a session wrap
 
 ```
@@ -114,8 +114,8 @@ userObj := helpers.GetLoadedUser(req) // returns the actual user object, not a s
 
 ```go
 // For POST/PUT endpoints that are not the standard crud, use a struct for the input
-input := &MyPostData{}
-err := router.GetJSONPostDataStruct(req,input)
+
+data, err := request.GetJSONPostAs[*MyPostData](req)
 
 doSomething(input.SomeDataHere)
 ```
@@ -140,7 +140,7 @@ Always log errors with the context before returning up.  The controller is the l
 ```go
 if err != nil {
     log.ErrorContext(err, req.Context())
-    return helpers.AdminBadRequestError[*ModelType](err)
+    return response.AdminBadRequestError[*ModelType](err)
 }
 ```
 
@@ -198,7 +198,7 @@ response.StandardPublicRequestWrapper(authHandler)
 2. **Verify ownership**: In auth handlers, always verify the user owns the resource:
 ```go
 if accountObj.ID_.Get() != session.AccountID {
-    return helpers.PublicForbiddenError[*account.Account]()
+    return response.PublicForbiddenError[*account.Account]()
 }
 ```
 
@@ -210,7 +210,6 @@ if accountObj.ID_.Get() != session.AccountID {
 
 - [controller-roles](../controller-roles/SKILL.md) - Role-based access control
 - [model-usage](../../model-usage/SKILL.md) - Working with models
-
 
 ## Additional resources
 - For usage examples, see [examples.md](examples.md)

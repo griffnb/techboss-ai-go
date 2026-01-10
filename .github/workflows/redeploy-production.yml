@@ -3,6 +3,10 @@ name: Redeploy Production
 on:
   workflow_dispatch:
 
+# Control which subsystems to build and deploy
+env:
+  PREFIX: ""
+
 # Define environment mappings
 jobs:
     force_deploy_api:
@@ -20,11 +24,11 @@ jobs:
             uses: aws-actions/configure-aws-credentials@v4
             with:
               aws-region: us-east-1
-              role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/api-deploy-role
+              role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ env.PREFIX }}api-deploy-role
               unset-current-credentials: true
           - name: Deploy API
             env:
-              APP: api
+              APP: ${{ env.PREFIX }}api
             run: |
               bash -ex infra/deploy/re_deploy.sh
 
@@ -43,11 +47,11 @@ jobs:
               uses: aws-actions/configure-aws-credentials@v4
               with:
                 aws-region: us-east-1
-                role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/task-master-deploy-role
+                role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ env.PREFIX }}task-master-deploy-role
                 unset-current-credentials: true
             - name: Deploy TaskMaster
               env:
-                  APP: task-master
+                  APP: ${{ env.PREFIX }}task-master
               run: |
                     bash -ex infra/deploy/re_deploy.sh
     
@@ -66,10 +70,10 @@ jobs:
               uses: aws-actions/configure-aws-credentials@v4
               with:
                 aws-region: us-east-1
-                role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/task-worker-deploy-role
+                role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ env.PREFIX }}task-worker-deploy-role
                 unset-current-credentials: true
             - name: Deploy TaskWorker
               env:
-                  APP: task-worker
+                  APP: ${{ env.PREFIX }}task-worker
               run: |
                     bash -ex infra/deploy/re_deploy.sh                    

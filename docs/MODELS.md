@@ -44,10 +44,11 @@ After you create the migration, you need to add the model to loader.go
 
 ```go
 
-	err = defaultClient.AddTableToProperties(my_new_obj.TABLE, &my_new_obj.Structure{})
-	if err != nil {
-		return err
-	}
+	models := map[string]any{
+		account.TABLE:                        &account.Structure{},
+		new_model.TABLE:                      &new_model.Structure{},
+		.......
+		......
 
 ```
 
