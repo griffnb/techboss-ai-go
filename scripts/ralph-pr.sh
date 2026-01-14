@@ -70,5 +70,8 @@ echo "💬 Adding task as review comment for Ralph..."
 PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]*$')
 gh pr review "$PR_NUMBER" --comment --body "$PR_BODY"
 
+echo "🔙 Returning to original branch: $CURRENT_BRANCH"
+git checkout "$CURRENT_BRANCH"
+
 echo "✅ Done! Ralph will start working automatically."
 echo "📍 PR: $PR_URL"
