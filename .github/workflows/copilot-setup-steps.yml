@@ -62,4 +62,4 @@ jobs:
         run: |
           mkdir -p ./.configs
           cp ./infra/unit_test.json ./.configs/unit_test.json          
-          make install-lint & make install-deadcode & wait
+          make install-lint & make install-deadcode & make install-generate & wait

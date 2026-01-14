@@ -133,9 +133,9 @@ import (
     "net/url"
     "testing"
 
-    "github.com/CrowdShield/atlas-go/internal/common/system_testing"
-    "github.com/CrowdShield/atlas-go/internal/models/example"
-    "github.com/CrowdShield/atlas-go/internal/services/testing_service"
+    "github.com/griffnb/example/internal/common/system_testing"
+    "github.com/griffnb/example/internal/models/example"
+    "github.com/griffnb/example/internal/services/testing_service"
 )
 
 func init() {

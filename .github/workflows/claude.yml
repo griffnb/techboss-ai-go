@@ -166,26 +166,37 @@ jobs:
         with:
           use_bedrock: "true"
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          settings: ".claude/settings_github.json"
           #plugins: "gopls-lsp@claude-plugins-official"  
           claude_args: |
             --dangerously-skip-permissions
 
+      - name: Move session files
+        run: |
+          chmod +x ./scripts/copy_learning_sessions.sh
+          ./scripts/copy_learning_sessions.sh
+
       - name: Run Learnings
         id: learnings
-        uses: anthropics/claude-code-action@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CLAUDE_CODE_USE_BEDROCK: 1
           AWS_REGION: us-east-1
           AWS_BEARER_TOKEN_BEDROCK: ${{ secrets.AWS_BEARER_TOKEN_BEDROCK }}
           AWS_ACCESS_KEY_ID: "fake-bedrock-key-id"
           AWS_SECRET_ACCESS_KEY: "fake-bedrock-secret-key"
+        run: |
+          SESSION_DIR="./.sessions"
+          claude --settings ".claude/settings_github.json" --dangerously-skip-permissions -p "/learning-analyzer-ci You are analyzing a completed development session to extract learnings. All session files are located in the $SESSION_DIR folder - please read and analyze them."
 
+      - name: Upload Claude Session Logs
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          use_bedrock: "true"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          #plugins: "gopls-lsp@claude-plugins-official"
-          prompt: /learning-analyzer-ci You are analyzing a completed development session to extract learnings.
-          claude_args: |
-              --dangerously-skip-permissions
-              --continue
+          name: claude-sessions-${{ github.run_id }}
+          path: |
+            ~/.claude/projects/**/*.jsonl
+            ~/.claude/projects/**/*.json
+          retention-days: 30
+          if-no-files-found: ignore
+      

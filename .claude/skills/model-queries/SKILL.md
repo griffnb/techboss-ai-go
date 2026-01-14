@@ -72,13 +72,9 @@ options.WithOrder("created_at DESC")
 Add table joins:
 
 ```go
-options.WithJoins(
-    model.Join{
-        Table: user.TABLE,
-        On:    "user.id = admin.user_id",
-    },
-)
+options.WithJoins("user.id = admin.user_id",)
 ```
+
 
 ## Column Helpers
 
