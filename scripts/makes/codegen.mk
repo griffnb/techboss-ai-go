@@ -76,31 +76,30 @@ code-gen-ts: ## Create TypeScript models (Usage: make code-gen-ts ModelName [pac
 	@:
 
 
-
 # Capture arguments after target for claude/ralph commands
 # Usage: make claude "do this task" or make ralph "implement feature"
-ifneq (,$(filter claude ralph wiggum,$(firstword $(MAKECMDGOALS))))
+ifneq (,$(filter code-claude code-ralph,$(firstword $(MAKECMDGOALS))))
   TASK := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
   $(eval $(TASK):;@:)
 endif
 
-.PHONY: claude
-claude: ## Create Claude PR - Usage: make claude "description"
+.PHONY: code-claude
+code-claude: ## Create Claude PR - Usage: make code-claude "description"
 	@if [ -z "$(TASK)" ]; then \
 		echo "❌ Error: TASK is required"; \
 		echo "Usage: make claude \"Add user authentication\""; \
 		exit 1; \
 	fi; \
-	BASE_BRANCH=$${BRANCH:-development}; \
+	BASE_BRANCH=$${BRANCH:-$$(git rev-parse --abbrev-ref HEAD)}; \
 	./scripts/claude-pr.sh "$(TASK)" "$$BASE_BRANCH"
 
 
-.PHONY: ralph
-ralph: ## Create Ralph PR - Usage: make ralph "description"
+.PHONY: code-ralph
+code-ralph: ## Create Ralph PR - Usage: make code-ralph "description"
 	@if [ -z "$(TASK)" ]; then \
 		echo "❌ Error: TASK is required"; \
 		echo "Usage: make ralph \"Add user authentication\""; \
 		exit 1; \
 	fi; \
-	BASE_BRANCH=$${BRANCH:-development}; \
+	BASE_BRANCH=$${BRANCH:-$$(git rev-parse --abbrev-ref HEAD)}; \
 	./scripts/ralph-pr.sh "$(TASK)" "$$BASE_BRANCH"
