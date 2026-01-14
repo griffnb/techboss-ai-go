@@ -413,6 +413,7 @@ func Test_WebhookAuthentication_Integration(t *testing.T) {
 
 	t.Run("Webhook accepts request with valid signature", func(t *testing.T) {
 		// Arrange
+		// #nosec G101 // Test mock webhook secret
 		webhookSecret := "valid-auth-test-secret"
 		config := environment.GetConfig()
 		if config.Github == nil {

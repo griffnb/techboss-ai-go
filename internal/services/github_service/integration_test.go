@@ -33,6 +33,7 @@ func Test_FullAuthFlow_JWTGenerationToTokenExchange(t *testing.T) {
 		installationID := "test-installation-full-flow"
 
 		// Mock GitHub API response
+		// #nosec G101 // Test mock token
 		mockToken := "ghs_integration_test_token"
 		mockExpiry := time.Now().Add(60 * time.Minute)
 		authService.SetMockTokenResponse(mockToken, mockExpiry)
@@ -71,6 +72,7 @@ func Test_FullAuthFlow_JWTGenerationToTokenExchange(t *testing.T) {
 		installationID := "test-installation-expiry"
 
 		// Set up initial expired token in cache
+		// #nosec G101 // Test mock token
 		expiredToken := "ghs_expired"
 		expiresAt := time.Now().Add(-5 * time.Minute)
 		authService.SetCachedToken(installationID, expiredToken, expiresAt)
@@ -107,11 +109,13 @@ func Test_FullAuthFlow_JWTGenerationToTokenExchange(t *testing.T) {
 		installationID := "test-installation-force-refresh"
 
 		// Set up valid token in cache
+		// #nosec G101 // Test mock token
 		oldToken := "ghs_old_but_valid"
 		expiresAt := time.Now().Add(30 * time.Minute)
 		authService.SetCachedToken(installationID, oldToken, expiresAt)
 
 		// Mock new token response
+		// #nosec G101 // Test mock token
 		newToken := "ghs_force_refreshed"
 		newExpiry := time.Now().Add(60 * time.Minute)
 		authService.SetMockTokenResponse(newToken, newExpiry)
@@ -138,6 +142,7 @@ func Test_FullAPIServiceFlow_AuthToClientCreation(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Mock token response
+		// #nosec G101 // Test mock token
 		mockToken := "ghs_api_service_token"
 		mockExpiry := time.Now().Add(60 * time.Minute)
 		authService.SetMockTokenResponse(mockToken, mockExpiry)
@@ -171,6 +176,7 @@ func Test_FullAPIServiceFlow_AuthToClientCreation(t *testing.T) {
 		authService, err := github_service.NewAuthService(appID, privateKeyPEM)
 		assert.NoError(t, err)
 
+		// #nosec G101 // Test mock token
 		mockToken := "ghs_reuse_token"
 		mockExpiry := time.Now().Add(60 * time.Minute)
 		authService.SetMockTokenResponse(mockToken, mockExpiry)
@@ -262,6 +268,7 @@ func Test_ConcurrentTokenAccess_Integration(t *testing.T) {
 		authService, err := github_service.NewAuthService(appID, privateKeyPEM)
 		assert.NoError(t, err)
 
+		// #nosec G101 // Test mock token
 		mockToken := "ghs_concurrent_token"
 		mockExpiry := time.Now().Add(60 * time.Minute)
 		authService.SetMockTokenResponse(mockToken, mockExpiry)

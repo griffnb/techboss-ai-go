@@ -225,6 +225,7 @@ MDAwWjAhMQswCQYDVQQGEwJVUzESMBAGA1UEAwwJbG9jYWxob3N0MFwwDQYJKoZI
 		// Arrange
 		appID := "123456"
 		// Valid PEM structure but corrupted key data
+		// #nosec G101 // Test mock corrupted PEM data
 		corruptedPEM := `-----BEGIN RSA PRIVATE KEY-----
 corrupted data that is not valid base64
 or valid key material

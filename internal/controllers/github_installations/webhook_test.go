@@ -69,6 +69,7 @@ func Test_webhookCallback_installationCreated(t *testing.T) {
 	t.Run("Creates installation record successfully", func(t *testing.T) {
 		// Arrange
 		ctx := context.Background()
+		// #nosec G101 // Test mock webhook secret
 		webhookSecret := "test-webhook-secret"
 
 		// Set webhook secret in config
@@ -113,6 +114,7 @@ func Test_webhookCallback_installationDeleted(t *testing.T) {
 	t.Run("Marks installation as deleted", func(t *testing.T) {
 		// Arrange
 		ctx := context.Background()
+		// #nosec G101 // Test mock webhook secret
 		webhookSecret := "test-webhook-secret"
 
 		// Set webhook secret in config
@@ -165,6 +167,7 @@ func Test_webhookCallback_installationSuspend(t *testing.T) {
 	t.Run("Sets suspended flag", func(t *testing.T) {
 		// Arrange
 		ctx := context.Background()
+		// #nosec G101 // Test mock webhook secret
 		webhookSecret := "test-webhook-secret"
 
 		// Set webhook secret in config
@@ -215,6 +218,7 @@ func Test_webhookCallback_installationUnsuspend(t *testing.T) {
 	t.Run("Clears suspended flag", func(t *testing.T) {
 		// Arrange
 		ctx := context.Background()
+		// #nosec G101 // Test mock webhook secret
 		webhookSecret := "test-webhook-secret"
 
 		// Set webhook secret in config
@@ -264,6 +268,7 @@ func Test_webhookCallback_installationUnsuspend(t *testing.T) {
 func Test_webhookCallback_invalidSignature(t *testing.T) {
 	t.Run("Returns 401 for invalid signature", func(t *testing.T) {
 		// Arrange
+		// #nosec G101 // Test mock webhook secret
 		webhookSecret := "test-webhook-secret"
 
 		// Set webhook secret in config
@@ -316,6 +321,7 @@ func Test_webhookCallback_missingSignature(t *testing.T) {
 func Test_webhookCallback_invalidJSON(t *testing.T) {
 	t.Run("Returns 400 for invalid JSON payload", func(t *testing.T) {
 		// Arrange
+		// #nosec G101 // Test mock webhook secret
 		webhookSecret := "test-webhook-secret"
 
 		// Set webhook secret in config
