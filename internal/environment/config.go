@@ -18,6 +18,7 @@ type Config struct {
 	Sendpulse      *Sendpulse    `json:"sendpulse"`
 	Modal          *Modal        `json:"modal"`
 	Stripe         *StripeConfig `json:"stripe"`
+	Github         *Github       `json:"github"`
 }
 
 type Modal struct {
@@ -87,4 +88,12 @@ type StripeConfig struct {
 	WebhookKey string `json:"webhook_key"`
 	SecretKey  string `json:"secret_key"`
 	PublicKey  string `json:"public_key"`
+}
+
+type Github struct {
+	AppID         string `json:"app_id"`
+	PrivateKey    string `json:"private_key"`
+	ClientID      string `json:"client_id"`
+	ClientSecret  string `json:"client_secret"`
+	WebhookSecret string `json:"webhook_secret"`
 }

@@ -93,7 +93,10 @@ func openVerifyInvite(res http.ResponseWriter, req *http.Request) (*VerifyRespon
 		}
 
 		if props.InviteKey != data.Verify {
-			log.ErrorContext(errors.Errorf("invite key does not match Key:%s vs %s | Account:%s", props.InviteKey, data.Verify, accountObj.ID()), req.Context())
+			log.ErrorContext(
+				errors.Errorf("invite key does not match Key:%s vs %s | Account:%s", props.InviteKey, data.Verify, accountObj.ID()),
+				req.Context(),
+			)
 			return response.PublicNotFoundError[*VerifyResponse]()
 		}
 
