@@ -1,9 +1,11 @@
 package sandboxes
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
+	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/core/lib/testtools"
 	"github.com/griffnb/core/lib/testtools/assert"
 	"github.com/griffnb/core/lib/tools"
@@ -26,7 +28,7 @@ func skipIfNotConfigured(t *testing.T) {
 	}
 }
 
-func Test_createSandbox_withTemplateConfig(t *testing.T) {
+func Test_adminCreateSandbox_withTemplateConfig(t *testing.T) {
 	skipIfNotConfigured(t)
 
 	t.Run("successful creation with template", func(t *testing.T) {
@@ -43,7 +45,7 @@ func Test_createSandbox_withTemplateConfig(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Act
-		resp, errCode, err := req.Do(createSandbox)
+		resp, errCode, err := req.Do(adminCreateSandbox)
 
 		// Assert
 		assert.NoError(t, err)
@@ -64,7 +66,10 @@ func Test_createSandbox_withTemplateConfig(t *testing.T) {
 		// Cleanup Modal sandbox
 		defer func() {
 			service := sandbox_service.NewSandboxService()
-			sandboxInfo := sandbox_service.ReconstructSandboxInfo(resp, req.Account.ID())
+			sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(context.Background(), resp, req.Account.ID())
+			if err != nil {
+				log.ErrorContext(err, req.Request.Context())
+			}
 			_ = service.TerminateSandbox(req.Request.Context(), sandboxInfo, false)
 		}()
 	})
@@ -83,7 +88,7 @@ func Test_createSandbox_withTemplateConfig(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Act
-		_, errCode, err := req.Do(createSandbox)
+		_, errCode, err := req.Do(adminCreateSandbox)
 
 		// Assert
 		assert.Error(t, err)
@@ -103,7 +108,7 @@ func Test_createSandbox_withTemplateConfig(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Act
-		_, errCode, err := req.Do(createSandbox)
+		_, errCode, err := req.Do(adminCreateSandbox)
 
 		// Assert
 		assert.Error(t, err)
@@ -111,7 +116,7 @@ func Test_createSandbox_withTemplateConfig(t *testing.T) {
 	})
 }
 
-func Test_createSandbox_databaseSaveFailure(t *testing.T) {
+func Test_adminCreateSandbox_databaseSaveFailure(t *testing.T) {
 	skipIfNotConfigured(t)
 
 	t.Run("handles database save failure gracefully", func(t *testing.T) {
@@ -137,7 +142,7 @@ func Test_createSandbox_databaseSaveFailure(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Act
-		resp, errCode, err := req.Do(createSandbox)
+		resp, errCode, err := req.Do(adminCreateSandbox)
 
 		// Assert
 		// Should fail during Save() due to missing account FK
@@ -148,7 +153,10 @@ func Test_createSandbox_databaseSaveFailure(t *testing.T) {
 		if resp != nil && !tools.Empty(resp.ExternalID.Get()) {
 			defer func() {
 				service := sandbox_service.NewSandboxService()
-				sandboxInfo := sandbox_service.ReconstructSandboxInfo(resp, testAccount.Account.ID())
+				sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(context.Background(), resp, testAccount.Account.ID())
+				if err != nil {
+					log.ErrorContext(err, req.Request.Context())
+				}
 				_ = service.TerminateSandbox(req.Request.Context(), sandboxInfo, false)
 			}()
 		}
@@ -172,7 +180,7 @@ func Test_authDelete_successfulDeletion(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Act - Create sandbox
-		sandboxResp, errCode, err := createReq.Do(createSandbox)
+		sandboxResp, errCode, err := createReq.Do(adminCreateSandbox)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, errCode)
 		assert.NEmpty(t, sandboxResp)
@@ -209,14 +217,17 @@ func Test_authDelete_successfulDeletion(t *testing.T) {
 		err = createReq.WithAccount()
 		assert.NoError(t, err)
 
-		sandboxResp, errCode, err := createReq.Do(createSandbox)
+		sandboxResp, errCode, err := createReq.Do(adminCreateSandbox)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, errCode)
 		defer testtools.CleanupModel(sandboxResp)
 
 		// Terminate the Modal sandbox directly to simulate failure
 		service := sandbox_service.NewSandboxService()
-		sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxResp, createReq.Account.ID())
+		sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(context.Background(), sandboxResp, createReq.Account.ID())
+		if err != nil {
+			log.ErrorContext(err, createReq.Request.Context())
+		}
 		_ = service.TerminateSandbox(createReq.Request.Context(), sandboxInfo, false)
 
 		// Arrange - Delete request (Modal termination will fail since already terminated)
@@ -255,7 +266,7 @@ func Test_syncSandbox_updatesMetadata(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Act - Create sandbox
-		sandboxResp, errCode, err := createReq.Do(createSandbox)
+		sandboxResp, errCode, err := createReq.Do(adminCreateSandbox)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, errCode)
 		assert.NEmpty(t, sandboxResp)
@@ -264,7 +275,10 @@ func Test_syncSandbox_updatesMetadata(t *testing.T) {
 		// Cleanup Modal sandbox at end
 		defer func() {
 			service := sandbox_service.NewSandboxService()
-			sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxResp, createReq.Account.ID())
+			sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(context.Background(), sandboxResp, createReq.Account.ID())
+			if err != nil {
+				log.ErrorContext(err, createReq.Request.Context())
+			}
 			_ = service.TerminateSandbox(createReq.Request.Context(), sandboxInfo, false)
 		}()
 

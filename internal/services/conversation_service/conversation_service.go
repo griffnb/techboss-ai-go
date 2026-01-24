@@ -98,7 +98,10 @@ func (s *ConversationService) EnsureSandbox(
 	if !conv.SandboxID.IsEmpty() {
 		sandboxModel, err := sandbox.Get(ctx, conv.SandboxID.Get())
 		if err == nil && sandboxModel != nil {
-			sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, conv.AccountID.Get())
+			sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(ctx, sandboxModel, conv.AccountID.Get())
+			if err != nil {
+				return nil, nil, errors.Wrap(err, "failed to reconstruct sandbox info")
+			}
 			template, err := sandbox_service.GetSandboxTemplate(provider, conv.AgentID.Get())
 			if err != nil {
 				return nil, nil, errors.Wrap(err, "failed to get sandbox template")

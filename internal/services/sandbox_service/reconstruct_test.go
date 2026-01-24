@@ -1,6 +1,7 @@
 package sandbox_service
 
 import (
+	"context"
 	"testing"
 
 	"github.com/griffnb/core/lib/testtools/assert"
@@ -26,7 +27,10 @@ func Test_ReconstructSandboxInfo_withValidProvider(t *testing.T) {
 		model.Status.Set(constants.STATUS_ACTIVE)
 
 		// Act
-		sandboxInfo := ReconstructSandboxInfo(model, accountID)
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), model, accountID)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		// Assert
 		assert.NEmpty(t, sandboxInfo)
@@ -57,7 +61,10 @@ func Test_ReconstructSandboxInfo_withDeletedSandbox(t *testing.T) {
 		model.Deleted.Set(1) // Soft deleted
 
 		// Act
-		sandboxInfo := ReconstructSandboxInfo(model, accountID)
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), model, accountID)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		// Assert
 		assert.NEmpty(t, sandboxInfo)
@@ -77,7 +84,10 @@ func Test_ReconstructSandboxInfo_withDeletedSandbox(t *testing.T) {
 		model.Status.Set(constants.STATUS_DISABLED)
 
 		// Act
-		sandboxInfo := ReconstructSandboxInfo(model, accountID)
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), model, accountID)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		// Assert
 		assert.NEmpty(t, sandboxInfo)
@@ -100,7 +110,10 @@ func Test_ReconstructSandboxInfo_withActiveSandbox(t *testing.T) {
 		model.Deleted.Set(0)
 
 		// Act
-		sandboxInfo := ReconstructSandboxInfo(model, accountID)
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), model, accountID)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		// Assert
 		assert.NEmpty(t, sandboxInfo)
@@ -122,7 +135,10 @@ func Test_ReconstructSandboxInfo_withFallbackConfig(t *testing.T) {
 		model.Status.Set(constants.STATUS_ACTIVE)
 
 		// Act
-		sandboxInfo := ReconstructSandboxInfo(model, accountID)
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), model, accountID)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		// Assert
 		assert.NEmpty(t, sandboxInfo)

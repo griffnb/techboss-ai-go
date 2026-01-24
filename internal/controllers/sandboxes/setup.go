@@ -45,10 +45,15 @@ func Setup(coreRouter *router.CoreRouter) {
 		})
 		r.Group(func(adminR chi.Router) {
 			adminR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ADMIN: response.StandardRequestWrapper(adminCreate),
+				constants.ROLE_ADMIN: response.StandardPublicRequestWrapper(adminCreateSandbox),
 			}))
 			adminR.Put("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_ADMIN: response.StandardRequestWrapper(adminUpdate),
+			}))
+
+			// POST /sandbox/{sandboxID}/claude - Execute Claude with streaming (Task 11)
+			adminR.Post("/{id}/claude/messages", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_READ_ADMIN: router.NoTimeoutStreamingMiddleware(adminStreamClaude),
 			}))
 		})
 		r.Group(func(adminR chi.Router) {
@@ -82,9 +87,9 @@ func Setup(coreRouter *router.CoreRouter) {
 		})
 
 		r.Group(func(authR chi.Router) {
-			authR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(createSandbox),
-			}))
+			//authR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
+			//	constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(createSandbox),
+			//}))
 			authR.Put("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authUpdate),
 			}))
@@ -98,7 +103,7 @@ func Setup(coreRouter *router.CoreRouter) {
 			}))
 			// POST /sandbox/{sandboxID}/claude - Execute Claude with streaming (Task 11)
 			authR.Post("/{id}/claude", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_ANY_AUTHORIZED: router.NoTimeoutStreamingMiddleware(streamClaude),
+				constants.ROLE_READ_ADMIN: router.NoTimeoutStreamingMiddleware(adminStreamClaude),
 			}))
 		})
 	})

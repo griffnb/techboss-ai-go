@@ -56,7 +56,11 @@ func syncSandbox(_ http.ResponseWriter, req *http.Request) (*SyncSandboxResponse
 	}
 
 	// Reconstruct SandboxInfo for Modal sync
-	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, accountID)
+	sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(req.Context(), sandboxModel, accountID)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.AdminBadRequestError[*SyncSandboxResponse](err)
+	}
 
 	// Sync to S3 via service layer
 	service := sandbox_service.NewSandboxService()

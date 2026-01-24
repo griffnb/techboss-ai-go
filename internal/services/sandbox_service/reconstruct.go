@@ -1,6 +1,7 @@
 package sandbox_service
 
 import (
+	"context"
 	"time"
 
 	"github.com/griffnb/core/lib/types"
@@ -11,8 +12,9 @@ import (
 
 // ReconstructSandboxInfo creates a modal.SandboxInfo from database model fields.
 // This is needed for operations that interact with the Modal API after retrieving
-// a sandbox from the database. The Sandbox handle is not reconstructed (set to nil).
-func ReconstructSandboxInfo(model *sandbox.Sandbox, accountID types.UUID) *modal.SandboxInfo {
+// a sandbox from the database. It reconstructs the config based on stored fields
+// and the premade template for the provider/agent.
+func ReconstructSandboxInfo(ctx context.Context, model *sandbox.Sandbox, accountID types.UUID) (*modal.SandboxInfo, error) {
 	// Get template to reconstruct config
 	template, err := GetSandboxTemplate(
 		model.Provider.Get(),
@@ -46,11 +48,16 @@ func ReconstructSandboxInfo(model *sandbox.Sandbox, accountID types.UUID) *modal
 		createdAt = new(time.Time)
 	}
 
+	sandbox, err := modal.Client().GetSandbox(ctx, model.ExternalID.Get())
+	if err != nil {
+		return nil, err
+	}
+
 	return &modal.SandboxInfo{
 		SandboxID: model.ExternalID.Get(),
 		Config:    config,
 		CreatedAt: *createdAt,
 		Status:    modalStatus,
-		Sandbox:   nil, // Not reconstructed from DB
-	}
+		Sandbox:   sandbox, // Not reconstructed from DB
+	}, nil
 }

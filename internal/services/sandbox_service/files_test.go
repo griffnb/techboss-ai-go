@@ -1302,7 +1302,10 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
 
 		// Reconstruct sandbox info (without actual Modal sandbox)
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		opts := &FileListOptions{
 			Source:    "volume",
@@ -1333,7 +1336,10 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		sandboxModel.ExternalID.Set("test-sandbox-s3")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
 
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		opts := &FileListOptions{
 			Source:    "s3",
@@ -1362,7 +1368,10 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		sandboxModel.ExternalID.Set("test-sandbox-invalid")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
 
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		opts := &FileListOptions{
 			Source:    "invalid",
@@ -1390,7 +1399,10 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		sandboxModel.ExternalID.Set("test-sandbox-empty-path")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
 
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		opts := &FileListOptions{
 			Source:    "volume",
@@ -1418,7 +1430,10 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		sandboxModel.ExternalID.Set("test-sandbox-multiple")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
 
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		opts := &FileListOptions{
 			Source:    "volume",
@@ -1447,7 +1462,10 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		sandboxModel.ExternalID.Set("test-sandbox-empty")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
 
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		opts := &FileListOptions{
 			Source:    "volume",
@@ -1477,7 +1495,10 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		sandboxModel.ExternalID.Set("test-sandbox-bad-path")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
 
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		opts := &FileListOptions{
 			Source:    "volume",
@@ -1505,7 +1526,10 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		sandboxModel.ExternalID.Set("test-sandbox-pagination")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
 
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		opts := &FileListOptions{
 			Source:    "volume",
@@ -1534,7 +1558,10 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		sandboxModel.ExternalID.Set("test-sandbox-volume-cmd")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
 
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		opts := &FileListOptions{
 			Source:    "volume",
@@ -1563,7 +1590,10 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		sandboxModel.ExternalID.Set("test-sandbox-s3-cmd")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
 
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		opts := &FileListOptions{
 			Source:    "s3",
@@ -1613,7 +1643,10 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		sandboxModel.ExternalID.Set("test-sandbox-nil-opts")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
 
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		// Act
 		response, err := service.ListFiles(ctx, sandboxInfo, nil)
@@ -1634,7 +1667,10 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		sandboxModel.ExternalID.Set("test-sandbox-ctx-cancel")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
 
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		opts := &FileListOptions{
 			Source:    "volume",
@@ -1662,7 +1698,10 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		sandboxModel.ExternalID.Set("test-sandbox-integration")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
 
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		opts := &FileListOptions{
 			Source:    "volume",
@@ -1826,7 +1865,10 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		sandboxModel.ExternalID.Set("test-sandbox-text")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
 		// ReconstructSandboxInfo creates sandboxInfo without active Modal connection
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		source := "volume"
 		filePath := "/test.txt"
@@ -1849,7 +1891,10 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		sandboxModel := sandbox.New()
 		sandboxModel.ExternalID.Set("test-sandbox-s3")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		source := "s3"
 		filePath := "/data.json"
@@ -1871,7 +1916,10 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		sandboxModel := sandbox.New()
 		sandboxModel.ExternalID.Set("test-sandbox-binary")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		source := "volume"
 		filePath := "/image.png"
@@ -1893,7 +1941,10 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		sandboxModel := sandbox.New()
 		sandboxModel.ExternalID.Set("test-sandbox-notfound")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		source := "volume"
 		filePath := "/nonexistent.txt"
@@ -1915,7 +1966,10 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		sandboxModel := sandbox.New()
 		sandboxModel.ExternalID.Set("test-sandbox-large")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		source := "volume"
 		filePath := "/large.bin"
@@ -1937,7 +1991,10 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		sandboxModel := sandbox.New()
 		sandboxModel.ExternalID.Set("test-sandbox-empty")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		source := "volume"
 		filePath := "/empty.txt"
@@ -1959,7 +2016,10 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		sandboxModel := sandbox.New()
 		sandboxModel.ExternalID.Set("test-sandbox-invalid")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		source := "invalid"
 		filePath := "/test.txt"
@@ -1998,7 +2058,10 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		sandboxModel := sandbox.New()
 		sandboxModel.ExternalID.Set("test-sandbox-badpath")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		source := "volume"
 		filePath := "/workspace/../etc/passwd" // Directory traversal
@@ -2021,7 +2084,10 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		sandboxModel := sandbox.New()
 		sandboxModel.ExternalID.Set("test-sandbox-cancel")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		source := "volume"
 		filePath := "/test.txt"
@@ -2042,7 +2108,10 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		sandboxModel := sandbox.New()
 		sandboxModel.ExternalID.Set("test-sandbox-mime")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		testCases := []struct {
 			filePath    string
@@ -2073,7 +2142,10 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		sandboxModel := sandbox.New()
 		sandboxModel.ExternalID.Set("test-sandbox-filename")
 		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
-		sandboxInfo := ReconstructSandboxInfo(sandboxModel, types.UUID("test-account"))
+		sandboxInfo, err := ReconstructSandboxInfo(context.Background(), sandboxModel, types.UUID("test-account"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
 		source := "volume"
 		filePath := "/deep/nested/path/file.txt"

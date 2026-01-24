@@ -109,7 +109,11 @@ func adminListFiles(_ http.ResponseWriter, req *http.Request) (*sandbox_service.
 	}
 
 	// Reconstruct sandbox info for service layer
-	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, sandboxModel.AccountID.Get())
+	sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(req.Context(), sandboxModel, sandboxModel.AccountID.Get())
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.AdminBadRequestError[*sandbox_service.FileListResponse](err)
+	}
 
 	// Call service to list files
 	service := sandbox_service.NewSandboxService()
@@ -152,7 +156,11 @@ func authListFiles(_ http.ResponseWriter, req *http.Request) (*sandbox_service.F
 	}
 
 	// Reconstruct sandbox info for service layer
-	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, sandboxModel.AccountID.Get())
+	sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(req.Context(), sandboxModel, sandboxModel.AccountID.Get())
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[*sandbox_service.FileListResponse]()
+	}
 
 	// Call service to list files
 	service := sandbox_service.NewSandboxService()
@@ -209,7 +217,13 @@ func adminGetFileContent(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Reconstruct sandbox info for service layer
-	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, sandboxModel.AccountID.Get())
+	sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(req.Context(), sandboxModel, sandboxModel.AccountID.Get())
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(err.Error()))
+		return
+	}
 
 	// Call service to get file content
 	service := sandbox_service.NewSandboxService()
@@ -283,7 +297,13 @@ func authGetFileContent(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Reconstruct sandbox info for service layer
-	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, sandboxModel.AccountID.Get())
+	sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(req.Context(), sandboxModel, sandboxModel.AccountID.Get())
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(err.Error()))
+		return
+	}
 
 	// Call service to get file content
 	service := sandbox_service.NewSandboxService()
@@ -341,7 +361,11 @@ func adminGetFileTree(_ http.ResponseWriter, req *http.Request) (*sandbox_servic
 	}
 
 	// Reconstruct sandbox info for service layer
-	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, sandboxModel.AccountID.Get())
+	sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(req.Context(), sandboxModel, sandboxModel.AccountID.Get())
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.AdminBadRequestError[*sandbox_service.FileTreeNode](err)
+	}
 
 	// Call service to list files first
 	service := sandbox_service.NewSandboxService()
@@ -398,7 +422,11 @@ func authGetFileTree(_ http.ResponseWriter, req *http.Request) (*sandbox_service
 	}
 
 	// Reconstruct sandbox info for service layer
-	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, sandboxModel.AccountID.Get())
+	sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(req.Context(), sandboxModel, sandboxModel.AccountID.Get())
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.PublicBadRequestError[*sandbox_service.FileTreeNode]()
+	}
 
 	// Call service to list files first
 	service := sandbox_service.NewSandboxService()

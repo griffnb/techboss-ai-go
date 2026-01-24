@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/core/lib/testtools"
 	"github.com/griffnb/core/lib/testtools/assert"
 	"github.com/griffnb/core/lib/types"
@@ -36,7 +37,7 @@ func Test_streamClaude_withOwnedSandbox(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Act - Create sandbox
-		sandboxResp, errCode, err := createReq.Do(createSandbox)
+		sandboxResp, errCode, err := createReq.Do(adminCreateSandbox)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, errCode)
 		assert.NEmpty(t, sandboxResp)
@@ -45,7 +46,10 @@ func Test_streamClaude_withOwnedSandbox(t *testing.T) {
 		// Cleanup Modal sandbox at end
 		defer func() {
 			service := sandbox_service.NewSandboxService()
-			sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxResp, createReq.Account.ID())
+			sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(createReq.Request.Context(), sandboxResp, createReq.Account.ID())
+			if err != nil {
+				log.ErrorContext(err, createReq.Request.Context())
+			}
 			_ = service.TerminateSandbox(createReq.Request.Context(), sandboxInfo, false)
 		}()
 
@@ -68,7 +72,7 @@ func Test_streamClaude_withOwnedSandbox(t *testing.T) {
 		recorder := httptest.NewRecorder()
 
 		// Act - Stream Claude
-		streamClaude(recorder, streamReq.Request)
+		adminStreamClaude(recorder, streamReq.Request)
 
 		// Assert
 		// Streaming writes directly to ResponseWriter, so we check the recorder
@@ -95,7 +99,7 @@ func Test_streamClaude_withUnownedSandbox(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Act - Create sandbox
-		sandboxResp, errCode, err := createReq.Do(createSandbox)
+		sandboxResp, errCode, err := createReq.Do(adminCreateSandbox)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, errCode)
 		assert.NEmpty(t, sandboxResp)
@@ -104,7 +108,10 @@ func Test_streamClaude_withUnownedSandbox(t *testing.T) {
 		// Cleanup Modal sandbox at end
 		defer func() {
 			service := sandbox_service.NewSandboxService()
-			sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxResp, createReq.Account.ID())
+			sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(createReq.Request.Context(), sandboxResp, createReq.Account.ID())
+			if err != nil {
+				log.ErrorContext(err, createReq.Request.Context())
+			}
 			_ = service.TerminateSandbox(createReq.Request.Context(), sandboxInfo, false)
 		}()
 
@@ -133,7 +140,7 @@ func Test_streamClaude_withUnownedSandbox(t *testing.T) {
 		recorder := httptest.NewRecorder()
 
 		// Act - Stream Claude
-		streamClaude(recorder, streamReq.Request)
+		adminStreamClaude(recorder, streamReq.Request)
 
 		// Assert - Should return 404 for unowned sandbox
 		assert.Equal(t, http.StatusNotFound, recorder.Code)
@@ -169,7 +176,7 @@ func Test_streamClaude_sandboxNotFound(t *testing.T) {
 		recorder := httptest.NewRecorder()
 
 		// Act - Stream Claude
-		streamClaude(recorder, streamReq.Request)
+		adminStreamClaude(recorder, streamReq.Request)
 
 		// Assert - Should return 404
 		assert.Equal(t, http.StatusNotFound, recorder.Code)
@@ -197,7 +204,7 @@ func Test_streamClaude_emptyPrompt(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Act - Create sandbox
-		sandboxResp, errCode, err := createReq.Do(createSandbox)
+		sandboxResp, errCode, err := createReq.Do(adminCreateSandbox)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, errCode)
 		assert.NEmpty(t, sandboxResp)
@@ -206,7 +213,10 @@ func Test_streamClaude_emptyPrompt(t *testing.T) {
 		// Cleanup Modal sandbox at end
 		defer func() {
 			service := sandbox_service.NewSandboxService()
-			sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxResp, createReq.Account.ID())
+			sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(createReq.Request.Context(), sandboxResp, createReq.Account.ID())
+			if err != nil {
+				log.ErrorContext(err, createReq.Request.Context())
+			}
 			_ = service.TerminateSandbox(createReq.Request.Context(), sandboxInfo, false)
 		}()
 
@@ -229,7 +239,7 @@ func Test_streamClaude_emptyPrompt(t *testing.T) {
 		recorder := httptest.NewRecorder()
 
 		// Act - Stream Claude
-		streamClaude(recorder, streamReq.Request)
+		adminStreamClaude(recorder, streamReq.Request)
 
 		// Assert - Should return 400 for empty prompt
 		assert.Equal(t, http.StatusBadRequest, recorder.Code)

@@ -16,8 +16,9 @@ import (
 // CreateSandboxTemplateRequest holds request data for sandbox creation using templates.
 // Frontend only specifies the provider type and agent, not configuration details.
 type CreateSandboxTemplateRequest struct {
-	Provider sandbox.Provider `json:"provider"` // Provider type (1=Claude Code)
-	AgentID  types.UUID       `json:"agent_id"` // Agent ID (optional, for future use)
+	Provider  sandbox.Provider `json:"provider"`   // Provider type (1=Claude Code)
+	AccountID types.UUID       `json:"account_id"` // Account ID (optional, for future use)
+	AgentID   types.UUID       `json:"agent_id"`   // Agent ID (optional, for future use)
 }
 
 // SyncSandboxRequest holds request data for S3 sync operations.
@@ -28,11 +29,9 @@ type SyncSandboxRequest struct {
 
 // createSandbox creates a new sandbox using a premade template based on provider/agent.
 // It saves the sandbox to the database with ExternalID, Provider, AgentID, Status, and empty MetaData.
-func createSandbox(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, int, error) {
+func adminCreateSandbox(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, int, error) {
 	// Get authenticated user session
 	userSession := request.GetReqSession(req)
-	accountID := userSession.User.ID()
-
 	// Parse request body
 	data, err := request.GetJSONPostAs[*CreateSandboxTemplateRequest](req)
 	if err != nil {
@@ -48,11 +47,11 @@ func createSandbox(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, 
 	}
 
 	// Build config from template
-	config := template.BuildSandboxConfig(accountID)
+	config := template.BuildSandboxConfig(userSession.User.ID())
 
 	// Create sandbox via service
 	service := sandbox_service.NewSandboxService()
-	sandboxInfo, err := service.CreateSandbox(req.Context(), accountID, config)
+	sandboxInfo, err := service.CreateSandbox(req.Context(), userSession.User.ID(), config)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.AdminBadRequestError[*sandbox.Sandbox](err)
@@ -72,8 +71,10 @@ func createSandbox(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, 
 	// Status tracks sandbox state (active, terminated, etc.)
 	// MetaData stores sync timestamps and statistics in JSONB format
 	sandboxModel := sandbox.New()
-	sandboxModel.AccountID.Set(accountID)
-	sandboxModel.AgentID.Set(data.AgentID)
+	sandboxModel.AccountID.Set(userSession.User.ID())
+	if data.AgentID != "" {
+		sandboxModel.AgentID.Set(data.AgentID)
+	}
 	sandboxModel.Provider.Set(data.Provider)
 	sandboxModel.ExternalID.Set(sandboxInfo.SandboxID)
 	sandboxModel.Status.Set(constants.STATUS_ACTIVE)
@@ -88,7 +89,7 @@ func createSandbox(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, 
 	}
 
 	log.Infof("Created sandbox %s (external_id: %s) for account %s",
-		sandboxModel.ID(), sandboxInfo.SandboxID, accountID)
+		sandboxModel.ID(), sandboxInfo.SandboxID, userSession.User.ID())
 
 	return response.Success(sandboxModel)
 }
@@ -112,7 +113,11 @@ func authDelete(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, int
 	}
 
 	// Reconstruct SandboxInfo for Modal termination
-	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, accountID)
+	sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(req.Context(), sandboxModel, accountID)
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		return response.AdminBadRequestError[*sandbox.Sandbox](err)
+	}
 
 	// Terminate sandbox via service with S3 sync
 	service := sandbox_service.NewSandboxService()

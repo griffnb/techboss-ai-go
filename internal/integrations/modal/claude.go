@@ -264,6 +264,8 @@ func (c *APIClient) StreamClaudeOutput(ctx context.Context, claudeProcess *Claud
 
 		line := scanner.Text()
 
+		fmt.Println("[Claude Output]", line)
+
 		// Parse final token summary if present
 		if IsFinalSummary(line) {
 			tokens := ParseTokenSummary(line)

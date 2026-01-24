@@ -16,7 +16,15 @@ import (
 // ClaudeRequest holds request data for Claude execution.
 // It contains the prompt that will be sent to Claude Code CLI.
 type ClaudeRequest struct {
-	Prompt string `json:"prompt"`
+	Model    string `json:"model"` // Model to use (optional, default handled by service)
+	Messages []struct {
+		Role    string `json:"role"` // Role of the message (e.g., "user", "assistant")
+		Content []struct {
+			Type string `json:"type"` // Type of content (e.g., "text")
+			Text string `json:"text"`
+		} `json:"content"` // Content of the message
+	} `json:"messages"` // Conversation messages
+	// Prompt string `json:"prompt"` // Prompt to send to Claude Code CLI
 }
 
 // streamClaude executes Claude Code CLI in a sandbox and streams output using SSE.
@@ -30,9 +38,7 @@ type ClaudeRequest struct {
 // 3. Build ClaudeExecConfig
 // 4. Call service.ExecuteClaudeStream which handles SSE headers and streaming
 // 5. Service layer streams output line by line with [DONE] event at completion
-func streamClaude(w http.ResponseWriter, req *http.Request) {
-	userSession := request.GetReqSession(req)
-	accountID := userSession.User.ID()
+func adminStreamClaude(w http.ResponseWriter, req *http.Request) {
 	id := chi.URLParam(req, "id")
 
 	// Parse request body for prompt
@@ -43,31 +49,43 @@ func streamClaude(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	var prompt string
+	if len(data.Messages) > 0 && len(data.Messages[0].Content) > 0 {
+		prompt = data.Messages[0].Content[0].Text
+	}
+
 	// Validate prompt not empty
-	if tools.Empty(data.Prompt) {
+	if tools.Empty(prompt) {
 		http.Error(w, "prompt is required", http.StatusBadRequest)
 		return
 	}
 
-	log.Infof("streamClaude called for sandbox ID: %s, prompt: %s", id, data.Prompt)
+	log.Infof("streamClaude called for sandbox ID: %s, prompt: %s", id, prompt)
 
 	// Get sandbox from database and verify ownership
 	sandboxModel, err := sandbox.Get(req.Context(), types.UUID(id))
-	if err != nil || sandboxModel == nil || sandboxModel.AccountID.Get() != accountID {
+	if err != nil || tools.Empty(sandboxModel) {
 		log.ErrorContext(err, req.Context())
 		http.Error(w, "sandbox not found", http.StatusNotFound)
 		return
 	}
 
 	// Reconstruct SandboxInfo from model
-	sandboxInfo := sandbox_service.ReconstructSandboxInfo(sandboxModel, accountID)
+	sandboxInfo, err := sandbox_service.ReconstructSandboxInfo(req.Context(), sandboxModel, sandboxModel.AccountID.Get())
+	if err != nil {
+		log.ErrorContext(err, req.Context())
+		http.Error(w, "failed to reconstruct sandbox info", http.StatusInternalServerError)
+		return
+	}
+
+	log.PrintEntity(sandboxInfo, "Reconstructed SandboxInfo")
 
 	// Build ClaudeExecConfig with prompt
 	// stream-json: structured JSON output format
 	// SkipPermissions: prevents interactive prompts in sandbox (safe with claudeuser setup)
 	// Verbose: detailed logging for debugging
 	claudeConfig := &modal.ClaudeExecConfig{
-		Prompt:          data.Prompt,
+		Prompt:          prompt,
 		OutputFormat:    "stream-json",
 		SkipPermissions: true,
 		Verbose:         true,
