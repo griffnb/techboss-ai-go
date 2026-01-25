@@ -19,6 +19,7 @@ import (
 type SandboxConfig struct {
 	AccountID       types.UUID        // Account scoping for the sandbox
 	Image           *ImageConfig      // Docker image configuration
+	DockerFilePath  string            // Path to Dockerfile (alternative to Image)
 	VolumeName      string            // Volume name for persistent storage
 	VolumeMountPath string            // Where to mount volume (e.g., "/mnt/workspace")
 	S3Config        *S3MountConfig    // Optional S3 bucket mount

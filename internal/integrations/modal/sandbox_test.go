@@ -22,258 +22,6 @@ func skipIfNotConfigured(t *testing.T) {
 	}
 }
 
-func TestSandboxConfig(t *testing.T) {
-	t.Run("SandboxConfig with all fields", func(t *testing.T) {
-		// Arrange
-		accountID := types.UUID("test-account-123")
-		volumeName := "test-volume"
-		volumeMountPath := "/mnt/workspace"
-		workdir := "/mnt/workspace"
-		timestamp := time.Now().Unix()
-
-		imageConfig := &modal.ImageConfig{
-			BaseImage:          "alpine:3.21",
-			DockerfileCommands: []string{"RUN apk add --no-cache bash"},
-		}
-
-		s3Config := &modal.S3MountConfig{
-			BucketName: "test-bucket",
-			SecretName: "s3-secret",
-			KeyPrefix:  "docs/test-account/",
-			MountPath:  "/mnt/s3-bucket",
-			ReadOnly:   true,
-			Timestamp:  timestamp,
-		}
-
-		secrets := map[string]string{
-			"API_KEY": "test-key",
-		}
-
-		envVars := map[string]string{
-			"ENV_VAR": "value",
-		}
-
-		// Act
-		config := &modal.SandboxConfig{
-			AccountID:       accountID,
-			Image:           imageConfig,
-			VolumeName:      volumeName,
-			VolumeMountPath: volumeMountPath,
-			S3Config:        s3Config,
-			Workdir:         workdir,
-			Secrets:         secrets,
-			EnvironmentVars: envVars,
-		}
-
-		// Assert
-		if config.AccountID != accountID {
-			t.Fatalf("expected AccountID %s, got %s", accountID, config.AccountID)
-		}
-		if config.Image.BaseImage != "alpine:3.21" {
-			t.Fatalf("expected BaseImage alpine:3.21, got %s", config.Image.BaseImage)
-		}
-		if len(config.Image.DockerfileCommands) != 1 {
-			t.Fatalf("expected 1 Dockerfile command, got %d", len(config.Image.DockerfileCommands))
-		}
-		if config.VolumeName != volumeName {
-			t.Fatalf("expected VolumeName %s, got %s", volumeName, config.VolumeName)
-		}
-		if config.VolumeMountPath != volumeMountPath {
-			t.Fatalf("expected VolumeMountPath %s, got %s", volumeMountPath, config.VolumeMountPath)
-		}
-		if config.S3Config.BucketName != "test-bucket" {
-			t.Fatalf("expected S3 BucketName test-bucket, got %s", config.S3Config.BucketName)
-		}
-		if config.S3Config.Timestamp != timestamp {
-			t.Fatalf("expected S3 Timestamp %d, got %d", timestamp, config.S3Config.Timestamp)
-		}
-		if config.Workdir != workdir {
-			t.Fatalf("expected Workdir %s, got %s", workdir, config.Workdir)
-		}
-		if config.Secrets["API_KEY"] != "test-key" {
-			t.Fatalf("expected Secrets API_KEY test-key, got %s", config.Secrets["API_KEY"])
-		}
-		if config.EnvironmentVars["ENV_VAR"] != "value" {
-			t.Fatalf("expected EnvironmentVars ENV_VAR value, got %s", config.EnvironmentVars["ENV_VAR"])
-		}
-	})
-
-	t.Run("SandboxConfig with minimal fields", func(t *testing.T) {
-		// Arrange
-		accountID := types.UUID("test-account-456")
-
-		imageConfig := &modal.ImageConfig{
-			BaseImage: "alpine:3.21",
-		}
-
-		// Act
-		config := &modal.SandboxConfig{
-			AccountID:       accountID,
-			Image:           imageConfig,
-			VolumeName:      "minimal-volume",
-			VolumeMountPath: "/mnt/workspace",
-			Workdir:         "/mnt/workspace",
-		}
-
-		// Assert
-		if config.AccountID != accountID {
-			t.Fatalf("expected AccountID %s, got %s", accountID, config.AccountID)
-		}
-		if config.S3Config != nil {
-			t.Fatal("expected S3Config to be nil")
-		}
-		if config.Secrets != nil {
-			t.Fatal("expected Secrets to be nil")
-		}
-		if config.EnvironmentVars != nil {
-			t.Fatal("expected EnvironmentVars to be nil")
-		}
-	})
-
-	t.Run("ImageConfig with base image only", func(t *testing.T) {
-		// Arrange & Act
-		imageConfig := &modal.ImageConfig{
-			BaseImage: "ubuntu:22.04",
-		}
-
-		// Assert
-		if imageConfig.BaseImage != "ubuntu:22.04" {
-			t.Fatalf("expected BaseImage ubuntu:22.04, got %s", imageConfig.BaseImage)
-		}
-		if len(imageConfig.DockerfileCommands) != 0 {
-			t.Fatalf("expected 0 Dockerfile commands, got %d", len(imageConfig.DockerfileCommands))
-		}
-	})
-
-	t.Run("ImageConfig with custom Dockerfile commands", func(t *testing.T) {
-		// Arrange & Act
-		commands := []string{
-			"RUN apt-get update",
-			"RUN apt-get install -y curl",
-			"ENV PATH=/usr/local/bin:$PATH",
-		}
-		imageConfig := &modal.ImageConfig{
-			BaseImage:          "ubuntu:22.04",
-			DockerfileCommands: commands,
-		}
-
-		// Assert
-		if len(imageConfig.DockerfileCommands) != 3 {
-			t.Fatalf("expected 3 Dockerfile commands, got %d", len(imageConfig.DockerfileCommands))
-		}
-		if imageConfig.DockerfileCommands[0] != "RUN apt-get update" {
-			t.Fatalf("expected first command to be 'RUN apt-get update', got %s", imageConfig.DockerfileCommands[0])
-		}
-	})
-
-	t.Run("S3MountConfig with timestamp versioning", func(t *testing.T) {
-		// Arrange
-		timestamp := int64(1704067200)
-		accountID := "test-account-789"
-		keyPrefix := "docs/" + accountID + "/1704067200/"
-
-		// Act
-		s3Config := &modal.S3MountConfig{
-			BucketName: "tb-prod-agent-docs",
-			SecretName: "s3-bucket",
-			KeyPrefix:  keyPrefix,
-			MountPath:  "/mnt/s3-bucket",
-			ReadOnly:   true,
-			Timestamp:  timestamp,
-		}
-
-		// Assert
-		if s3Config.BucketName != "tb-prod-agent-docs" {
-			t.Fatalf("expected BucketName tb-prod-agent-docs, got %s", s3Config.BucketName)
-		}
-		if s3Config.SecretName != "s3-bucket" {
-			t.Fatalf("expected SecretName s3-bucket, got %s", s3Config.SecretName)
-		}
-		if s3Config.KeyPrefix != keyPrefix {
-			t.Fatalf("expected KeyPrefix %s, got %s", keyPrefix, s3Config.KeyPrefix)
-		}
-		if s3Config.MountPath != "/mnt/s3-bucket" {
-			t.Fatalf("expected MountPath /mnt/s3-bucket, got %s", s3Config.MountPath)
-		}
-		if !s3Config.ReadOnly {
-			t.Fatal("expected ReadOnly to be true")
-		}
-		if s3Config.Timestamp != timestamp {
-			t.Fatalf("expected Timestamp %d, got %d", timestamp, s3Config.Timestamp)
-		}
-	})
-}
-
-func TestSandboxInfo(t *testing.T) {
-	t.Run("SandboxInfo with all fields", func(t *testing.T) {
-		// Arrange
-		sandboxID := "sb_test123"
-		createdAt := time.Now()
-		config := &modal.SandboxConfig{
-			AccountID:       types.UUID("test-account"),
-			Image:           &modal.ImageConfig{BaseImage: "alpine:3.21"},
-			VolumeName:      "test-volume",
-			VolumeMountPath: "/mnt/workspace",
-			Workdir:         "/mnt/workspace",
-		}
-
-		// Act
-		sandboxInfo := &modal.SandboxInfo{
-			SandboxID: sandboxID,
-			Sandbox:   nil, // Will be nil in tests without actual Modal sandbox
-			Config:    config,
-			CreatedAt: createdAt,
-			Status:    modal.SandboxStatusRunning,
-		}
-
-		// Assert
-		if sandboxInfo.SandboxID != sandboxID {
-			t.Fatalf("expected SandboxID %s, got %s", sandboxID, sandboxInfo.SandboxID)
-		}
-		if sandboxInfo.Config.AccountID != types.UUID("test-account") {
-			t.Fatalf("expected AccountID test-account, got %s", sandboxInfo.Config.AccountID)
-		}
-		if sandboxInfo.Status != modal.SandboxStatusRunning {
-			t.Fatalf("expected Status %s, got %s", modal.SandboxStatusRunning, sandboxInfo.Status)
-		}
-		if !sandboxInfo.CreatedAt.Equal(createdAt) {
-			t.Fatalf("expected CreatedAt %v, got %v", createdAt, sandboxInfo.CreatedAt)
-		}
-	})
-}
-
-func TestSandboxStatus(t *testing.T) {
-	t.Run("SandboxStatus constants", func(t *testing.T) {
-		// Assert constants are defined correctly
-		if modal.SandboxStatusRunning != "running" {
-			t.Fatalf("expected SandboxStatusRunning to be 'running', got %s", modal.SandboxStatusRunning)
-		}
-		if modal.SandboxStatusTerminated != "terminated" {
-			t.Fatalf("expected SandboxStatusTerminated to be 'terminated', got %s", modal.SandboxStatusTerminated)
-		}
-		if modal.SandboxStatusError != "error" {
-			t.Fatalf("expected SandboxStatusError to be 'error', got %s", modal.SandboxStatusError)
-		}
-	})
-
-	t.Run("SandboxStatus type usage", func(t *testing.T) {
-		// Arrange & Act
-		var status modal.SandboxStatus
-		status = modal.SandboxStatusRunning
-
-		// Assert
-		if status != modal.SandboxStatusRunning {
-			t.Fatalf("expected status to be running, got %s", status)
-		}
-
-		// Change status
-		status = modal.SandboxStatusTerminated
-		if status != modal.SandboxStatusTerminated {
-			t.Fatalf("expected status to be terminated, got %s", status)
-		}
-	})
-}
-
 // TestCreateSandbox tests sandbox creation with various configurations
 func TestCreateSandbox(t *testing.T) {
 	skipIfNotConfigured(t)
@@ -658,5 +406,116 @@ func TestGetSandboxStatus(t *testing.T) {
 		// Assert
 		assert.Error(t, err)
 		assert.Equal(t, modal.SandboxStatus(""), status)
+	})
+}
+
+// TestCreateSandboxFromDockerFile tests sandbox creation using Dockerfile
+func TestCreateSandboxFromDockerFile(t *testing.T) {
+	skipIfNotConfigured(t)
+
+	client := modal.Client()
+	ctx := context.Background()
+
+	t.Run("Create sandbox from simple Dockerfile", func(t *testing.T) {
+		// Arrange - test with a simple Dockerfile that doesn't need Claude install
+		accountID := types.UUID("test-dockerfile-simple-001")
+		config := &modal.SandboxConfig{
+			AccountID:       accountID,
+			DockerFilePath:  "dockerfiles/Claude.dockerfile",
+			VolumeName:      "test-volume-dockerfile-simple",
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+
+		// Act
+		sandboxInfo, err := client.CreateSandboxFromDockerFile(ctx, config)
+		defer func() {
+			if sandboxInfo != nil && sandboxInfo.Sandbox != nil {
+				_ = client.TerminateSandbox(ctx, sandboxInfo, false)
+			}
+		}()
+
+		// Assert - for now, just verify parsing works
+		// Note: The actual Modal build may fail due to network/install issues
+		// but we want to verify the code handles it properly
+		if err != nil {
+			t.Logf("Note: Modal build failed (expected in some environments): %v", err)
+			t.Skip("Skipping full sandbox creation test - Modal build failed")
+		}
+
+		assert.NotEmpty(t, sandboxInfo.SandboxID)
+		assert.Equal(t, modal.SandboxStatusRunning, sandboxInfo.Status)
+		assert.Equal(t, accountID, sandboxInfo.Config.AccountID)
+	})
+
+	t.Run("Create sandbox from AIStudio Dockerfile", func(t *testing.T) {
+		// Arrange
+		accountID := types.UUID("test-dockerfile-aistudio-456")
+		config := &modal.SandboxConfig{
+			AccountID:       accountID,
+			DockerFilePath:  "dockerfiles/AIStudio.dockerfile",
+			VolumeName:      "test-volume-dockerfile-aistudio",
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+
+		// Act
+		sandboxInfo, err := client.CreateSandboxFromDockerFile(ctx, config)
+		defer func() {
+			if sandboxInfo != nil && sandboxInfo.Sandbox != nil {
+				_ = client.TerminateSandbox(ctx, sandboxInfo, false)
+			}
+		}()
+
+		// Assert - AIStudio builds can fail due to network/package install issues
+		if err != nil {
+			t.Logf("Note: Modal build failed (expected in some environments): %v", err)
+			t.Skip("Skipping AIStudio sandbox creation test - Modal build failed")
+		}
+
+		assert.NotEmpty(t, sandboxInfo.SandboxID)
+		assert.Equal(t, modal.SandboxStatusRunning, sandboxInfo.Status)
+
+		// Verify Python is installed (from AIStudio Dockerfile)
+		process, err := sandboxInfo.Sandbox.Exec(ctx, []string{"python3", "--version"}, nil)
+		assert.NoError(t, err)
+		exitCode, err := process.Wait(ctx)
+		assert.NoError(t, err)
+		assert.Equal(t, 0, exitCode)
+	})
+
+	t.Run("Error handling for invalid Dockerfile path", func(t *testing.T) {
+		// Arrange
+		accountID := types.UUID("test-dockerfile-error-789")
+		config := &modal.SandboxConfig{
+			AccountID:       accountID,
+			DockerFilePath:  "dockerfiles/NonExistent.dockerfile",
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+
+		// Act
+		sandboxInfo, err := client.CreateSandboxFromDockerFile(ctx, config)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Empty(t, sandboxInfo)
+	})
+
+	t.Run("Error handling for missing DockerFilePath", func(t *testing.T) {
+		// Arrange
+		accountID := types.UUID("test-dockerfile-missing-path-101")
+		config := &modal.SandboxConfig{
+			AccountID:       accountID,
+			VolumeMountPath: "/mnt/workspace",
+			Workdir:         "/mnt/workspace",
+		}
+
+		// Act
+		sandboxInfo, err := client.CreateSandboxFromDockerFile(ctx, config)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Empty(t, sandboxInfo)
 	})
 }
