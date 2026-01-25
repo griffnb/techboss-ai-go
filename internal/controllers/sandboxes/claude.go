@@ -1,6 +1,7 @@
 package sandboxes
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -11,20 +12,44 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
 	"github.com/griffnb/techboss-ai-go/internal/models/sandbox"
 	"github.com/griffnb/techboss-ai-go/internal/services/sandbox_service"
+	"github.com/pkg/errors"
 )
+
+// ContentItem represents a single content block with type and text.
+type ContentItem struct {
+	Type string `json:"type"`
+	Text string `json:"text"`
+}
+
+// MessageContent handles both string and array content formats.
+type MessageContent []ContentItem
+
+// UnmarshalJSON implements custom unmarshaling to handle content as either string or array.
+func (mc *MessageContent) UnmarshalJSON(data []byte) error {
+	// Try to unmarshal as string first
+	var str string
+	if err := json.Unmarshal(data, &str); err == nil {
+		*mc = MessageContent{{Type: "text", Text: str}}
+		return nil
+	}
+
+	// If not a string, try as array of ContentItem
+	var items []ContentItem
+	if err := json.Unmarshal(data, &items); err != nil {
+		return err
+	}
+	*mc = items
+	return nil
+}
 
 // ClaudeRequest holds request data for Claude execution.
 // It contains the prompt that will be sent to Claude Code CLI.
 type ClaudeRequest struct {
 	Model    string `json:"model"` // Model to use (optional, default handled by service)
 	Messages []struct {
-		Role    string `json:"role"` // Role of the message (e.g., "user", "assistant")
-		Content []struct {
-			Type string `json:"type"` // Type of content (e.g., "text")
-			Text string `json:"text"`
-		} `json:"content"` // Content of the message
+		Role    string         `json:"role"`    // Role of the message (e.g., "user", "assistant")
+		Content MessageContent `json:"content"` // Content of the message (string or array)
 	} `json:"messages"` // Conversation messages
-	// Prompt string `json:"prompt"` // Prompt to send to Claude Code CLI
 }
 
 // streamClaude executes Claude Code CLI in a sandbox and streams output using SSE.
@@ -49,13 +74,18 @@ func adminStreamClaude(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Find the last message with role "user"
 	var prompt string
-	if len(data.Messages) > 0 && len(data.Messages[0].Content) > 0 {
-		prompt = data.Messages[0].Content[0].Text
+	for i := len(data.Messages) - 1; i >= 0; i-- {
+		if data.Messages[i].Role == "user" && len(data.Messages[i].Content) > 0 {
+			prompt = data.Messages[i].Content[0].Text
+			break
+		}
 	}
 
 	// Validate prompt not empty
 	if tools.Empty(prompt) {
+		log.ErrorContext(errors.Errorf("prompt is required"), req.Context())
 		http.Error(w, "prompt is required", http.StatusBadRequest)
 		return
 	}

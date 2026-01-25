@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -69,6 +70,8 @@ func ProcessStream(
 		if line == "" {
 			continue
 		}
+
+		fmt.Println("[Claude Stream Line] ", line)
 
 		// Parse Claude event
 		message, err := ParseClaudeEvent(line)

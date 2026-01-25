@@ -217,7 +217,7 @@ func (c *APIClient) StreamClaudeOutput(ctx context.Context, claudeProcess *Claud
 	responseWriter.Header().Set("Content-Type", "text/event-stream")
 	responseWriter.Header().Set("Cache-Control", "no-cache")
 	responseWriter.Header().Set("Connection", "keep-alive")
-	responseWriter.Header().Set("Access-Control-Allow-Origin", "*")
+	responseWriter.Header().Set("Access-Control-Allow-Origin", req.Header.Get("Origin"))
 
 	// Verify flusher is available for real-time streaming
 	_, ok := responseWriter.(http.Flusher)
