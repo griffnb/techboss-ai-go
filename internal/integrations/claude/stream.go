@@ -464,6 +464,30 @@ func handleAssistantMessage(
 	// Extract tools
 	tools := ExtractToolUses(content)
 
+	// Process text blocks first and emit text events
+	for _, block := range content {
+		if block.Type == "text" && block.Text != nil {
+			// Start text part if not already started
+			if *textPartID == nil {
+				partID := uuid.New().String()
+				*textPartID = &partID
+				err := EmitTextStart(writer, partID)
+				if err != nil {
+					return errors.Wrapf(err, "failed to emit text-start")
+				}
+			}
+
+			// Emit text delta
+			err := EmitTextDelta(writer, **textPartID, *block.Text)
+			if err != nil {
+				return errors.Wrapf(err, "failed to emit text-delta")
+			}
+
+			// Accumulate text (WriteString on strings.Builder never errors in practice)
+			_, _ = accumulatedText.WriteString(*block.Text)
+		}
+	}
+
 	// Close any active text part before tool calls start
 	if *textPartID != nil && len(tools) > 0 {
 		err := EmitTextEnd(writer, **textPartID)
@@ -548,13 +572,6 @@ func handleAssistantMessage(
 		}
 	}
 
-	// Extract and accumulate text
-	for _, block := range content {
-		if block.Type == "text" && block.Text != nil {
-			accumulatedText.WriteString(*block.Text)
-		}
-	}
-
 	return nil
 }
 
@@ -605,6 +622,15 @@ func handleUserMessage(
 
 		// Ensure tool-call is emitted
 		if !state.CallEmitted {
+			// If input wasn't closed yet, close it now
+			if !state.InputClosed {
+				err := EmitToolInputEnd(writer, result.ID)
+				if err != nil {
+					return errors.Wrapf(err, "failed to emit tool-input-end")
+				}
+				state.InputClosed = true
+			}
+
 			input := ""
 			if state.LastSerializedInput != nil {
 				input = *state.LastSerializedInput
@@ -665,6 +691,15 @@ func handleUserMessage(
 
 		// Ensure tool-call is emitted
 		if !state.CallEmitted {
+			// If input wasn't closed yet, close it now
+			if !state.InputClosed {
+				err := EmitToolInputEnd(writer, toolError.ID)
+				if err != nil {
+					return errors.Wrapf(err, "failed to emit tool-input-end")
+				}
+				state.InputClosed = true
+			}
+
 			input := ""
 			if state.LastSerializedInput != nil {
 				input = *state.LastSerializedInput
