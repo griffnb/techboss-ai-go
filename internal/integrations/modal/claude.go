@@ -2,16 +2,12 @@ package modal
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
-	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
-	"github.com/griffnb/techboss-ai-go/internal/integrations/claude"
 	"github.com/modal-labs/libmodal/modal-go"
 	"github.com/pkg/errors"
 )
@@ -199,102 +195,4 @@ func (c *APIClient) WaitForClaude(ctx context.Context, claudeProcess *ClaudeProc
 	}
 
 	return exitCode, nil
-}
-
-// StreamClaudeOutput streams Claude output to http.ResponseWriter using Server-Sent Events (SSE).
-// It uses the structured streaming parser to emit typed events (text-delta, tool-call, etc.)
-// according to the Vercel AI SDK specification. Token usage is automatically tracked.
-func (c *APIClient) StreamClaudeOutput(ctx context.Context, claudeProcess *ClaudeProcess, responseWriter http.ResponseWriter) error {
-	// Validate inputs
-	if claudeProcess == nil || claudeProcess.Process == nil {
-		return errors.New("claudeProcess or process cannot be nil")
-	}
-	if responseWriter == nil {
-		return errors.New("responseWriter cannot be nil")
-	}
-
-	// Set SSE headers (must be set before any writes)
-	responseWriter.Header().Set("Content-Type", "text/event-stream")
-	responseWriter.Header().Set("Cache-Control", "no-cache")
-	responseWriter.Header().Set("Connection", "keep-alive")
-	responseWriter.Header().Set("Access-Control-Allow-Origin", req.Header.Get("Origin"))
-
-	// Verify flusher is available for real-time streaming
-	_, ok := responseWriter.(http.Flusher)
-	if !ok {
-		return errors.New("response writer does not support flushing")
-	}
-
-	// Use structured streaming parser to process Claude output
-	// This emits typed SSE events per Vercel AI SDK spec and updates token usage
-	tokenCallback := func(inputTokens, outputTokens, cacheTokens int64) {
-		claudeProcess.InputTokens = inputTokens
-		claudeProcess.OutputTokens = outputTokens
-		claudeProcess.CacheTokens = cacheTokens
-	}
-
-	err := claude.ProcessStream(ctx, claudeProcess.Process.Stdout, responseWriter, tokenCallback)
-	if err != nil {
-		return errors.Wrapf(err, "failed to process Claude stream")
-	}
-
-	// Log token usage (updated by ProcessStream via callback)
-	log.Info(fmt.Sprintf("[Token Usage] input=%d output=%d cache=%d total=%d",
-		claudeProcess.InputTokens,
-		claudeProcess.OutputTokens,
-		claudeProcess.CacheTokens,
-		claudeProcess.InputTokens+claudeProcess.OutputTokens+claudeProcess.CacheTokens))
-
-	return nil
-}
-
-// IsFinalSummary checks if the line contains Claude's final token usage summary.
-// Claude returns a JSON event with "usage_stats" field at the end of streaming.
-func IsFinalSummary(line string) bool {
-	if tools.Empty(line) {
-		return false
-	}
-
-	// Check if line contains usage_stats field (indicates token summary)
-	return strings.Contains(line, "usage_stats")
-}
-
-// ParseTokenSummary extracts token usage from Claude's final summary event.
-// Returns TokenUsage if successfully parsed, nil otherwise.
-func ParseTokenSummary(line string) *TokenUsage {
-	if tools.Empty(line) {
-		return nil
-	}
-
-	// First check if usage_stats field exists
-	var checkMap map[string]interface{}
-	err := json.Unmarshal([]byte(line), &checkMap)
-	if err != nil {
-		return nil
-	}
-
-	// Verify usage_stats field exists
-	if _, ok := checkMap["usage_stats"]; !ok {
-		return nil
-	}
-
-	// Parse JSON structure
-	var summary struct {
-		UsageStats struct {
-			InputTokens     int64 `json:"input_tokens"`
-			OutputTokens    int64 `json:"output_tokens"`
-			CacheReadTokens int64 `json:"cache_read_tokens"`
-		} `json:"usage_stats"`
-	}
-
-	err = json.Unmarshal([]byte(line), &summary)
-	if err != nil {
-		return nil
-	}
-
-	return &TokenUsage{
-		InputTokens:  summary.UsageStats.InputTokens,
-		OutputTokens: summary.UsageStats.OutputTokens,
-		CacheTokens:  summary.UsageStats.CacheReadTokens,
-	}
 }

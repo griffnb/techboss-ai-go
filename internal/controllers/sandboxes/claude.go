@@ -61,8 +61,8 @@ type ClaudeRequest struct {
 // 1. Parse request and validate prompt
 // 2. Retrieve sandboxInfo from database with ownership verification
 // 3. Build ClaudeExecConfig
-// 4. Call service.ExecuteClaudeStream which handles SSE headers and streaming
-// 5. Service layer streams output line by line with [DONE] event at completion
+// 4. Call service.ExecuteClaudeStream which sets SSE headers and streams formatted output
+// 5. Service layer calls claude.ProcessStream to emit typed SSE events per Vercel AI SDK spec
 func adminStreamClaude(w http.ResponseWriter, req *http.Request) {
 	id := chi.URLParam(req, "id")
 

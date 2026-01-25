@@ -21,7 +21,7 @@ func ExtractToolUses(content []ContentBlock) []ClaudeToolUse {
 		}
 
 		// Extract ID, generate if missing or empty
-		id := ""
+		var id string
 		if block.ID != nil && *block.ID != "" {
 			id = *block.ID
 		} else {
@@ -62,7 +62,7 @@ func ExtractToolResults(content []ContentBlock) []ClaudeToolResult {
 		}
 
 		// Extract tool_use_id, generate if missing or empty
-		id := ""
+		var id string
 		if block.ToolUseID != nil && *block.ToolUseID != "" {
 			id = *block.ToolUseID
 		} else {
@@ -103,7 +103,7 @@ func ExtractToolErrors(content []ContentBlock) []ClaudeToolError {
 		}
 
 		// Extract tool_use_id, generate if missing or empty
-		id := ""
+		var id string
 		if block.ToolUseID != nil && *block.ToolUseID != "" {
 			id = *block.ToolUseID
 		} else {

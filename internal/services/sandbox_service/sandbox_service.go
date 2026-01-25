@@ -8,8 +8,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
+	"github.com/griffnb/techboss-ai-go/internal/integrations/claude"
 	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
 	"github.com/pkg/errors"
 )
@@ -107,9 +109,10 @@ func (s *SandboxService) TerminateSandbox(
 	return nil
 }
 
-// ExecuteClaudeStream executes Claude and streams output to HTTP response.
-// It combines ExecClaude and StreamClaudeOutput into a single operation for convenience.
-// This method validates the config and handles the complete streaming lifecycle.
+// ExecuteClaudeStream executes Claude and streams output to HTTP response using SSE.
+// It executes Claude via the integration layer, sets SSE headers, and streams formatted
+// output using the claude package's ProcessStream function. Token usage is automatically
+// tracked via callback during streaming.
 // Returns the ClaudeProcess which contains:
 // - Token usage information (InputTokens, OutputTokens, CacheTokens) populated during streaming
 // - Full response body (ResponseBody) captured during streaming
@@ -133,20 +136,36 @@ func (s *SandboxService) ExecuteClaudeStream(
 		return nil, errors.New("responseWriter cannot be nil")
 	}
 
-	// Execute Claude via integration layer
+	// Execute Claude via integration layer (returns process with raw stdout)
 	claudeProcess, err := s.client.ExecClaude(ctx, sandboxInfo, config)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to execute Claude in sandbox %s", sandboxInfo.SandboxID)
 	}
 
-	// Stream output to HTTP response
-	// This populates both:
-	// 1. Token fields (InputTokens, OutputTokens, CacheTokens) by parsing final summary event
-	// 2. ResponseBody field by capturing all output lines during streaming
-	err = s.client.StreamClaudeOutput(ctx, claudeProcess, responseWriter)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to stream Claude output for sandbox %s", sandboxInfo.SandboxID)
+	// Set additional SSE headers (Content-Type already set by NoTimeoutStreamingMiddleware)
+	responseWriter.Header().Set("Cache-Control", "no-cache")
+	responseWriter.Header().Set("Connection", "keep-alive")
+
+	// Create token callback closure to update claudeProcess fields during streaming
+	tokenCallback := func(inputTokens, outputTokens, cacheTokens int64) {
+		claudeProcess.InputTokens = inputTokens
+		claudeProcess.OutputTokens = outputTokens
+		claudeProcess.CacheTokens = cacheTokens
 	}
+
+	// Stream and format output using claude package
+	// This emits typed SSE events per Vercel AI SDK spec and updates token usage via callback
+	err = claude.ProcessStream(ctx, claudeProcess.Process.Stdout, responseWriter, tokenCallback)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to process Claude stream for sandbox %s", sandboxInfo.SandboxID)
+	}
+
+	// Log token usage (updated by ProcessStream via callback)
+	log.Info(fmt.Sprintf("[Token Usage] input=%d output=%d cache=%d total=%d",
+		claudeProcess.InputTokens,
+		claudeProcess.OutputTokens,
+		claudeProcess.CacheTokens,
+		claudeProcess.InputTokens+claudeProcess.OutputTokens+claudeProcess.CacheTokens))
 
 	// TODO: Log Claude execution for audit trail
 	// TODO: Track Claude usage for billing

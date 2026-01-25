@@ -4,7 +4,6 @@ package modal
 
 import (
 	context "context"
-	http "net/http"
 
 	types "github.com/griffnb/core/lib/types"
 )
@@ -17,7 +16,6 @@ type APIClientInterface interface {
 	GetSandboxStatus(_ context.Context, sandboxID string) (SandboxStatus, error)
 	GetSandboxStatusFromInfo(ctx context.Context, sandboxInfo *SandboxInfo) (SandboxStatus, error)
 	InitVolumeFromS3(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
-	StreamClaudeOutput(ctx context.Context, claudeProcess *ClaudeProcess, responseWriter http.ResponseWriter) error
 	SyncVolumeToS3(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
 	TerminateSandbox(ctx context.Context, sandboxInfo *SandboxInfo, syncToS3 bool) error
 	WaitForClaude(ctx context.Context, claudeProcess *ClaudeProcess) (int, error)
@@ -31,7 +29,6 @@ type MockAPIClient struct {
 	GetSandboxStatusFunc         func(_ context.Context, sandboxID string) (SandboxStatus, error)
 	GetSandboxStatusFromInfoFunc func(ctx context.Context, sandboxInfo *SandboxInfo) (SandboxStatus, error)
 	InitVolumeFromS3Func         func(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
-	StreamClaudeOutputFunc       func(ctx context.Context, claudeProcess *ClaudeProcess, responseWriter http.ResponseWriter) error
 	SyncVolumeToS3Func           func(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
 	TerminateSandboxFunc         func(ctx context.Context, sandboxInfo *SandboxInfo, syncToS3 bool) error
 	WaitForClaudeFunc            func(ctx context.Context, claudeProcess *ClaudeProcess) (int, error)
@@ -101,17 +98,6 @@ func (m *MockAPIClient) InitVolumeFromS3(ctx context.Context, sandboxInfo *Sandb
 		return nil, nil
 	}
 	return m.APIClient.InitVolumeFromS3(ctx, sandboxInfo)
-}
-
-// StreamClaudeOutput overrides the real implementation for MockAPIClient.
-func (m *MockAPIClient) StreamClaudeOutput(ctx context.Context, claudeProcess *ClaudeProcess, responseWriter http.ResponseWriter) error {
-	if m.StreamClaudeOutputFunc != nil {
-		return m.StreamClaudeOutputFunc(ctx, claudeProcess, responseWriter)
-	}
-	if m.APIClient == nil {
-		return nil
-	}
-	return m.APIClient.StreamClaudeOutput(ctx, claudeProcess, responseWriter)
 }
 
 // SyncVolumeToS3 overrides the real implementation for MockAPIClient.

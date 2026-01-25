@@ -1,11 +1,8 @@
 package modal_test
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"net/http"
-	"strings"
 	"testing"
 	"time"
 
@@ -99,25 +96,12 @@ func TestCompleteSandboxLifecycleWithClaude(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, claudeProcess)
 		assert.NotEmpty(t, claudeProcess.Process)
+		assert.NotEmpty(t, claudeProcess.Process.Stdout, "Process should have stdout available")
 		t.Logf("✓ Claude process started at %v", claudeProcess.StartedAt)
 
-		// Step 4: Stream output and verify response
-		t.Log("Step 4: Streaming Claude output...")
-		recorder := &responseRecorder{
-			header: make(map[string][]string),
-			body:   &bytes.Buffer{},
-		}
-
-		err = client.StreamClaudeOutput(ctx, claudeProcess, recorder)
-		assert.NoError(t, err)
-
-		// Verify streaming worked
-		output := recorder.body.String()
-		assert.True(t, len(output) > 0, "Claude output should not be empty")
-		assert.True(t, strings.Contains(output, "data: [DONE]"), "Output should contain completion event")
-		t.Logf("✓ Claude output streamed: %d bytes", len(output))
-
-		// Wait for Claude to complete
+		// Step 4: Wait for Claude to complete
+		// NOTE: Streaming is now handled at service layer (sandbox_service.ExecuteClaudeStream)
+		// Integration tests only verify that ExecClaude returns a valid process
 		t.Log("Waiting for Claude process to complete...")
 		claudeExitCode, err := client.WaitForClaude(ctx, claudeProcess)
 		assert.NoError(t, err)
@@ -287,16 +271,15 @@ func TestCompleteSandboxLifecycleWithClaude(t *testing.T) {
 		}
 		claudeProcess, err := client.ExecClaude(ctx, sandboxInfo, claudeConfig)
 		assert.NoError(t, err)
+		assert.NotEmpty(t, claudeProcess.Process.Stdout, "Process should have stdout available")
 		t.Log("✓ Claude executed")
 
-		// Stream output
-		recorder := &responseRecorder{
-			header: make(http.Header),
-			body:   &bytes.Buffer{},
-		}
-		err = client.StreamClaudeOutput(ctx, claudeProcess, recorder)
+		// NOTE: Streaming is now handled at service layer
+		// Integration tests only verify ExecClaude returns valid process
+		// Wait for process to complete
+		_, err = client.WaitForClaude(ctx, claudeProcess)
 		assert.NoError(t, err)
-		t.Log("✓ Output streamed")
+		t.Log("✓ Claude process completed")
 
 		// Sync to S3
 		t.Log("Syncing to S3...")
@@ -668,19 +651,14 @@ func TestSandboxWithAllConfigurationOptions(t *testing.T) {
 		claudeProcess, err := client.ExecClaude(ctx, sandboxInfo, claudeConfig)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, claudeProcess)
+		assert.NotEmpty(t, claudeProcess.Process.Stdout, "Process should have stdout available")
 		t.Log("✓ Claude execution started")
 
-		// Stream output
-		recorder := &responseRecorder{
-			header: make(http.Header),
-			body:   &bytes.Buffer{},
-		}
-
-		err = client.StreamClaudeOutput(ctx, claudeProcess, recorder)
+		// NOTE: Streaming is now handled at service layer
+		// Wait for process to complete
+		_, err = client.WaitForClaude(ctx, claudeProcess)
 		assert.NoError(t, err)
-		output := recorder.body.String()
-		assert.True(t, len(output) > 0)
-		t.Log("✓ Claude output streamed successfully")
+		t.Log("✓ Claude process completed")
 
 		// Test storage operations
 		t.Log("Testing storage operations with full configuration...")

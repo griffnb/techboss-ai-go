@@ -74,7 +74,7 @@ func (s *ConversationService) StreamClaudeWithHooks(
 	}
 
 	// 4. Extract token usage from Claude process
-	// StreamClaudeOutput populates the token fields when it parses the final summary event
+	// ExecuteClaudeStream populates the token fields when it parses the final summary event
 	tokenUsage := &lifecycle.TokenUsage{
 		InputTokens:  claudeProcess.InputTokens,
 		OutputTokens: claudeProcess.OutputTokens,
@@ -86,7 +86,7 @@ func (s *ConversationService) StreamClaudeWithHooks(
 	totalTokens := claudeProcess.OutputTokens
 
 	// 6. Save assistant message with captured response body and token count
-	// ResponseBody is captured during streaming by StreamClaudeOutput
+	// ResponseBody is captured during streaming by ExecuteClaudeStream
 	_, err = s.SaveAssistantMessage(ctx, conversationID, sandboxInfo, template, claudeProcess.ResponseBody, totalTokens)
 	if err != nil {
 		log.Errorf(err, "Failed to save assistant message for conversation %s", conversationID)
