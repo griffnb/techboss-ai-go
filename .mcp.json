@@ -4,6 +4,10 @@
       "type": "stdio",
       "command": "./scripts/make_mcp.sh",
       "args": []
+    },
+    "ckb": {
+      "command": "npx",
+      "args": ["@tastehub/ckb", "mcp"]
     }
   }
 }

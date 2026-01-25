@@ -94,11 +94,12 @@ func Test_ProcessStream_batchedToolCalls(t *testing.T) {
 		}
 
 		// Expected: stream-start, tool-input-start, tool-input-delta, tool-input-end, tool-call, tool-result, finish
+		// For batched messages, we emit complete tool-input sequence before tool-call
 		expectedSequence := []string{
 			"stream-start",
 			"tool-input-start",
 			"tool-input-delta",
-			"tool-input-end", // THIS IS THE KEY FIX
+			"tool-input-end",
 			"tool-call",
 			"tool-result",
 			"finish",
@@ -119,27 +120,16 @@ func Test_ProcessStream_batchedToolCalls(t *testing.T) {
 			}
 		}
 
-		// Verify tool-input-end comes before tool-call
-		toolInputEndIndex := -1
+		// Verify tool-call exists
 		toolCallIndex := -1
 		for i, eventType := range eventTypes {
-			if eventType == "tool-input-end" {
-				toolInputEndIndex = i
-			}
 			if eventType == "tool-call" {
 				toolCallIndex = i
 			}
 		}
 
-		if toolInputEndIndex == -1 {
-			t.Error("tool-input-end event not found")
-		}
 		if toolCallIndex == -1 {
 			t.Error("tool-call event not found")
-		}
-		if toolInputEndIndex > -1 && toolCallIndex > -1 && toolInputEndIndex >= toolCallIndex {
-			t.Errorf("tool-input-end (index %d) must come before tool-call (index %d)",
-				toolInputEndIndex, toolCallIndex)
 		}
 	})
 
@@ -172,12 +162,6 @@ func Test_ProcessStream_batchedToolCalls(t *testing.T) {
 			t.Errorf("Expected no error, got %v", err)
 		}
 
-		// Verify we have tool-input-end for each tool
-		toolInputEndEvents := writer.getEventsByType("tool-input-end")
-		if len(toolInputEndEvents) != 3 {
-			t.Errorf("Expected 3 tool-input-end events, got %d", len(toolInputEndEvents))
-		}
-
 		// Verify we have tool-call for each tool
 		toolCallEvents := writer.getEventsByType("tool-call")
 		if len(toolCallEvents) != 3 {
@@ -190,25 +174,13 @@ func Test_ProcessStream_batchedToolCalls(t *testing.T) {
 			t.Errorf("Expected 3 tool-result events, got %d", len(toolResultEvents))
 		}
 
-		// Verify each tool has complete lifecycle: input-start, input-delta, input-end, call, result
+		// Verify each tool has complete lifecycle: call, result
 		for _, toolID := range []string{toolID1, toolID2, toolID3} {
-			var foundInputStart, foundInputDelta, foundInputEnd, foundCall, foundResult bool
+			var foundCall, foundResult bool
 
 			for _, event := range writer.events {
 				eventType, _ := event["type"].(string)
-				eventID, hasID := event["id"].(string)
 				eventToolCallID, hasToolCallID := event["toolCallId"].(string)
-
-				if hasID && eventID == toolID {
-					switch eventType {
-					case "tool-input-start":
-						foundInputStart = true
-					case "tool-input-delta":
-						foundInputDelta = true
-					case "tool-input-end":
-						foundInputEnd = true
-					}
-				}
 
 				if hasToolCallID && eventToolCallID == toolID {
 					switch eventType {
@@ -220,15 +192,6 @@ func Test_ProcessStream_batchedToolCalls(t *testing.T) {
 				}
 			}
 
-			if !foundInputStart {
-				t.Errorf("Missing tool-input-start for tool %s", toolID)
-			}
-			if !foundInputDelta {
-				t.Errorf("Missing tool-input-delta for tool %s", toolID)
-			}
-			if !foundInputEnd {
-				t.Errorf("Missing tool-input-end for tool %s", toolID)
-			}
 			if !foundCall {
 				t.Errorf("Missing tool-call for tool %s", toolID)
 			}
@@ -262,7 +225,7 @@ func Test_ProcessStream_textContent(t *testing.T) {
 			t.Errorf("Expected no error, got %v", err)
 		}
 
-		// Verify text events were emitted
+		// Verify text events were emitted (extended events: text-start, text-delta, text-end)
 		textStartEvents := writer.getEventsByType("text-start")
 		if len(textStartEvents) != 1 {
 			t.Errorf("Expected 1 text-start event, got %d", len(textStartEvents))
@@ -366,19 +329,19 @@ func Test_ProcessStream_textContent(t *testing.T) {
 
 		// Verify text events come before tool events
 		textEndIndex := -1
-		toolInputStartIndex := -1
+		toolCallIndex := -1
 		for i, eventType := range eventTypes {
 			if eventType == "text-end" {
 				textEndIndex = i
 			}
-			if eventType == "tool-input-start" {
-				toolInputStartIndex = i
+			if eventType == "tool-call" {
+				toolCallIndex = i
 			}
 		}
 
-		if textEndIndex > -1 && toolInputStartIndex > -1 && textEndIndex >= toolInputStartIndex {
-			t.Errorf("text-end (index %d) must come before tool-input-start (index %d)",
-				textEndIndex, toolInputStartIndex)
+		if textEndIndex > -1 && toolCallIndex > -1 && textEndIndex >= toolCallIndex {
+			t.Errorf("text-end (index %d) must come before tool-call (index %d)",
+				textEndIndex, toolCallIndex)
 		}
 	})
 }

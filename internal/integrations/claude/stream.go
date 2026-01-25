@@ -189,7 +189,7 @@ func handleStreamEvent(
 		return handleContentBlockStart(event, parser, writer, textPartID, currentReasoningPartID, reasoningBlocksByIndex)
 
 	case "content_block_delta":
-		return handleContentBlockDelta(event, parser, writer, *textPartID, *currentReasoningPartID, reasoningBlocksByIndex)
+		return handleContentBlockDelta(event, parser, writer, *currentReasoningPartID, reasoningBlocksByIndex)
 
 	case "content_block_stop":
 		return handleContentBlockStop(event, parser, writer, textPartID, currentReasoningPartID, reasoningBlocksByIndex)
@@ -247,7 +247,7 @@ func handleContentBlockStart(
 		// Create tool state
 		parser.toolStates[toolID] = &ToolStreamState{
 			Name:             toolName,
-			InputStarted:     true,
+			InputStarted:     false,
 			InputClosed:      false,
 			CallEmitted:      false,
 			ParentToolCallID: parentToolCallID,
@@ -262,14 +262,15 @@ func handleContentBlockStart(
 			parser.TrackTaskTool(toolID, true)
 		}
 
-		// Emit tool-input-start
+		// Emit tool-input-start (matches claude-code reference)
 		err := EmitToolInputStart(writer, toolID, toolName, parentToolCallID)
 		if err != nil {
 			return errors.Wrapf(err, "failed to emit tool-input-start")
 		}
+		parser.toolStates[toolID].InputStarted = true
 
 	case "text":
-		// Generate text part ID
+		// Generate text part ID and emit text-start
 		partID := uuid.New().String()
 		parser.textBlocksByIndex[index] = partID
 		*textPartID = &partID
@@ -309,7 +310,6 @@ func handleContentBlockDelta(
 	event *StreamEventDetails,
 	parser *StreamParser,
 	writer http.ResponseWriter,
-	textPartID *string,
 	currentReasoningPartID *string,
 	reasoningBlocksByIndex map[int]string,
 ) error {
@@ -325,10 +325,14 @@ func handleContentBlockDelta(
 
 	switch delta.Type {
 	case "text_delta":
-		if delta.Text != nil && textPartID != nil {
-			err := EmitTextDelta(writer, *textPartID, *delta.Text)
-			if err != nil {
-				return errors.Wrapf(err, "failed to emit text-delta")
+		if delta.Text != nil {
+			// Get text part ID from the text blocks map
+			textID, ok := parser.textBlocksByIndex[index]
+			if ok {
+				err := EmitTextDelta(writer, textID, *delta.Text)
+				if err != nil {
+					return errors.Wrapf(err, "failed to emit text-delta")
+				}
 			}
 		}
 
@@ -336,14 +340,17 @@ func handleContentBlockDelta(
 		if delta.PartialJSON != nil {
 			// Route to tool-input-delta if we have a tracked tool
 			if toolID, ok := parser.toolBlocksByIndex[index]; ok {
-				// Accumulate input
-				current := parser.toolInputAccumulators[toolID]
-				parser.toolInputAccumulators[toolID] = current + *delta.PartialJSON
+				state := parser.toolStates[toolID]
+				if state != nil {
+					// Accumulate input
+					current := parser.toolInputAccumulators[toolID]
+					parser.toolInputAccumulators[toolID] = current + *delta.PartialJSON
 
-				// Emit delta
-				err := EmitToolInputDelta(writer, toolID, *delta.PartialJSON)
-				if err != nil {
-					return errors.Wrapf(err, "failed to emit tool-input-delta")
+					// Emit tool-input-delta (matches claude-code reference)
+					err := EmitToolInputDelta(writer, toolID, *delta.PartialJSON)
+					if err != nil {
+						return errors.Wrapf(err, "failed to emit tool-input-delta")
+					}
 				}
 			}
 		}
@@ -391,15 +398,17 @@ func handleContentBlockStop(
 			accumulatedInput := parser.toolInputAccumulators[toolID]
 			state.LastSerializedInput = &accumulatedInput
 
-			// Emit tool-input-end
-			err := EmitToolInputEnd(writer, toolID)
-			if err != nil {
-				return errors.Wrapf(err, "failed to emit tool-input-end")
+			// Emit tool-input-end if input was started (matches claude-code reference)
+			if state.InputStarted && !state.InputClosed {
+				err := EmitToolInputEnd(writer, toolID)
+				if err != nil {
+					return errors.Wrapf(err, "failed to emit tool-input-end")
+				}
+				state.InputClosed = true
 			}
-			state.InputClosed = true
 
-			// Emit tool-call immediately
-			err = EmitToolCall(writer, toolID, state.Name, accumulatedInput, state.ParentToolCallID)
+			// Emit tool-call with complete input (matches claude-code reference)
+			err := EmitToolCall(writer, toolID, state.Name, accumulatedInput, state.ParentToolCallID)
 			if err != nil {
 				return errors.Wrapf(err, "failed to emit tool-call")
 			}
@@ -414,6 +423,7 @@ func handleContentBlockStop(
 
 	// Check if this is a text block
 	if textID, ok := parser.textBlocksByIndex[index]; ok {
+		// Emit text-end
 		err := EmitTextEnd(writer, textID)
 		if err != nil {
 			return errors.Wrapf(err, "failed to emit text-end")
@@ -464,7 +474,7 @@ func handleAssistantMessage(
 	// Extract tools
 	tools := ExtractToolUses(content)
 
-	// Process text blocks first and emit text events
+	// Process text blocks first and emit text events using extended events
 	for _, block := range content {
 		if block.Type == "text" && block.Text != nil {
 			// Start text part if not already started
@@ -534,40 +544,19 @@ func handleAssistantMessage(
 			state.ParentToolCallID = sdkParentToolUseID
 		}
 
-		// Start input if not started
-		if !state.InputStarted {
-			err := EmitToolInputStart(writer, toolID, tool.Name, state.ParentToolCallID)
-			if err != nil {
-				return errors.Wrapf(err, "failed to emit tool-input-start")
-			}
-			state.InputStarted = true
-		}
-
 		// Serialize input
 		serializedInput := serializeToolInput(tool.Input)
 		if serializedInput != "" {
-			// Emit delta if needed
-			if state.LastSerializedInput == nil {
-				// First input - emit full delta if reasonable size
-				if len(serializedInput) <= 10000 {
-					err := EmitToolInputDelta(writer, toolID, serializedInput)
-					if err != nil {
-						return errors.Wrapf(err, "failed to emit tool-input-delta")
-					}
+			// For batched messages, emit tool-input-start if not already started
+			if !state.InputStarted {
+				err := EmitToolInputStart(writer, toolID, tool.Name, state.ParentToolCallID)
+				if err != nil {
+					return errors.Wrapf(err, "failed to emit tool-input-start for batched message")
 				}
-			} else if len(serializedInput) <= 10000 && len(*state.LastSerializedInput) <= 10000 {
-				// Calculate delta
-				if strings.HasPrefix(serializedInput, *state.LastSerializedInput) {
-					deltaStr := serializedInput[len(*state.LastSerializedInput):]
-					if deltaStr != "" {
-						err := EmitToolInputDelta(writer, toolID, deltaStr)
-						if err != nil {
-							return errors.Wrapf(err, "failed to emit tool-input-delta")
-						}
-					}
-				}
+				state.InputStarted = true
 			}
 
+			// Store the input for later emission
 			state.LastSerializedInput = &serializedInput
 		}
 	}
@@ -620,10 +609,33 @@ func handleUserMessage(
 			parser.toolStates[result.ID] = state
 		}
 
-		// Ensure tool-call is emitted
+		// Ensure tool-call is emitted (matches claude-code reference)
 		if !state.CallEmitted {
-			// If input wasn't closed yet, close it now
+			input := ""
+			if state.LastSerializedInput != nil {
+				input = *state.LastSerializedInput
+			}
+
+			// Emit tool-input events for batched messages
+			if !state.InputStarted {
+				// Emit tool-input-start
+				err := EmitToolInputStart(writer, result.ID, toolName, state.ParentToolCallID)
+				if err != nil {
+					return errors.Wrapf(err, "failed to emit tool-input-start")
+				}
+				state.InputStarted = true
+			}
+
+			if !state.InputClosed && input != "" {
+				// Emit tool-input-delta with complete input
+				err := EmitToolInputDelta(writer, result.ID, input)
+				if err != nil {
+					return errors.Wrapf(err, "failed to emit tool-input-delta")
+				}
+			}
+
 			if !state.InputClosed {
+				// Emit tool-input-end
 				err := EmitToolInputEnd(writer, result.ID)
 				if err != nil {
 					return errors.Wrapf(err, "failed to emit tool-input-end")
@@ -631,10 +643,7 @@ func handleUserMessage(
 				state.InputClosed = true
 			}
 
-			input := ""
-			if state.LastSerializedInput != nil {
-				input = *state.LastSerializedInput
-			}
+			// Emit tool-call with complete input
 			err := EmitToolCall(writer, result.ID, toolName, input, state.ParentToolCallID)
 			if err != nil {
 				return errors.Wrapf(err, "failed to emit tool-call")
@@ -689,10 +698,33 @@ func handleUserMessage(
 			parser.toolStates[toolError.ID] = state
 		}
 
-		// Ensure tool-call is emitted
+		// Ensure tool-call is emitted (matches claude-code reference)
 		if !state.CallEmitted {
-			// If input wasn't closed yet, close it now
+			input := ""
+			if state.LastSerializedInput != nil {
+				input = *state.LastSerializedInput
+			}
+
+			// Emit tool-input events for batched messages
+			if !state.InputStarted {
+				// Emit tool-input-start
+				err := EmitToolInputStart(writer, toolError.ID, toolName, state.ParentToolCallID)
+				if err != nil {
+					return errors.Wrapf(err, "failed to emit tool-input-start")
+				}
+				state.InputStarted = true
+			}
+
+			if !state.InputClosed && input != "" {
+				// Emit tool-input-delta with complete input
+				err := EmitToolInputDelta(writer, toolError.ID, input)
+				if err != nil {
+					return errors.Wrapf(err, "failed to emit tool-input-delta")
+				}
+			}
+
 			if !state.InputClosed {
+				// Emit tool-input-end
 				err := EmitToolInputEnd(writer, toolError.ID)
 				if err != nil {
 					return errors.Wrapf(err, "failed to emit tool-input-end")
@@ -700,10 +732,7 @@ func handleUserMessage(
 				state.InputClosed = true
 			}
 
-			input := ""
-			if state.LastSerializedInput != nil {
-				input = *state.LastSerializedInput
-			}
+			// Emit tool-call with complete input
 			err := EmitToolCall(writer, toolError.ID, toolName, input, state.ParentToolCallID)
 			if err != nil {
 				return errors.Wrapf(err, "failed to emit tool-call")

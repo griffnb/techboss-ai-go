@@ -50,7 +50,7 @@ func EmitStreamStart(w http.ResponseWriter, warnings []Warning) error {
 }
 
 // EmitTextStart emits a text-start event
-// Note: This is an extended event not in base AI SDK spec
+// Note: This is an extended event not in base AI SDK spec but required by Vercel AI SDK
 func EmitTextStart(w http.ResponseWriter, id string) error {
 	event := struct {
 		Type string `json:"type"`
@@ -63,7 +63,7 @@ func EmitTextStart(w http.ResponseWriter, id string) error {
 }
 
 // EmitTextDelta emits a text-delta event
-// Note: This is an extended event not in base AI SDK spec
+// Note: This is an extended event not in base AI SDK spec but required by Vercel AI SDK
 func EmitTextDelta(w http.ResponseWriter, id string, delta string) error {
 	event := struct {
 		Type  string `json:"type"`
@@ -78,7 +78,7 @@ func EmitTextDelta(w http.ResponseWriter, id string, delta string) error {
 }
 
 // EmitTextEnd emits a text-end event
-// Note: This is an extended event not in base AI SDK spec
+// Note: This is an extended event not in base AI SDK spec but required by Vercel AI SDK
 func EmitTextEnd(w http.ResponseWriter, id string) error {
 	event := struct {
 		Type string `json:"type"`
@@ -90,15 +90,17 @@ func EmitTextEnd(w http.ResponseWriter, id string) error {
 	return EmitSSE(w, event)
 }
 
-// EmitToolInputStart emits a tool-input-start event
-// Note: This is an extended event not in base AI SDK spec
+// EmitToolInputStart emits a tool-input-start event (matches claude-code reference)
+// Format: { type: 'tool-input-start', id, toolName, providerExecuted, dynamic, providerMetadata }
 func EmitToolInputStart(w http.ResponseWriter, id string, toolName string, parentToolCallID *string) error {
 	metadata := make(map[string]any)
+	claudeCodeMeta := map[string]any{}
 	if parentToolCallID != nil {
-		metadata["claude-code"] = map[string]any{
-			"parentToolCallId": parentToolCallID,
-		}
+		claudeCodeMeta["parentToolCallId"] = *parentToolCallID
+	} else {
+		claudeCodeMeta["parentToolCallId"] = nil
 	}
+	metadata["claude-code"] = claudeCodeMeta
 
 	event := struct {
 		Type             string         `json:"type"`
@@ -118,8 +120,8 @@ func EmitToolInputStart(w http.ResponseWriter, id string, toolName string, paren
 	return EmitSSE(w, event)
 }
 
-// EmitToolInputDelta emits a tool-input-delta event
-// Note: This is an extended event not in base AI SDK spec
+// EmitToolInputDelta emits a tool-input-delta event (matches claude-code reference)
+// Format: { type: 'tool-input-delta', id, delta }
 func EmitToolInputDelta(w http.ResponseWriter, id string, delta string) error {
 	event := struct {
 		Type  string `json:"type"`
@@ -133,8 +135,8 @@ func EmitToolInputDelta(w http.ResponseWriter, id string, delta string) error {
 	return EmitSSE(w, event)
 }
 
-// EmitToolInputEnd emits a tool-input-end event
-// Note: This is an extended event not in base AI SDK spec
+// EmitToolInputEnd emits a tool-input-end event (matches claude-code reference)
+// Format: { type: 'tool-input-end', id }
 func EmitToolInputEnd(w http.ResponseWriter, id string) error {
 	event := struct {
 		Type string `json:"type"`
@@ -146,8 +148,8 @@ func EmitToolInputEnd(w http.ResponseWriter, id string) error {
 	return EmitSSE(w, event)
 }
 
-// EmitToolCall emits a tool-call event
-// Format: { type: 'tool-call', toolCallId, toolName, input, ... }
+// EmitToolCall emits a tool-call event (matches claude-code reference implementation)
+// Format: { type: 'tool-call', toolCallId, toolName, input, providerExecuted, dynamic, providerMetadata }
 func EmitToolCall(w http.ResponseWriter, toolCallID string, toolName string, input string, parentToolCallID *string) error {
 	metadata := make(map[string]any)
 	claudeCodeMeta := map[string]any{
