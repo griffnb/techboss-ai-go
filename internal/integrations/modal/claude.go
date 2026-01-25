@@ -1,7 +1,6 @@
 package modal
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -12,6 +11,7 @@ import (
 	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/core/lib/tools"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
+	"github.com/griffnb/techboss-ai-go/internal/integrations/claude"
 	"github.com/modal-labs/libmodal/modal-go"
 	"github.com/pkg/errors"
 )
@@ -202,10 +202,8 @@ func (c *APIClient) WaitForClaude(ctx context.Context, claudeProcess *ClaudeProc
 }
 
 // StreamClaudeOutput streams Claude output to http.ResponseWriter using Server-Sent Events (SSE).
-// It sets appropriate SSE headers, reads output line by line from Claude's stdout,
-// and sends each line as a data event. Sends "[DONE]" event on completion.
-// The connection is flushed after each line for real-time streaming.
-// Additionally, it captures the full response body in claudeProcess.ResponseBody for later use.
+// It uses the structured streaming parser to emit typed events (text-delta, tool-call, etc.)
+// according to the Vercel AI SDK specification. Token usage is automatically tracked.
 func (c *APIClient) StreamClaudeOutput(ctx context.Context, claudeProcess *ClaudeProcess, responseWriter http.ResponseWriter) error {
 	// Validate inputs
 	if claudeProcess == nil || claudeProcess.Process == nil {
@@ -221,91 +219,31 @@ func (c *APIClient) StreamClaudeOutput(ctx context.Context, claudeProcess *Claud
 	responseWriter.Header().Set("Connection", "keep-alive")
 	responseWriter.Header().Set("Access-Control-Allow-Origin", "*")
 
-	// Get flusher for real-time streaming
-	flusher, ok := responseWriter.(http.Flusher)
+	// Verify flusher is available for real-time streaming
+	_, ok := responseWriter.(http.Flusher)
 	if !ok {
 		return errors.New("response writer does not support flushing")
 	}
 
-	// Initialize response capture buffer
-	var responseBuffer strings.Builder
-
-	// Ensure cleanup happens even if streaming is interrupted
-	var streamErr error
-	defer func() {
-		// Set captured response body (excluding [DONE] event)
-		claudeProcess.ResponseBody = responseBuffer.String()
-
-		// Always send completion event if no error occurred
-		if streamErr == nil {
-			_, err := fmt.Fprintf(responseWriter, "data: [DONE]\n\n")
-			if err != nil {
-				// Log but don't override existing error
-				streamErr = errors.Wrapf(err, "failed to write completion event")
-			} else {
-				flusher.Flush()
-			}
-		}
-	}()
-
-	// Create scanner to read Claude stdout line by line
-	scanner := bufio.NewScanner(claudeProcess.Process.Stdout)
-
-	// Stream output line by line
-	for scanner.Scan() {
-		// Check for context cancellation
-		select {
-		case <-ctx.Done():
-			streamErr = errors.Wrapf(ctx.Err(), "streaming cancelled")
-			return streamErr
-		default:
-			// Continue streaming
-		}
-
-		line := scanner.Text()
-
-		fmt.Println("[Claude Output]", line)
-
-		// Parse final token summary if present
-		if IsFinalSummary(line) {
-			tokens := ParseTokenSummary(line)
-			if tokens != nil {
-				claudeProcess.InputTokens = tokens.InputTokens
-				claudeProcess.OutputTokens = tokens.OutputTokens
-				claudeProcess.CacheTokens = tokens.CacheTokens
-
-				// Log token usage (Requirement 10.7)
-				log.Info(fmt.Sprintf("[Token Usage] input=%d output=%d cache=%d total=%d",
-					tokens.InputTokens,
-					tokens.OutputTokens,
-					tokens.CacheTokens,
-					tokens.InputTokens+tokens.OutputTokens+tokens.CacheTokens))
-			}
-		}
-
-		// Capture response body (append line with newline separator)
-		if responseBuffer.Len() > 0 {
-			responseBuffer.WriteString("\n")
-		}
-		responseBuffer.WriteString(line)
-
-		// Write SSE formatted output
-		_, err := fmt.Fprintf(responseWriter, "data: %s\n\n", line)
-		if err != nil {
-			// Connection likely dropped - log but don't fail hard
-			streamErr = errors.Wrapf(err, "failed to write streaming response")
-			return streamErr
-		}
-
-		// Flush immediately for real-time streaming
-		flusher.Flush()
+	// Use structured streaming parser to process Claude output
+	// This emits typed SSE events per Vercel AI SDK spec and updates token usage
+	tokenCallback := func(inputTokens, outputTokens, cacheTokens int64) {
+		claudeProcess.InputTokens = inputTokens
+		claudeProcess.OutputTokens = outputTokens
+		claudeProcess.CacheTokens = cacheTokens
 	}
 
-	// Check for scanner errors
-	if err := scanner.Err(); err != nil {
-		streamErr = errors.Wrapf(err, "error reading Claude output")
-		return streamErr
+	err := claude.ProcessStream(ctx, claudeProcess.Process.Stdout, responseWriter, tokenCallback)
+	if err != nil {
+		return errors.Wrapf(err, "failed to process Claude stream")
 	}
+
+	// Log token usage (updated by ProcessStream via callback)
+	log.Info(fmt.Sprintf("[Token Usage] input=%d output=%d cache=%d total=%d",
+		claudeProcess.InputTokens,
+		claudeProcess.OutputTokens,
+		claudeProcess.CacheTokens,
+		claudeProcess.InputTokens+claudeProcess.OutputTokens+claudeProcess.CacheTokens))
 
 	return nil
 }
