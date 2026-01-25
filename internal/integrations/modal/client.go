@@ -16,14 +16,14 @@ import (
 )
 
 var (
-	instance *APIClient
+	instance APIClientInterface
 	once     sync.Once
 )
 
 // Client returns the singleton Modal API client instance.
 // It initializes the client on first call if Modal credentials are configured.
 // Returns nil if Modal is not configured.
-func Client() *APIClient {
+func Client() APIClientInterface {
 	once.Do(func() {
 		if !tools.Empty(environment.GetConfig().Modal) && !tools.Empty(environment.GetConfig().Modal.TokenSecret) {
 			apiConfig := environment.GetConfig().Modal

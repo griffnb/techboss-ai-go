@@ -6,8 +6,9 @@
       "args": []
     },
     "ckb": {
+      "type": "stdio",
       "command": "npx",
-      "args": ["@tastehub/ckb", "mcp"]
+      "args": ["@tastehub/ckb", "mcp", "--watch", "--watch-interval", "15s"]
     }
   }
 }

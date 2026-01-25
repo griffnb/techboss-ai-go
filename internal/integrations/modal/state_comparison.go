@@ -1,4 +1,4 @@
-package state_files
+package modal
 
 import "time"
 

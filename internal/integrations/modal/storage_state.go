@@ -15,14 +15,16 @@ import (
 	"github.com/pkg/errors"
 )
 
-// stateFileName is the name of the state file (duplicated from state_files to avoid import cycle)
-const stateFileName = ".sandbox-state"
-
-// stateFileVersion is the current state file schema version
-const stateFileVersion = "1.0"
+const (
+	// stateFileName is the name of the state file
+	stateFileName = ".sandbox-state"
+	// stateFileVersion is the current state file schema version
+	stateFileVersion = "1.0"
+)
 
 // StateFile represents the .sandbox-state file format used to track file synchronization
-// state between local volumes and S3. This is duplicated from state_files package to avoid import cycle.
+// state between local volumes and S3. This file acts like .git for maintaining perfect
+// sync state, enabling efficient incremental synchronization and detecting deleted files.
 type StateFile struct {
 	Version      string      `json:"version"`        // Schema version (e.g., "1.0")
 	LastSyncedAt int64       `json:"last_synced_at"` // Unix timestamp of last sync
@@ -30,7 +32,8 @@ type StateFile struct {
 }
 
 // FileEntry represents a single file tracked in the state file.
-// Duplicated from state_files package to avoid import cycle.
+// Each entry contains the information needed to determine if the file has changed
+// by comparing checksums, sizes, and modification times between local and S3 versions.
 type FileEntry struct {
 	Path       string `json:"path"`        // Relative path from volume root
 	Checksum   string `json:"checksum"`    // MD5 hash (matches S3 ETag format)
@@ -39,74 +42,29 @@ type FileEntry struct {
 }
 
 // StateDiff represents the differences between local and S3 state files.
-// Duplicated from state_files package to avoid import cycle.
+// It identifies which files need to be downloaded from S3, which local files
+// should be deleted to maintain sync, and which files are unchanged and can be skipped.
 type StateDiff struct {
 	FilesToDownload []FileEntry // Files to download from S3 (new or updated)
 	FilesToDelete   []string    // Local file paths to delete (removed from S3)
 	FilesToSkip     []FileEntry // Files that match (no action needed)
 }
 
-// compareStateFiles compares local and S3 state files to determine which sync actions are needed.
-// This is duplicated from state_files package to avoid import cycle.
-// It identifies files to download (new or updated), files to skip (unchanged), and files to delete (removed from S3).
-func compareStateFiles(localState *StateFile, s3State *StateFile) *StateDiff {
-	// Initialize result
-	diff := &StateDiff{
-		FilesToDownload: []FileEntry{},
-		FilesToDelete:   []string{},
-		FilesToSkip:     []FileEntry{},
-	}
-
-	// Create maps for O(1) lookups
-	localFiles := make(map[string]FileEntry)
-	s3Files := make(map[string]FileEntry)
-
-	// Build local file map
-	if localState != nil {
-		for _, f := range localState.Files {
-			localFiles[f.Path] = f
-		}
-	}
-
-	// Build S3 file map
-	if s3State != nil {
-		for _, f := range s3State.Files {
-			s3Files[f.Path] = f
-		}
-	}
-
-	// Process S3 files: determine if download or skip
-	for path, s3File := range s3Files {
-		localFile, existsLocal := localFiles[path]
-
-		if existsLocal {
-			// File exists in both states - compare checksums
-			if localFile.Checksum == s3File.Checksum {
-				// Matching checksum -> skip
-				diff.FilesToSkip = append(diff.FilesToSkip, s3File)
-			} else {
-				// Different checksum -> download
-				diff.FilesToDownload = append(diff.FilesToDownload, s3File)
-			}
-		} else {
-			// File only in S3 -> download
-			diff.FilesToDownload = append(diff.FilesToDownload, s3File)
-		}
-	}
-
-	// Process local files: identify files to delete
-	for path := range localFiles {
-		if _, existsS3 := s3Files[path]; !existsS3 {
-			// File only in local -> delete
-			diff.FilesToDelete = append(diff.FilesToDelete, path)
-		}
-	}
-
-	return diff
+// SyncStats tracks the results of a sync operation between local volume and S3.
+// It provides metrics for monitoring, billing, and debugging sync performance.
+// Non-fatal errors are collected in the Errors slice to allow partial sync success.
+type SyncStats struct {
+	FilesDownloaded  int           // Number of files downloaded from S3
+	FilesDeleted     int           // Number of local files deleted
+	FilesSkipped     int           // Number of files unchanged (skipped)
+	BytesTransferred int64         // Total bytes transferred during sync
+	Duration         time.Duration // Total operation duration
+	Errors           []error       // Non-fatal errors encountered during sync
 }
 
 // parseStateFile parses JSON bytes into a StateFile struct.
-// Duplicated from state_files to avoid import cycle.
+// It validates the version for compatibility and returns an error if the version
+// is not supported or if the JSON is malformed.
 func parseStateFile(data []byte) (*StateFile, error) {
 	if len(data) == 0 {
 		return nil, errors.New("state file data is empty")
@@ -119,6 +77,8 @@ func parseStateFile(data []byte) (*StateFile, error) {
 	}
 
 	// Validate version compatibility
+	// Currently we only support version 1.0
+	// Future versions (e.g., 2.0) would be incompatible
 	if stateFile.Version != stateFileVersion {
 		return nil, errors.Errorf(
 			"incompatible state file version: got %s, expected %s",
@@ -594,7 +554,7 @@ func (c *APIClient) InitVolumeFromS3WithState(
 	}
 
 	// Step 3: Compare states to determine sync actions
-	diff := compareStateFiles(localState, s3State)
+	diff := CompareStateFiles(localState, s3State)
 
 	// Step 4: Execute sync actions (download, delete)
 	stats, err := c.executeSyncActions(ctx, sandboxInfo, diff)

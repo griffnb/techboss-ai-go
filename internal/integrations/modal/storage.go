@@ -18,19 +18,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// SyncStats contains statistics about S3 sync operations.
-// It tracks the number of files downloaded, deleted, skipped, bytes transferred,
-// operation duration, and any non-fatal errors encountered during the sync.
-// This aligns with state-file-based sync per design phase 3.1.
-type SyncStats struct {
-	FilesDownloaded  int           // Number of files downloaded from S3
-	FilesDeleted     int           // Number of local files deleted
-	FilesSkipped     int           // Number of files unchanged (skipped)
-	BytesTransferred int64         // Total bytes transferred
-	Duration         time.Duration // Time taken
-	Errors           []error       // Any non-fatal errors
-}
-
 // InitVolumeFromS3 copies files from S3 bucket to volume on sandbox startup.
 // It uses the cp command to recursively copy files from the S3 mount to the volume.
 // This is typically called after sandbox creation to restore previous work state.

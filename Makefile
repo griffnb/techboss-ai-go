@@ -31,3 +31,15 @@ docker-up-local: ## Start Docker services, be sure to setup /etc/hosts entry for
 	sudo ifconfig lo0 alias 127.10.0.1/8
 	ifconfig lo0 | grep 127.10.0.1
 	docker compose -f infra/docker-compose-local.yml up
+
+
+#CKB targets
+.PHONY: ckb-reindex
+ckb-reindex: ## Reindex CKB data
+	@npx @tastehub/ckb status
+	@npx @tastehub/ckb index
+
+.PHONY: ckb-start
+ckb-start: ## Start CKB node
+	@npx @tastehub/ckb daemon start
+

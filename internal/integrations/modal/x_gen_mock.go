@@ -4,34 +4,44 @@ package modal
 
 import (
 	context "context"
+	"sync"
 
 	types "github.com/griffnb/core/lib/types"
+	modal "github.com/modal-labs/libmodal/modal-go"
 )
 
 // APIClientInterface defines the methods implemented by APIClient and MockAPIClient.
 type APIClientInterface interface {
 	CreateSandbox(ctx context.Context, config *SandboxConfig) (*SandboxInfo, error)
+	CreateSandboxFromDockerFile(ctx context.Context, config *SandboxConfig) (*SandboxInfo, error)
 	ExecClaude(ctx context.Context, sandboxInfo *SandboxInfo, config *ClaudeExecConfig) (*ClaudeProcess, error)
 	GetLatestVersion(ctx context.Context, accountID types.UUID, bucketName string) (int64, error)
-	GetSandboxStatus(_ context.Context, sandboxID string) (SandboxStatus, error)
+	GetSandbox(ctx context.Context, sandboxID string) (*modal.Sandbox, error)
+	GetSandboxStatus(arg0 context.Context, sandboxID string) (SandboxStatus, error)
 	GetSandboxStatusFromInfo(ctx context.Context, sandboxInfo *SandboxInfo) (SandboxStatus, error)
 	InitVolumeFromS3(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
+	InitVolumeFromS3WithState(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
 	SyncVolumeToS3(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
+	SyncVolumeToS3WithState(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
 	TerminateSandbox(ctx context.Context, sandboxInfo *SandboxInfo, syncToS3 bool) error
 	WaitForClaude(ctx context.Context, claudeProcess *ClaudeProcess) (int, error)
 }
 
 type MockAPIClient struct {
 	*APIClient
-	CreateSandboxFunc            func(ctx context.Context, config *SandboxConfig) (*SandboxInfo, error)
-	ExecClaudeFunc               func(ctx context.Context, sandboxInfo *SandboxInfo, config *ClaudeExecConfig) (*ClaudeProcess, error)
-	GetLatestVersionFunc         func(ctx context.Context, accountID types.UUID, bucketName string) (int64, error)
-	GetSandboxStatusFunc         func(_ context.Context, sandboxID string) (SandboxStatus, error)
-	GetSandboxStatusFromInfoFunc func(ctx context.Context, sandboxInfo *SandboxInfo) (SandboxStatus, error)
-	InitVolumeFromS3Func         func(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
-	SyncVolumeToS3Func           func(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
-	TerminateSandboxFunc         func(ctx context.Context, sandboxInfo *SandboxInfo, syncToS3 bool) error
-	WaitForClaudeFunc            func(ctx context.Context, claudeProcess *ClaudeProcess) (int, error)
+	CreateSandboxFunc               func(ctx context.Context, config *SandboxConfig) (*SandboxInfo, error)
+	CreateSandboxFromDockerFileFunc func(ctx context.Context, config *SandboxConfig) (*SandboxInfo, error)
+	ExecClaudeFunc                  func(ctx context.Context, sandboxInfo *SandboxInfo, config *ClaudeExecConfig) (*ClaudeProcess, error)
+	GetLatestVersionFunc            func(ctx context.Context, accountID types.UUID, bucketName string) (int64, error)
+	GetSandboxFunc                  func(ctx context.Context, sandboxID string) (*modal.Sandbox, error)
+	GetSandboxStatusFunc            func(arg0 context.Context, sandboxID string) (SandboxStatus, error)
+	GetSandboxStatusFromInfoFunc    func(ctx context.Context, sandboxInfo *SandboxInfo) (SandboxStatus, error)
+	InitVolumeFromS3Func            func(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
+	InitVolumeFromS3WithStateFunc   func(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
+	SyncVolumeToS3Func              func(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
+	SyncVolumeToS3WithStateFunc     func(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
+	TerminateSandboxFunc            func(ctx context.Context, sandboxInfo *SandboxInfo, syncToS3 bool) error
+	WaitForClaudeFunc               func(ctx context.Context, claudeProcess *ClaudeProcess) (int, error)
 }
 
 // CreateSandbox overrides the real implementation for MockAPIClient.
@@ -43,6 +53,17 @@ func (m *MockAPIClient) CreateSandbox(ctx context.Context, config *SandboxConfig
 		return nil, nil
 	}
 	return m.APIClient.CreateSandbox(ctx, config)
+}
+
+// CreateSandboxFromDockerFile overrides the real implementation for MockAPIClient.
+func (m *MockAPIClient) CreateSandboxFromDockerFile(ctx context.Context, config *SandboxConfig) (*SandboxInfo, error) {
+	if m.CreateSandboxFromDockerFileFunc != nil {
+		return m.CreateSandboxFromDockerFileFunc(ctx, config)
+	}
+	if m.APIClient == nil {
+		return nil, nil
+	}
+	return m.APIClient.CreateSandboxFromDockerFile(ctx, config)
 }
 
 // ExecClaude overrides the real implementation for MockAPIClient.
@@ -67,15 +88,26 @@ func (m *MockAPIClient) GetLatestVersion(ctx context.Context, accountID types.UU
 	return m.APIClient.GetLatestVersion(ctx, accountID, bucketName)
 }
 
+// GetSandbox overrides the real implementation for MockAPIClient.
+func (m *MockAPIClient) GetSandbox(ctx context.Context, sandboxID string) (*modal.Sandbox, error) {
+	if m.GetSandboxFunc != nil {
+		return m.GetSandboxFunc(ctx, sandboxID)
+	}
+	if m.APIClient == nil {
+		return nil, nil
+	}
+	return m.APIClient.GetSandbox(ctx, sandboxID)
+}
+
 // GetSandboxStatus overrides the real implementation for MockAPIClient.
-func (m *MockAPIClient) GetSandboxStatus(ctx context.Context, sandboxID string) (SandboxStatus, error) {
+func (m *MockAPIClient) GetSandboxStatus(arg0 context.Context, sandboxID string) (SandboxStatus, error) {
 	if m.GetSandboxStatusFunc != nil {
-		return m.GetSandboxStatusFunc(ctx, sandboxID)
+		return m.GetSandboxStatusFunc(arg0, sandboxID)
 	}
 	if m.APIClient == nil {
 		return "", nil
 	}
-	return m.APIClient.GetSandboxStatus(ctx, sandboxID)
+	return m.APIClient.GetSandboxStatus(arg0, sandboxID)
 }
 
 // GetSandboxStatusFromInfo overrides the real implementation for MockAPIClient.
@@ -100,6 +132,17 @@ func (m *MockAPIClient) InitVolumeFromS3(ctx context.Context, sandboxInfo *Sandb
 	return m.APIClient.InitVolumeFromS3(ctx, sandboxInfo)
 }
 
+// InitVolumeFromS3WithState overrides the real implementation for MockAPIClient.
+func (m *MockAPIClient) InitVolumeFromS3WithState(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error) {
+	if m.InitVolumeFromS3WithStateFunc != nil {
+		return m.InitVolumeFromS3WithStateFunc(ctx, sandboxInfo)
+	}
+	if m.APIClient == nil {
+		return nil, nil
+	}
+	return m.APIClient.InitVolumeFromS3WithState(ctx, sandboxInfo)
+}
+
 // SyncVolumeToS3 overrides the real implementation for MockAPIClient.
 func (m *MockAPIClient) SyncVolumeToS3(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error) {
 	if m.SyncVolumeToS3Func != nil {
@@ -109,6 +152,17 @@ func (m *MockAPIClient) SyncVolumeToS3(ctx context.Context, sandboxInfo *Sandbox
 		return nil, nil
 	}
 	return m.APIClient.SyncVolumeToS3(ctx, sandboxInfo)
+}
+
+// SyncVolumeToS3WithState overrides the real implementation for MockAPIClient.
+func (m *MockAPIClient) SyncVolumeToS3WithState(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error) {
+	if m.SyncVolumeToS3WithStateFunc != nil {
+		return m.SyncVolumeToS3WithStateFunc(ctx, sandboxInfo)
+	}
+	if m.APIClient == nil {
+		return nil, nil
+	}
+	return m.APIClient.SyncVolumeToS3WithState(ctx, sandboxInfo)
 }
 
 // TerminateSandbox overrides the real implementation for MockAPIClient.
@@ -131,4 +185,22 @@ func (m *MockAPIClient) WaitForClaude(ctx context.Context, claudeProcess *Claude
 		return 0, nil
 	}
 	return m.APIClient.WaitForClaude(ctx, claudeProcess)
+}
+
+// SetMockClient sets a mock client for testing
+func SetMockClient(client *MockAPIClient) {
+	instance = client
+}
+
+// MockClient creates and sets a mock client, returning it for customization
+func MockClient() *MockAPIClient {
+	mock := &MockAPIClient{}
+	SetMockClient(mock)
+	return mock
+}
+
+// ResetClient resets the singleton instance (useful for test cleanup)
+func ResetClient() {
+	instance = nil
+	once = sync.Once{}
 }

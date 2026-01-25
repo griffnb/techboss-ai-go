@@ -18,6 +18,7 @@ import (
 // secrets, and environment variables for the sandbox environment.
 type SandboxConfig struct {
 	AccountID       types.UUID        // Account scoping for the sandbox
+	AppName         string            // Modal app name (generated from account ID if not provided)
 	Image           *ImageConfig      // Docker image configuration
 	DockerFilePath  string            // Path to Dockerfile (alternative to Image)
 	VolumeName      string            // Volume name for persistent storage
@@ -85,7 +86,11 @@ func (c *APIClient) CreateSandbox(ctx context.Context, config *SandboxConfig) (*
 	}
 
 	// Create or get Modal app scoped by accountID
-	appName := fmt.Sprintf("app-%s", config.AccountID.String())
+	// AppName should be provided by service layer; fallback to default pattern if missing
+	appName := config.AppName
+	if appName == "" {
+		appName = fmt.Sprintf("app-%s", config.AccountID.String())
+	}
 	app, err := c.client.Apps.FromName(ctx, appName, &modal.AppFromNameParams{
 		CreateIfMissing: true,
 	})

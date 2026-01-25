@@ -19,7 +19,7 @@ import (
 // SandboxService handles business logic for sandbox operations.
 // It provides a clean interface for controllers and wraps the Modal integration layer.
 type SandboxService struct {
-	client *modal.APIClient
+	client modal.APIClientInterface
 }
 
 // NewSandboxService creates a new sandbox service using the singleton Modal client.
@@ -56,6 +56,12 @@ func (s *SandboxService) CreateSandbox(
 
 	// Add account ID to config for multi-tenant scoping
 	config.AccountID = accountID
+
+	// Generate account-scoped names using naming convention
+	config.AppName = GenerateAppName(accountID)
+	if config.VolumeName == "" {
+		config.VolumeName = GenerateVolumeName(accountID)
+	}
 
 	// Always include S3 config for workspace persistence and testing
 	envConfig := environment.GetConfig()
