@@ -92,7 +92,7 @@ func (s *ConversationService) GetOrCreateConversation(
 func (s *ConversationService) EnsureSandbox(
 	ctx context.Context,
 	conv *conversation.Conversation,
-	provider sandbox.Provider,
+	sandboxType sandbox.Type,
 ) (*modal.SandboxInfo, *sandbox_service.SandboxTemplate, error) {
 	// If conversation already has a sandbox, reconstruct it
 	if !conv.SandboxID.IsEmpty() {
@@ -102,7 +102,7 @@ func (s *ConversationService) EnsureSandbox(
 			if err != nil {
 				return nil, nil, errors.Wrap(err, "failed to reconstruct sandbox info")
 			}
-			template, err := sandbox_service.GetSandboxTemplate(provider, conv.AgentID.Get())
+			template, err := sandbox_service.GetSandboxTemplate(sandboxType, conv.AgentID.Get())
 			if err != nil {
 				return nil, nil, errors.Wrap(err, "failed to get sandbox template")
 			}
@@ -112,7 +112,7 @@ func (s *ConversationService) EnsureSandbox(
 	}
 
 	// Get template for provider
-	template, err := sandbox_service.GetSandboxTemplate(provider, conv.AgentID.Get())
+	template, err := sandbox_service.GetSandboxTemplate(sandboxType, conv.AgentID.Get())
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to get sandbox template")
 	}
@@ -143,7 +143,7 @@ func (s *ConversationService) EnsureSandbox(
 	sandboxModel.AccountID.Set(conv.AccountID.Get())
 	sandboxModel.AgentID.Set(conv.AgentID.Get())
 	sandboxModel.ExternalID.Set(sandboxInfo.SandboxID)
-	sandboxModel.Provider.Set(provider)
+	sandboxModel.Type.Set(sandboxType)
 	err = sandboxModel.Save(nil)
 	if err != nil {
 		// Try to clean up sandbox on database save failure

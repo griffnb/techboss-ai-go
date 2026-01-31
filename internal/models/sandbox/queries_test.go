@@ -36,7 +36,7 @@ func Test_FindByExternalID(t *testing.T) {
 				obj := sandbox.New()
 				obj.AccountID.Set(testAccount.ID())
 				obj.ExternalID.Set(externalID)
-				obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+				obj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 				obj.Status.Set(constants.STATUS_ACTIVE)
 				obj.MetaData.Set(&sandbox.MetaData{})
 
@@ -75,7 +75,7 @@ func Test_FindByExternalID(t *testing.T) {
 				obj := sandbox.New()
 				obj.AccountID.Set(correctAccount.ID())
 				obj.ExternalID.Set(externalID)
-				obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+				obj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 				obj.Status.Set(constants.STATUS_ACTIVE)
 				obj.MetaData.Set(&sandbox.MetaData{})
 
@@ -98,7 +98,7 @@ func Test_FindByExternalID(t *testing.T) {
 				obj := sandbox.New()
 				obj.AccountID.Set(testAccount.ID())
 				obj.ExternalID.Set(externalID)
-				obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+				obj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 				obj.Status.Set(constants.STATUS_DELETED) // Use STATUS_DELETED which will set deleted=1
 				obj.MetaData.Set(&sandbox.MetaData{})
 
@@ -121,7 +121,7 @@ func Test_FindByExternalID(t *testing.T) {
 				obj := sandbox.New()
 				obj.AccountID.Set(testAccount.ID())
 				obj.ExternalID.Set(externalID)
-				obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+				obj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 				obj.Status.Set(constants.STATUS_DISABLED) // Use STATUS_DISABLED which will set disabled=1
 				obj.MetaData.Set(&sandbox.MetaData{})
 
@@ -188,7 +188,7 @@ func Test_FindAllByAccount(t *testing.T) {
 					obj := sandbox.New()
 					obj.AccountID.Set(testAccount.ID())
 					obj.ExternalID.Set("sb-test-" + tools.RandString(8))
-					obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+					obj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 					obj.Status.Set(constants.STATUS_ACTIVE)
 					obj.MetaData.Set(&sandbox.MetaData{})
 
@@ -216,7 +216,7 @@ func Test_FindAllByAccount(t *testing.T) {
 					obj := sandbox.New()
 					obj.AccountID.Set(testAccount.ID())
 					obj.ExternalID.Set("sb-test-" + tools.RandString(8))
-					obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+					obj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 					obj.Status.Set(constants.STATUS_ACTIVE)
 					obj.MetaData.Set(&sandbox.MetaData{})
 
@@ -229,7 +229,7 @@ func Test_FindAllByAccount(t *testing.T) {
 				deletedObj := sandbox.New()
 				deletedObj.AccountID.Set(testAccount.ID())
 				deletedObj.ExternalID.Set("sb-test-" + tools.RandString(8))
-				deletedObj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+				deletedObj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 				deletedObj.Status.Set(constants.STATUS_DELETED) // Use STATUS_DELETED
 				deletedObj.MetaData.Set(&sandbox.MetaData{})
 
@@ -255,7 +255,7 @@ func Test_FindAllByAccount(t *testing.T) {
 				obj := sandbox.New()
 				obj.AccountID.Set(testAccount.ID())
 				obj.ExternalID.Set("sb-test-" + tools.RandString(8))
-				obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+				obj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 				obj.Status.Set(constants.STATUS_ACTIVE)
 				obj.MetaData.Set(&sandbox.MetaData{})
 
@@ -267,7 +267,7 @@ func Test_FindAllByAccount(t *testing.T) {
 				disabledObj := sandbox.New()
 				disabledObj.AccountID.Set(testAccount.ID())
 				disabledObj.ExternalID.Set("sb-test-" + tools.RandString(8))
-				disabledObj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+				disabledObj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 				disabledObj.Status.Set(constants.STATUS_DISABLED) // Use STATUS_DISABLED
 				disabledObj.MetaData.Set(&sandbox.MetaData{})
 
@@ -309,7 +309,7 @@ func Test_FindAllByAccount(t *testing.T) {
 				obj1 := sandbox.New()
 				obj1.AccountID.Set(targetAccount.ID())
 				obj1.ExternalID.Set("sb-test-" + tools.RandString(8))
-				obj1.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+				obj1.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 				obj1.Status.Set(constants.STATUS_ACTIVE)
 				obj1.MetaData.Set(&sandbox.MetaData{})
 
@@ -321,7 +321,7 @@ func Test_FindAllByAccount(t *testing.T) {
 				obj2 := sandbox.New()
 				obj2.AccountID.Set(otherAccount.ID())
 				obj2.ExternalID.Set("sb-test-" + tools.RandString(8))
-				obj2.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+				obj2.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 				obj2.Status.Set(constants.STATUS_ACTIVE)
 				obj2.MetaData.Set(&sandbox.MetaData{})
 
@@ -394,7 +394,7 @@ func Test_CountByAccount(t *testing.T) {
 					obj := sandbox.New()
 					obj.AccountID.Set(testAccount.ID())
 					obj.ExternalID.Set("sb-test-" + tools.RandString(8))
-					obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+					obj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 					obj.Status.Set(constants.STATUS_ACTIVE)
 					obj.MetaData.Set(&sandbox.MetaData{})
 
@@ -422,7 +422,7 @@ func Test_CountByAccount(t *testing.T) {
 					obj := sandbox.New()
 					obj.AccountID.Set(testAccount.ID())
 					obj.ExternalID.Set("sb-test-" + tools.RandString(8))
-					obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+					obj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 					obj.Status.Set(constants.STATUS_ACTIVE)
 					obj.MetaData.Set(&sandbox.MetaData{})
 
@@ -435,7 +435,7 @@ func Test_CountByAccount(t *testing.T) {
 				deletedObj := sandbox.New()
 				deletedObj.AccountID.Set(testAccount.ID())
 				deletedObj.ExternalID.Set("sb-test-" + tools.RandString(8))
-				deletedObj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+				deletedObj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 				deletedObj.Status.Set(constants.STATUS_DELETED) // Use STATUS_DELETED
 				deletedObj.MetaData.Set(&sandbox.MetaData{})
 
@@ -447,7 +447,7 @@ func Test_CountByAccount(t *testing.T) {
 				disabledObj := sandbox.New()
 				disabledObj.AccountID.Set(testAccount.ID())
 				disabledObj.ExternalID.Set("sb-test-" + tools.RandString(8))
-				disabledObj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+				disabledObj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 				disabledObj.Status.Set(constants.STATUS_DISABLED) // Use STATUS_DISABLED
 				disabledObj.MetaData.Set(&sandbox.MetaData{})
 
@@ -490,7 +490,7 @@ func Test_CountByAccount(t *testing.T) {
 					obj := sandbox.New()
 					obj.AccountID.Set(targetAccount.ID())
 					obj.ExternalID.Set("sb-test-" + tools.RandString(8))
-					obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+					obj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 					obj.Status.Set(constants.STATUS_ACTIVE)
 					obj.MetaData.Set(&sandbox.MetaData{})
 
@@ -504,7 +504,7 @@ func Test_CountByAccount(t *testing.T) {
 					obj := sandbox.New()
 					obj.AccountID.Set(otherAccount.ID())
 					obj.ExternalID.Set("sb-test-" + tools.RandString(8))
-					obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+					obj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 					obj.Status.Set(constants.STATUS_ACTIVE)
 					obj.MetaData.Set(&sandbox.MetaData{})
 

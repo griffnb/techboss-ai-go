@@ -34,7 +34,7 @@ func Test_adminCreateSandbox_withTemplateConfig(t *testing.T) {
 	t.Run("successful creation with template", func(t *testing.T) {
 		// Arrange
 		body := map[string]any{
-			"provider": sandbox.PROVIDER_CLAUDE_CODE,
+			"provider": sandbox.TYPE_CLAUDE_CODE,
 			"agent_id": "",
 		}
 
@@ -53,7 +53,7 @@ func Test_adminCreateSandbox_withTemplateConfig(t *testing.T) {
 		assert.NEmpty(t, resp)
 		assert.NEmpty(t, resp.ID())
 		assert.NEmpty(t, resp.ExternalID.Get())
-		assert.Equal(t, sandbox.PROVIDER_CLAUDE_CODE, resp.Provider.Get())
+		assert.Equal(t, sandbox.TYPE_CLAUDE_CODE, resp.Type.Get())
 		assert.Equal(t, req.Account.ID(), resp.AccountID.Get())
 
 		metadata, err := resp.MetaData.Get()
@@ -127,7 +127,7 @@ func Test_adminCreateSandbox_databaseSaveFailure(t *testing.T) {
 
 		// Arrange
 		body := map[string]any{
-			"provider": sandbox.PROVIDER_CLAUDE_CODE,
+			"provider": sandbox.TYPE_CLAUDE_CODE,
 			"agent_id": "",
 		}
 
@@ -169,7 +169,7 @@ func Test_authDelete_successfulDeletion(t *testing.T) {
 	t.Run("successfully deletes sandbox and updates status", func(t *testing.T) {
 		// Arrange - Create a sandbox first
 		body := map[string]any{
-			"provider": sandbox.PROVIDER_CLAUDE_CODE,
+			"provider": sandbox.TYPE_CLAUDE_CODE,
 			"agent_id": "",
 		}
 
@@ -207,7 +207,7 @@ func Test_authDelete_successfulDeletion(t *testing.T) {
 	t.Run("continues with soft delete when Modal termination fails", func(t *testing.T) {
 		// Arrange - Create a sandbox
 		body := map[string]any{
-			"provider": sandbox.PROVIDER_CLAUDE_CODE,
+			"provider": sandbox.TYPE_CLAUDE_CODE,
 			"agent_id": "",
 		}
 
@@ -255,7 +255,7 @@ func Test_syncSandbox_updatesMetadata(t *testing.T) {
 	t.Run("successfully syncs sandbox and updates metadata", func(t *testing.T) {
 		// Arrange - Create a sandbox first
 		body := map[string]any{
-			"provider": sandbox.PROVIDER_CLAUDE_CODE,
+			"provider": sandbox.TYPE_CLAUDE_CODE,
 			"agent_id": "",
 		}
 

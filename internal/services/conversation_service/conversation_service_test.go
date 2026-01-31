@@ -126,7 +126,7 @@ func Test_EnsureSandbox_create_new(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Act
-		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.TYPE_CLAUDE_CODE)
 
 		// Assert
 		assert.NoError(t, err)
@@ -174,7 +174,7 @@ func Test_EnsureSandbox_create_new(t *testing.T) {
 		// the expected behavior but cannot be fully executed without mocking infrastructure.
 
 		// For now, just verify the basic flow works
-		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.TYPE_CLAUDE_CODE)
 
 		// If we got here, cold start succeeded
 		if err == nil {
@@ -209,7 +209,7 @@ func Test_EnsureSandbox_reconstruct_existing(t *testing.T) {
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(accountID)
 		sandboxModel.AgentID.Set(conv.AgentID.Get())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-123")
 		err := sandboxModel.Save(nil)
 		assert.NoError(t, err)
@@ -220,7 +220,7 @@ func Test_EnsureSandbox_reconstruct_existing(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Act
-		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.TYPE_CLAUDE_CODE)
 
 		// Assert
 		assert.NoError(t, err)
@@ -249,7 +249,7 @@ func Test_EnsureSandbox_invalid_provider(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Act
-		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.Provider(999))
+		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.Type(999))
 
 		// Assert
 		assert.Error(t, err)

@@ -17,7 +17,7 @@ import (
 func ReconstructSandboxInfo(ctx context.Context, model *sandbox.Sandbox, accountID types.UUID) (*modal.SandboxInfo, error) {
 	// Get template to reconstruct config
 	template, err := GetSandboxTemplate(
-		model.Provider.Get(),
+		model.Type.Get(),
 		model.AgentID.Get(),
 	)
 

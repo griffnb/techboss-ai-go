@@ -75,6 +75,25 @@ code-gen-ts: ## Create TypeScript models (Usage: make code-gen-ts ModelName [pac
 %:
 	@:
 
+.PHONY: code-gen-constants
+code-gen-constants: ## Create TypeScript constants (Usage: make code-gen-constants package)
+	@bash -c '\
+		MODEL_NAME="$(filter-out $@,$(MAKECMDGOALS))"; \
+		PACKAGE_NAME=$$(grep "^module " go.mod | sed "s/module //"); \
+		if [ -z "$$MODEL_NAME" ]; then \
+			echo "Error: Model name required. Usage: make code-gen-ts ModelName"; \
+			exit 1; \
+		fi; \
+		PKG="$(package_name)"; \
+		if [ -z "$$PKG" ]; then \
+			PKG=""; \
+		fi; \
+		GOPACKAGE=$$PACKAGE_NAME core_gen typescript "$$MODEL_NAME" "-modelPackage=$$PKG" -constants; \
+	'
+%:
+	@:
+
+
 
 
 # Capture arguments after target for claude/ralph commands

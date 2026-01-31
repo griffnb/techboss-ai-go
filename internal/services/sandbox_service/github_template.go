@@ -54,7 +54,7 @@ func GetGitHubTemplate(config *GitHubTemplateConfig) *SandboxTemplate {
 	}
 
 	return &SandboxTemplate{
-		Provider:     sandbox.PROVIDER_CLAUDE_CODE,
+		Type:         sandbox.TYPE_CLAUDE_CODE,
 		ImageConfig:  GetGitHubImage(),
 		VolumeName:   "",
 		S3BucketName: "",

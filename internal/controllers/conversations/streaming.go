@@ -18,9 +18,9 @@ import (
 // - Design Phase 8.1: StreamRequest struct definition
 // - Requirement 1.2: Support conversation-centric streaming
 type StreamRequest struct {
-	Prompt   string           `json:"prompt"`   // User prompt to send to Claude
-	Provider sandbox.Provider `json:"provider"` // Sandbox provider (defaults to PROVIDER_CLAUDE_CODE)
-	AgentID  types.UUID       `json:"agent_id"` // Agent ID for conversation
+	Prompt  string       `json:"prompt"`   // User prompt to send to Claude
+	Type    sandbox.Type `json:"type"`     // Sandbox provider (defaults to PROVIDER_CLAUDE_CODE)
+	AgentID types.UUID   `json:"agent_id"` // Agent ID for conversation
 }
 
 // streamClaude handles POST /conversation/{conversationId}/sandbox/{sandboxId}
@@ -67,8 +67,8 @@ func streamClaude(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Default provider to PROVIDER_CLAUDE_CODE if not specified
-	if data.Provider == 0 {
-		data.Provider = sandbox.PROVIDER_CLAUDE_CODE
+	if data.Type == 0 {
+		data.Type = sandbox.TYPE_CLAUDE_CODE
 	}
 
 	// Initialize conversation service
@@ -84,7 +84,7 @@ func streamClaude(w http.ResponseWriter, req *http.Request) {
 
 	// Ensure sandbox exists and is initialized
 	// CRITICAL: OnColdStart failure will cause this to return error
-	sandboxInfo, template, err := service.EnsureSandbox(req.Context(), conv, data.Provider)
+	sandboxInfo, template, err := service.EnsureSandbox(req.Context(), conv, data.Type)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		http.Error(w, "failed to initialize sandbox", http.StatusInternalServerError)

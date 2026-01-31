@@ -31,7 +31,7 @@ func Test_FileListingIntegration_volumeSource(t *testing.T) {
 		// Create sandbox in DB
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-integration-volume-test")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -82,7 +82,7 @@ func Test_FileListingIntegration_s3Source(t *testing.T) {
 		// Create sandbox in DB
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-integration-s3-test")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -133,7 +133,7 @@ func Test_FileListingIntegration_pagination(t *testing.T) {
 		// Create sandbox in DB
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-integration-pagination-test")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -202,7 +202,7 @@ func Test_FileListingIntegration_pagination(t *testing.T) {
 		// Create sandbox in DB
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-integration-per-page-test")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -270,7 +270,7 @@ func Test_FileListingIntegration_authController(t *testing.T) {
 		// Create sandbox in DB
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-integration-auth-test")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -324,7 +324,7 @@ func Test_FileListingIntegration_queryParameterCombinations(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-integration-combo-test")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -370,7 +370,7 @@ func Test_FileListingIntegration_queryParameterCombinations(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-integration-all-params-test")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -468,7 +468,7 @@ func Test_FileListingIntegration_errorHandling(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-integration-invalid-params")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -510,7 +510,7 @@ func Test_FileContentRetrievalIntegration(t *testing.T) {
 		// Create sandbox in DB
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-content-volume-test")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -553,7 +553,7 @@ func Test_FileContentRetrievalIntegration(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-content-s3-test")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -594,7 +594,7 @@ func Test_FileContentRetrievalIntegration(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-content-missing-path")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -636,7 +636,7 @@ func Test_FileContentRetrievalIntegration(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-content-auth-test")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -681,7 +681,7 @@ func Test_FileContentRetrievalIntegration(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-content-paths-test")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -735,7 +735,7 @@ func Test_FileContentRetrievalIntegration(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-content-combo-test")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})

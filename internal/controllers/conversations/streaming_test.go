@@ -24,7 +24,7 @@ func Test_streamClaude_invalidRequest(t *testing.T) {
 		conversationID := types.UUID("00000000-0000-0000-0000-000000000001")
 		body := map[string]any{
 			"prompt":   "", // Missing prompt
-			"provider": sandbox.PROVIDER_CLAUDE_CODE,
+			"type":     sandbox.TYPE_CLAUDE_CODE,
 			"agent_id": types.UUID("00000000-0000-0000-0000-000000000002").String(),
 		}
 
@@ -83,7 +83,7 @@ func Test_streamClaude_conversationHandling(t *testing.T) {
 
 		body := map[string]any{
 			"prompt":   "Hello, this is a test",
-			"provider": sandbox.PROVIDER_CLAUDE_CODE,
+			"type":     sandbox.TYPE_CLAUDE_CODE,
 			"agent_id": agentID.String(),
 		}
 
@@ -147,7 +147,7 @@ func Test_streamClaude_conversationHandling(t *testing.T) {
 
 		body := map[string]any{
 			"prompt":   "Hello, this is a test",
-			"provider": sandbox.PROVIDER_CLAUDE_CODE,
+			"type":     sandbox.TYPE_CLAUDE_CODE,
 			"agent_id": conv.AgentID.Get().String(),
 		}
 
@@ -242,7 +242,7 @@ func Test_streamClaude_sandboxCreation(t *testing.T) {
 
 		body := map[string]any{
 			"prompt":   "Hello, this is a test",
-			"provider": sandbox.PROVIDER_CLAUDE_CODE,
+			"type":     sandbox.TYPE_CLAUDE_CODE,
 			"agent_id": agentID.String(),
 		}
 

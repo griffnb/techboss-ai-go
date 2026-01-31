@@ -139,7 +139,7 @@ func Test_Sandbox_SaveWithMetaData(t *testing.T) {
 		// Arrange - Create sandbox with minimal metadata
 		obj := sandbox.New()
 		obj.ExternalID.Set("sb-test-minimal")
-		obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		obj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		obj.MetaData.Set(&sandbox.MetaData{}) // Empty metadata
 
 		// Act
@@ -165,8 +165,8 @@ func Test_Sandbox_SaveWithMetaData(t *testing.T) {
 			t.Fatalf("Expected external_id 'sb-test-minimal', got '%s'", retrieved.ExternalID.Get())
 		}
 
-		if retrieved.Provider.Get() != sandbox.PROVIDER_CLAUDE_CODE {
-			t.Fatalf("Expected provider %d, got %d", sandbox.PROVIDER_CLAUDE_CODE, retrieved.Provider.Get())
+		if retrieved.Type.Get() != sandbox.TYPE_CLAUDE_CODE {
+			t.Fatalf("Expected type %d, got %d", sandbox.TYPE_CLAUDE_CODE, retrieved.Type.Get())
 		}
 
 		// Verify metadata exists and is empty
@@ -191,7 +191,7 @@ func Test_Sandbox_SaveWithMetaData(t *testing.T) {
 		// Arrange - Create sandbox with populated metadata
 		obj := sandbox.New()
 		obj.ExternalID.Set("sb-test-populated")
-		obj.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		obj.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 
 		metadata := &sandbox.MetaData{}
 		metadata.UpdateLastSync(10, 2, 5, 1024, 500)

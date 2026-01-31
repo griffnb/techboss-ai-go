@@ -10,11 +10,11 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/services/sandbox_service/lifecycle"
 )
 
-// Test_GetSandboxTemplate_validProviders tests that GetSandboxTemplate returns a valid template for PROVIDER_CLAUDE_CODE
+// Test_GetSandboxTemplate_validProviders tests that GetSandboxTemplate returns a valid template for TYPE_CLAUDE_CODE
 func Test_GetSandboxTemplate_validProviders(t *testing.T) {
-	t.Run("returns Claude Code template for PROVIDER_CLAUDE_CODE", func(t *testing.T) {
+	t.Run("returns Claude Code template for TYPE_CLAUDE_CODE", func(t *testing.T) {
 		// Arrange
-		provider := sandbox.PROVIDER_CLAUDE_CODE
+		provider := sandbox.TYPE_CLAUDE_CODE
 		agentID := types.UUID("test-agent-123")
 
 		// Act
@@ -23,7 +23,7 @@ func Test_GetSandboxTemplate_validProviders(t *testing.T) {
 		// Assert
 		assert.NoError(t, err)
 		assert.NEmpty(t, template)
-		assert.Equal(t, sandbox.PROVIDER_CLAUDE_CODE, template.Provider)
+		assert.Equal(t, sandbox.TYPE_CLAUDE_CODE, template.Type)
 		assert.NEmpty(t, template.ImageConfig)
 		assert.Equal(t, "alpine:3.21", template.ImageConfig.BaseImage)
 	})
@@ -33,12 +33,11 @@ func Test_GetSandboxTemplate_validProviders(t *testing.T) {
 func Test_GetSandboxTemplate_unsupportedProvider(t *testing.T) {
 	t.Run("returns error for unsupported provider", func(t *testing.T) {
 		// Arrange
-		provider := sandbox.Provider(999) // Invalid provider
+		sandboxType := sandbox.Type(999) // Invalid type
 		agentID := types.UUID("test-agent-123")
 
 		// Act
-		template, err := GetSandboxTemplate(provider, agentID)
-
+		template, err := GetSandboxTemplate(sandboxType, agentID)
 		// Assert
 		assert.Error(t, err)
 		assert.Empty(t, template)
@@ -51,7 +50,7 @@ func Test_BuildSandboxConfig_createsValidConfig(t *testing.T) {
 		// Arrange
 		accountID := types.UUID("test-account-456")
 		agentID := types.UUID("test-agent-123")
-		template, err := GetSandboxTemplate(sandbox.PROVIDER_CLAUDE_CODE, agentID)
+		template, err := GetSandboxTemplate(sandbox.TYPE_CLAUDE_CODE, agentID)
 		assert.NoError(t, err)
 
 		// Act
@@ -70,7 +69,7 @@ func Test_BuildSandboxConfig_createsValidConfig(t *testing.T) {
 		// Arrange
 		accountID := types.UUID("test-account-789")
 		agentID := types.UUID("test-agent-123")
-		template, err := GetSandboxTemplate(sandbox.PROVIDER_CLAUDE_CODE, agentID)
+		template, err := GetSandboxTemplate(sandbox.TYPE_CLAUDE_CODE, agentID)
 		assert.NoError(t, err)
 
 		// Act
@@ -84,7 +83,7 @@ func Test_BuildSandboxConfig_createsValidConfig(t *testing.T) {
 		// Arrange
 		accountID := types.UUID("test-account-999")
 		template := &SandboxTemplate{
-			Provider:     sandbox.PROVIDER_CLAUDE_CODE,
+			Type:         sandbox.TYPE_CLAUDE_CODE,
 			ImageConfig:  nil, // Will be set by GetSandboxTemplate
 			VolumeName:   "",
 			S3BucketName: "test-bucket",
@@ -109,7 +108,7 @@ func Test_BuildSandboxConfig_createsValidConfig(t *testing.T) {
 func Test_GetSandboxTemplate_hooksRegistered(t *testing.T) {
 	t.Run("Claude Code template has all lifecycle hooks registered", func(t *testing.T) {
 		// Arrange
-		provider := sandbox.PROVIDER_CLAUDE_CODE
+		provider := sandbox.TYPE_CLAUDE_CODE
 		agentID := types.UUID("test-agent-123")
 
 		// Act
@@ -127,7 +126,7 @@ func Test_GetSandboxTemplate_hooksRegistered(t *testing.T) {
 
 	t.Run("hooks are default implementations", func(t *testing.T) {
 		// Arrange
-		provider := sandbox.PROVIDER_CLAUDE_CODE
+		provider := sandbox.TYPE_CLAUDE_CODE
 		agentID := types.UUID("test-agent-456")
 
 		// Act
@@ -150,7 +149,7 @@ func Test_GetSandboxTemplate_hooksRegistered(t *testing.T) {
 	t.Run("template without hooks field returns nil hooks", func(t *testing.T) {
 		// Arrange - manually construct template with nil hooks
 		template := &SandboxTemplate{
-			Provider:     sandbox.PROVIDER_CLAUDE_CODE,
+			Type:         sandbox.TYPE_CLAUDE_CODE,
 			ImageConfig:  nil,
 			VolumeName:   "",
 			S3BucketName: "",
@@ -165,7 +164,7 @@ func Test_GetSandboxTemplate_hooksRegistered(t *testing.T) {
 
 	t.Run("can customize hooks after template creation", func(t *testing.T) {
 		// Arrange
-		provider := sandbox.PROVIDER_CLAUDE_CODE
+		provider := sandbox.TYPE_CLAUDE_CODE
 		agentID := types.UUID("test-agent-789")
 		template, err := GetSandboxTemplate(provider, agentID)
 		assert.NoError(t, err)

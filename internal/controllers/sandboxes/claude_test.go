@@ -26,7 +26,7 @@ func Test_streamClaude_withOwnedSandbox(t *testing.T) {
 	t.Run("successfully streams with owned sandbox", func(t *testing.T) {
 		// Arrange - Create a sandbox first
 		body := map[string]any{
-			"provider": sandbox.PROVIDER_CLAUDE_CODE,
+			"provider": sandbox.TYPE_CLAUDE_CODE,
 			"agent_id": "",
 		}
 
@@ -88,7 +88,7 @@ func Test_streamClaude_withUnownedSandbox(t *testing.T) {
 	t.Run("returns 404 for sandbox owned by different account", func(t *testing.T) {
 		// Arrange - Create a sandbox with one account
 		body := map[string]any{
-			"provider": sandbox.PROVIDER_CLAUDE_CODE,
+			"provider": sandbox.TYPE_CLAUDE_CODE,
 			"agent_id": "",
 		}
 
@@ -193,7 +193,7 @@ func Test_streamClaude_emptyPrompt(t *testing.T) {
 	t.Run("returns 400 when prompt is empty", func(t *testing.T) {
 		// Arrange - Create a sandbox first
 		body := map[string]any{
-			"provider": sandbox.PROVIDER_CLAUDE_CODE,
+			"provider": sandbox.TYPE_CLAUDE_CODE,
 			"agent_id": "",
 		}
 

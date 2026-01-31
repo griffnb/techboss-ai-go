@@ -22,7 +22,7 @@ func Test_ReconstructSandboxInfo_withValidProvider(t *testing.T) {
 		model := sandbox.New()
 		model.AccountID.Set(accountID)
 		model.ExternalID.Set(externalID)
-		model.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		model.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		model.AgentID.Set(agentID)
 		model.Status.Set(constants.STATUS_ACTIVE)
 
@@ -56,7 +56,7 @@ func Test_ReconstructSandboxInfo_withDeletedSandbox(t *testing.T) {
 		model := sandbox.New()
 		model.AccountID.Set(accountID)
 		model.ExternalID.Set(externalID)
-		model.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		model.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		model.Status.Set(constants.STATUS_ACTIVE)
 		model.Deleted.Set(1) // Soft deleted
 
@@ -80,7 +80,7 @@ func Test_ReconstructSandboxInfo_withDeletedSandbox(t *testing.T) {
 		model := sandbox.New()
 		model.AccountID.Set(accountID)
 		model.ExternalID.Set(externalID)
-		model.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		model.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		model.Status.Set(constants.STATUS_DISABLED)
 
 		// Act
@@ -105,7 +105,7 @@ func Test_ReconstructSandboxInfo_withActiveSandbox(t *testing.T) {
 		model := sandbox.New()
 		model.AccountID.Set(accountID)
 		model.ExternalID.Set(externalID)
-		model.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		model.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		model.Status.Set(constants.STATUS_ACTIVE)
 		model.Deleted.Set(0)
 
@@ -131,7 +131,7 @@ func Test_ReconstructSandboxInfo_withFallbackConfig(t *testing.T) {
 		model := sandbox.New()
 		model.AccountID.Set(accountID)
 		model.ExternalID.Set(externalID)
-		model.Provider.Set(sandbox.Provider(999)) // Unsupported provider
+		model.Type.Set(sandbox.Type(999)) // Unsupported type
 		model.Status.Set(constants.STATUS_ACTIVE)
 
 		// Act

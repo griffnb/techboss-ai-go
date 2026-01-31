@@ -27,12 +27,12 @@ type Structure struct {
 
 type DBColumns struct {
 	base.Structure
-	OrganizationID *fields.UUIDField                  `column:"organization_id" type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
-	AccountID      *fields.UUIDField                  `column:"account_id"      type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
-	MetaData       *fields.StructField[*MetaData]     `column:"meta_data"       type:"jsonb"    default:"{}"`
-	Provider       *fields.IntConstantField[Provider] `column:"type"            type:"smallint" default:"0"`
-	AgentID        *fields.UUIDField                  `column:"agent_id"        type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
-	ExternalID     *fields.StringField                `column:"external_id"     type:"text"     default:"null" index:"true" null:"true" public:"view"`
+	OrganizationID *fields.UUIDField              `column:"organization_id" type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
+	AccountID      *fields.UUIDField              `column:"account_id"      type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
+	MetaData       *fields.StructField[*MetaData] `column:"meta_data"       type:"jsonb"    default:"{}"`
+	Type           *fields.IntConstantField[Type] `column:"type"            type:"smallint" default:"0"`
+	AgentID        *fields.UUIDField              `column:"agent_id"        type:"uuid"     default:"null" index:"true" null:"true" public:"view"`
+	ExternalID     *fields.StringField            `column:"external_id"     type:"text"     default:"null" index:"true" null:"true" public:"view"`
 }
 
 // Sandbox - Database model

@@ -72,7 +72,7 @@ func Test_Integration_NewConversationFlow(t *testing.T) {
 		assert.True(t, conv.SandboxID.IsEmpty(), "New conversation should not have sandbox yet")
 
 		// Act Phase 2: Ensure sandbox (triggers OnColdStart)
-		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.TYPE_CLAUDE_CODE)
 
 		// Assert Phase 2: Sandbox created and OnColdStart executed
 		assert.NoError(t, err)
@@ -159,7 +159,7 @@ func Test_Integration_ExistingConversationResume(t *testing.T) {
 		conv, err := service.GetOrCreateConversation(ctx, conversationID, accountID, agentID)
 		assert.NoError(t, err)
 
-		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.TYPE_CLAUDE_CODE)
 		assert.NoError(t, err)
 		originalSandboxID := sandboxInfo.SandboxID
 
@@ -176,7 +176,7 @@ func Test_Integration_ExistingConversationResume(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Phase 4: Ensure sandbox again (should reuse existing)
-		sandboxInfo2, template2, err := service.EnsureSandbox(ctx, conv, sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo2, template2, err := service.EnsureSandbox(ctx, conv, sandbox.TYPE_CLAUDE_CODE)
 		assert.NoError(t, err)
 		if sandboxInfo2 != nil {
 			assert.Equal(t, originalSandboxID, sandboxInfo2.SandboxID, "Should reuse same sandbox")
@@ -233,7 +233,7 @@ func Test_Integration_MultipleMessages(t *testing.T) {
 		conv, err := service.GetOrCreateConversation(ctx, conversationID, accountID, agentID)
 		assert.NoError(t, err)
 
-		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.TYPE_CLAUDE_CODE)
 		assert.NoError(t, err)
 
 		// Send 3 messages
@@ -300,7 +300,7 @@ func Test_Integration_TokenAccumulation(t *testing.T) {
 		conv, err := service.GetOrCreateConversation(ctx, conversationID, accountID, agentID)
 		assert.NoError(t, err)
 
-		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.TYPE_CLAUDE_CODE)
 		assert.NoError(t, err)
 
 		// Get initial stats
@@ -432,7 +432,7 @@ func Test_Integration_StateFileUpdates(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Get template and override hooks
-		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.TYPE_CLAUDE_CODE)
 		assert.NoError(t, err)
 		template.Hooks = customHooks
 
@@ -557,7 +557,7 @@ func Test_Integration_OnMessageFailure(t *testing.T) {
 		conv, err := service.GetOrCreateConversation(ctx, conversationID, accountID, agentID)
 		assert.NoError(t, err)
 
-		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.TYPE_CLAUDE_CODE)
 		assert.NoError(t, err)
 		template.Hooks = customHooks
 
@@ -628,7 +628,7 @@ func Test_Integration_OnStreamFinishFailure(t *testing.T) {
 		conv, err := service.GetOrCreateConversation(ctx, conversationID, accountID, agentID)
 		assert.NoError(t, err)
 
-		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.TYPE_CLAUDE_CODE)
 		assert.NoError(t, err)
 		template.Hooks = customHooks
 
@@ -688,7 +688,7 @@ func Test_Integration_MessagesDynamoDB(t *testing.T) {
 		conv, err := service.GetOrCreateConversation(ctx, conversationID, accountID, agentID)
 		assert.NoError(t, err)
 
-		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.TYPE_CLAUDE_CODE)
 		assert.NoError(t, err)
 
 		// Send message
@@ -776,7 +776,7 @@ func Test_Integration_ConversationStatsUpdated(t *testing.T) {
 		assert.Equal(t, int64(0), stats.TotalOutputTokens)
 		assert.Equal(t, int64(0), stats.TotalCacheTokens)
 
-		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxInfo, template, err := service.EnsureSandbox(ctx, conv, sandbox.TYPE_CLAUDE_CODE)
 		assert.NoError(t, err)
 
 		// Send first message

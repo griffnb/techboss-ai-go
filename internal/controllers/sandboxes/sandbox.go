@@ -16,9 +16,9 @@ import (
 // CreateSandboxTemplateRequest holds request data for sandbox creation using templates.
 // Frontend only specifies the provider type and agent, not configuration details.
 type CreateSandboxTemplateRequest struct {
-	Provider  sandbox.Provider `json:"provider"`   // Provider type (1=Claude Code)
-	AccountID types.UUID       `json:"account_id"` // Account ID (optional, for future use)
-	AgentID   types.UUID       `json:"agent_id"`   // Agent ID (optional, for future use)
+	Type      sandbox.Type `json:"type"`       // Provider type (1=Claude Code)
+	AccountID types.UUID   `json:"account_id"` // Account ID (optional, for future use)
+	AgentID   types.UUID   `json:"agent_id"`   // Agent ID (optional, for future use)
 }
 
 // SyncSandboxRequest holds request data for S3 sync operations.
@@ -40,7 +40,7 @@ func adminCreateSandbox(_ http.ResponseWriter, req *http.Request) (*sandbox.Sand
 	}
 
 	// Get premade template for provider/agent
-	template, err := sandbox_service.GetSandboxTemplate(data.Provider, data.AgentID)
+	template, err := sandbox_service.GetSandboxTemplate(data.Type, data.AgentID)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.AdminBadRequestError[*sandbox.Sandbox](err)
@@ -75,7 +75,7 @@ func adminCreateSandbox(_ http.ResponseWriter, req *http.Request) (*sandbox.Sand
 	if data.AgentID != "" {
 		sandboxModel.AgentID.Set(data.AgentID)
 	}
-	sandboxModel.Provider.Set(data.Provider)
+	sandboxModel.Type.Set(data.Type)
 	sandboxModel.ExternalID.Set(sandboxInfo.SandboxID)
 	sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 	sandboxModel.MetaData.Set(&sandbox.MetaData{})

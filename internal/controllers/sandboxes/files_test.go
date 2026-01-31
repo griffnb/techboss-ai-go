@@ -40,7 +40,7 @@ func Test_adminListFiles_successfulListing(t *testing.T) {
 		// Create sandbox in DB
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-12345")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -88,7 +88,7 @@ func Test_adminListFiles_successfulListing(t *testing.T) {
 		// Create sandbox in DB
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-empty")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -171,7 +171,7 @@ func Test_adminListFiles_queryParameters(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-source")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -210,7 +210,7 @@ func Test_adminListFiles_queryParameters(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-pagination")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -251,7 +251,7 @@ func Test_adminListFiles_queryParameters(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-invalid-source")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -288,7 +288,7 @@ func Test_adminListFiles_queryParameters(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-invalid-pagination")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -326,7 +326,7 @@ func Test_adminListFiles_queryParameters(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-path")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -364,7 +364,7 @@ func Test_adminListFiles_queryParameters(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-recursive")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -405,7 +405,7 @@ func Test_authListFiles_successfulListing(t *testing.T) {
 		// Create sandbox in DB
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-auth-12345")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -455,7 +455,7 @@ func Test_authListFiles_successfulListing(t *testing.T) {
 		// Create sandbox in DB
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-auth-empty")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -561,7 +561,7 @@ func Test_authListFiles_queryParameters(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-auth-source")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -604,7 +604,7 @@ func Test_authListFiles_queryParameters(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-auth-pagination")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -649,7 +649,7 @@ func Test_authListFiles_queryParameters(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-auth-invalid-source")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -690,7 +690,7 @@ func Test_authListFiles_queryParameters(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-auth-invalid-pagination")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -734,7 +734,7 @@ func Test_adminGetFileContent(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-content-no-path")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -767,7 +767,7 @@ func Test_adminGetFileContent(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-content-notfound")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -820,7 +820,7 @@ func Test_adminGetFileContent(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-content-default-source")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -856,7 +856,7 @@ func Test_adminGetFileContent(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-content-s3-source")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -894,7 +894,7 @@ func Test_authGetFileContent(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-auth-content-no-path")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -927,7 +927,7 @@ func Test_authGetFileContent(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-auth-content-notfound")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -980,7 +980,7 @@ func Test_authGetFileContent(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-auth-content-default-source")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -1015,7 +1015,7 @@ func Test_authGetFileContent(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-auth-content-s3-source")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -1054,7 +1054,7 @@ func Test_adminGetFileTree(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-admin-tree")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -1116,7 +1116,7 @@ func Test_adminGetFileTree(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-admin-tree-s3")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -1158,7 +1158,7 @@ func Test_authGetFileTree(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-auth-tree")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})
@@ -1203,7 +1203,7 @@ func Test_authGetFileTree(t *testing.T) {
 
 		sandboxModel := sandbox.New()
 		sandboxModel.AccountID.Set(builder.Account.ID())
-		sandboxModel.Provider.Set(sandbox.PROVIDER_CLAUDE_CODE)
+		sandboxModel.Type.Set(sandbox.TYPE_CLAUDE_CODE)
 		sandboxModel.ExternalID.Set("sb-test-auth-tree-s3")
 		sandboxModel.Status.Set(constants.STATUS_ACTIVE)
 		sandboxModel.MetaData.Set(&sandbox.MetaData{})

@@ -12,7 +12,7 @@ import (
 // Templates enable the frontend to create sandboxes without specifying configuration details.
 // Templates include lifecycle hooks that customize behavior at various lifecycle stages.
 type SandboxTemplate struct {
-	Provider     sandbox.Provider
+	Type         sandbox.Type
 	ImageConfig  *modal.ImageConfig
 	VolumeName   string
 	S3BucketName string
@@ -23,12 +23,12 @@ type SandboxTemplate struct {
 
 // GetSandboxTemplate returns a premade template based on provider and agent.
 // This enables the frontend to create sandboxes without configuration details.
-func GetSandboxTemplate(provider sandbox.Provider, agentID types.UUID) (*SandboxTemplate, error) {
-	switch provider {
-	case sandbox.PROVIDER_CLAUDE_CODE:
+func GetSandboxTemplate(sandboxType sandbox.Type, agentID types.UUID) (*SandboxTemplate, error) {
+	switch sandboxType {
+	case sandbox.TYPE_CLAUDE_CODE:
 		return getClaudeCodeTemplate(agentID), nil
 	default:
-		return nil, errors.Errorf("unsupported provider: %d", provider)
+		return nil, errors.Errorf("unsupported provider: %d", sandboxType)
 	}
 }
 
@@ -37,7 +37,7 @@ func GetSandboxTemplate(provider sandbox.Provider, agentID types.UUID) (*Sandbox
 // All default hooks are registered to provide standard sandbox lifecycle behavior.
 func getClaudeCodeTemplate(_ types.UUID) *SandboxTemplate {
 	return &SandboxTemplate{
-		Provider:     sandbox.PROVIDER_CLAUDE_CODE,
+		Type:         sandbox.TYPE_CLAUDE_CODE,
 		ImageConfig:  modal.GetImageConfigFromTemplate("claude"),
 		VolumeName:   "",
 		S3BucketName: "",

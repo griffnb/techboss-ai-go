@@ -1,7 +1,7 @@
 package sandbox
 
-type Provider int
+type Type int
 
 const (
-	PROVIDER_CLAUDE_CODE Provider = iota + 1
+	TYPE_CLAUDE_CODE Type = iota + 1
 )
