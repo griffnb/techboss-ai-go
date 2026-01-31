@@ -87,9 +87,9 @@ func Setup(coreRouter *router.CoreRouter) {
 		})
 
 		r.Group(func(authR chi.Router) {
-			//authR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
-			//	constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(createSandbox),
-			//}))
+			authR.Post("/", helpers.RoleHandler(helpers.RoleHandlerMap{
+				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authCreateSandbox),
+			}))
 			authR.Put("/{id}", helpers.RoleHandler(helpers.RoleHandlerMap{
 				constants.ROLE_ANY_AUTHORIZED: response.StandardPublicRequestWrapper(authUpdate),
 			}))
