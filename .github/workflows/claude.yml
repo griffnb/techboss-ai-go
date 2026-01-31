@@ -97,7 +97,7 @@ jobs:
       actions: read # Required for Claude to read CI results on PRs
     services:
       postgres:
-          image: postgres:15.1
+          image: postgres:17.0
           ports:
               - 5432:5432
           env:
@@ -166,7 +166,6 @@ jobs:
         with:
           use_bedrock: "true"
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          settings: ".claude/settings_github.json"
           #plugins: "gopls-lsp@claude-plugins-official"  
           claude_args: |
             --dangerously-skip-permissions
@@ -176,7 +175,50 @@ jobs:
           chmod +x ./scripts/copy_learning_sessions.sh
           ./scripts/copy_learning_sessions.sh
 
-      - name: Run Learnings
+      - name: Upload session files for learnings
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-session-files-${{ github.run_id }}
+          path: ./.sessions
+          retention-days: 1
+          if-no-files-found: warn
+
+      - name: Upload Claude Session Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-sessions-${{ github.run_id }}
+          path: |
+            ~/.claude/projects/**/*.jsonl
+            ~/.claude/projects/**/*.json
+          retention-days: 5
+          if-no-files-found: ignore
+
+  analyze-learnings:
+    needs: claude
+    if: always() && needs.claude.result != 'cancelled'
+    runs-on: ubuntu-latest
+    environment: 
+        name: claude
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download session files
+        uses: actions/download-artifact@v4
+        with:
+          name: claude-session-files-${{ github.run_id }}
+          path: ./.sessions
+
+      - name: Run Learnings Analysis
         id: learnings
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -188,15 +230,3 @@ jobs:
         run: |
           SESSION_DIR="./.sessions"
           claude --settings ".claude/settings_github.json" --dangerously-skip-permissions -p "/learning-analyzer-ci You are analyzing a completed development session to extract learnings. All session files are located in the $SESSION_DIR folder - please read and analyze them."
-
-      - name: Upload Claude Session Logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: claude-sessions-${{ github.run_id }}
-          path: |
-            ~/.claude/projects/**/*.jsonl
-            ~/.claude/projects/**/*.json
-          retention-days: 30
-          if-no-files-found: ignore
-      

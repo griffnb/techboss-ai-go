@@ -1,9 +1,10 @@
 name: "Copilot Setup Steps"
 
-# Automatically run the setup steps when they are changed to allow for easy validation, and
-# allow manual testing through the repository's "Actions" tab
+# This workflow is automatically invoked by GitHub Copilot when needed.
+# It can also be run manually for testing through the repository's "Actions" tab.
 on:
   workflow_dispatch:
+
 jobs:
   # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
   copilot-setup-steps:
@@ -28,7 +29,6 @@ jobs:
             image: amazon/dynamodb-local
             ports:
                 - 8000:8000
-          
 
     # You can define any steps you want, and they will run before the agent starts.
     # If you do not check out your code, Copilot will do this for you.
@@ -49,10 +49,10 @@ jobs:
           echo "${{ secrets.CI_DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
-          git config --global url."ssh://git@github.com/griffnb/core/".insteadOf "https://github.com/griffnb/core/"
+          git config --global url."ssh://git@github.com/griffnb/core".insteadOf "https://github.com/griffnb/core"
           go mod download
           go install github.com/griffnb/core/core_gen@latest
-     
+
       - name: Start LocalStack
         uses: LocalStack/setup-localstack@v0.2.3
         with:
@@ -62,4 +62,4 @@ jobs:
         run: |
           mkdir -p ./.configs
           cp ./infra/unit_test.json ./.configs/unit_test.json          
-          make install-lint & make install-deadcode & make install-generate & wait
+          make install-lint & make install-deadcode & wait

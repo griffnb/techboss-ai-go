@@ -75,7 +75,6 @@ Add table joins:
 options.WithJoins("user.id = admin.user_id",)
 ```
 
-
 ## Column Helpers
 
 Every model has a generated `Columns` struct with helpers for each field:

@@ -9,7 +9,7 @@ The system uses `core_gen` to automatically create standard CRUD operations for 
 
 ## Code Generation Command
 
-Add this directive to your `setup.go` file:
+Add this directive to the controller folder's `setup.go` file:
 
 ```go
 //go:generate core_gen controller Account -modelPackage=account

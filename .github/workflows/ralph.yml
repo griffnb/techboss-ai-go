@@ -97,7 +97,7 @@ jobs:
       actions: read # Required for Claude to read CI results on PRs
     services:
       postgres:
-          image: postgres:15.1
+          image: postgres:17.0
           ports:
               - 5432:5432
           env:
@@ -140,7 +140,7 @@ jobs:
           cp ./infra/unit_test.json ./.configs/unit_test.json          
           make install-lint & make install-deadcode & make install-generate & wait 
     
-      - name: Run Ralph Code
+      - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
         env:
@@ -170,64 +170,58 @@ jobs:
           claude_args: |
             --dangerously-skip-permissions
 
-      - name: Collect Ralph Summary
-        if: always()
-        run: |
-          echo "=== Ralph Events Log ==="
-          if [[ -f .claude/ralph-events.log ]]; then
-            cat .claude/ralph-events.log
-            # Output events as annotations now that we're in a regular step
-            while read -r line; do
-              echo "$line"
-            done < .claude/ralph-events.log
-          else
-            echo "No events log found"
-          fi
-          
-          echo ""
-          echo "=== Adding to Job Summary ==="
-          if [[ -f .claude/ralph-summary.md ]]; then
-            cat .claude/ralph-summary.md >> "$GITHUB_STEP_SUMMARY"
-            echo "Summary added"
-          else
-            echo "No summary file found"
-          fi
-          
-      #- name: Dump Claude Session Logs
-      #  if: ${{ always() || cancelled() }}
-      #  run: |
-      #    echo "=== Final Claude Session Dump ==="
-      #    find ~/.claude -type f \( -name "*.jsonl" -o -name "*.json" -o -name "*.log" \) 2>/dev/null | while read f; do
-      #      echo "::group::$f"
-      #      cat "$f" | jq -r 'if .type then "[\(.type)] \(.message // .content // .)" else . end' 2>/dev/null || cat "$f"
-      #      echo "::endgroup::"
-      #    done
-      #    # Also check for any claude-related files in temp
-      #    echo "::group::Temp files"
-      #    find /tmp -name "*claude*" -type f 2>/dev/null | head -20 | while read f; do
-      #      echo "--- $f ---"
-      #      head -100 "$f" 2>/dev/null
-      #    done
-      #    echo "::endgroup::"
+      - name: Upload session files for learnings
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-session-files-${{ github.run_id }}
+          path: ./.sessions
+          retention-days: 1
+          if-no-files-found: warn
 
-      - name: Run Learnings
+      - name: Upload Claude Session Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-sessions-${{ github.run_id }}
+          path: |
+            ~/.claude/projects/**/*.jsonl
+            ~/.claude/projects/**/*.json
+          retention-days: 5
+          if-no-files-found: ignore
+
+  analyze-learnings:
+    needs: claude
+    if: always() && needs.claude.result != 'cancelled'
+    runs-on: ubuntu-latest
+    environment: 
+        name: claude
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download session files
+        uses: actions/download-artifact@v4
+        with:
+          name: claude-session-files-${{ github.run_id }}
+          path: ./.sessions
+
+      - name: Run Learnings Analysis
         id: learnings
-        uses: anthropics/claude-code-action@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CLAUDE_CODE_USE_BEDROCK: 1
           AWS_REGION: us-east-1
           AWS_BEARER_TOKEN_BEDROCK: ${{ secrets.AWS_BEARER_TOKEN_BEDROCK }}
           AWS_ACCESS_KEY_ID: "fake-bedrock-key-id"
           AWS_SECRET_ACCESS_KEY: "fake-bedrock-secret-key"
-
-        with:
-          use_bedrock: "true"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          #plugins: "gopls-lsp@claude-plugins-official"
-          prompt: CRITICAL USE /learning-analyzer-ci You are analyzing a completed development session to extract learnings.
-          # track_progress runs it in tag mode so it comes with a big prompt, but may not run skills right
-          track_progress: true
-          claude_args: |
-              --dangerously-skip-permissions
-              --continue
+        run: |
+          SESSION_DIR="./.sessions"
+          claude --settings ".claude/settings_github.json" --dangerously-skip-permissions -p "/learning-analyzer-ci You are analyzing a completed development session to extract learnings. All session files are located in the $SESSION_DIR folder - please read and analyze them."

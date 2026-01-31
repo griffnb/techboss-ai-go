@@ -452,3 +452,6 @@ func passwordResetRequest(_ http.ResponseWriter, req *http.Request) (interface{}
 - [ ] Add all three `@Failure` responses (400, 404, 500)
 - [ ] Set `@Router` with correct path and HTTP method
 - [ ] Run `make swagger` to verify documentation generates correctly
+
+## Additional resources
+- For usage examples, see [examples.md](examples.md)

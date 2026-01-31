@@ -75,6 +75,7 @@ if err != nil {
 }
 
 // .GetI() ignores errors (use when error checking not needed)
+// This is ONLY for struct field types
 bookmarks := user.Bookmarks.GetI()
 ```
 

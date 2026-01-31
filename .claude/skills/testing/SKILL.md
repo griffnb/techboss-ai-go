@@ -3,6 +3,8 @@ name: test-builder
 description: Use to build proper go unit tests for services, models, and controllers
 ---
 
+
+
 ## 🧪 CRITICAL: TEST-DRIVEN DEVELOPMENT (TDD) IS MANDATORY
 
 **⚠️ ABSOLUTE RULE - NO EXCEPTIONS**: This project follows **strict TDD (Test-Driven Development)**.
@@ -13,8 +15,6 @@ description: Use to build proper go unit tests for services, models, and control
 2. **🟢 GREEN**: Write minimal code to make it pass
 3. **🔵 REFACTOR**: Clean up the code while keeping tests green
 4. **📝 COMMIT**: Commit with passing tests
-
-
 
 ### Before Writing ANY Code:
 
@@ -259,7 +259,6 @@ All tests must be run through `#code_tools` to ensure proper environment setup:
 ** DO NOT RUN YOUR OWN COMMANDS, ONLY USE `#code_tools`
 
 **ALL Tests must pass before committing changes, they must be in the commit message as proof**
-
 
 
 ## Additional resources
