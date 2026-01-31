@@ -45,7 +45,7 @@ func Test_GetGitHubTemplate(t *testing.T) {
 		template := GetGitHubTemplate(config)
 
 		assert.NEmpty(t, template)
-		assert.Equal(t, sandbox.PROVIDER_CLAUDE_CODE, template.Provider)
+		assert.Equal(t, sandbox.TYPE_CLAUDE_CODE, template.Type)
 		assert.NEmpty(t, template.ImageConfig)
 		assert.NEmpty(t, template.Hooks)
 		assert.NEmpty(t, template.Hooks.OnColdStart)

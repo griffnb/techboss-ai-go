@@ -9,6 +9,7 @@ import (
 	"github.com/griffnb/core/lib/router/response"
 	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/constants"
+	"github.com/griffnb/techboss-ai-go/internal/controllers/helpers"
 	"github.com/griffnb/techboss-ai-go/internal/models/sandbox"
 	"github.com/griffnb/techboss-ai-go/internal/services/sandbox_service"
 )
@@ -115,7 +116,7 @@ func syncSandbox(_ http.ResponseWriter, req *http.Request) (*SyncSandboxResponse
 // It saves the sandbox to the database with ExternalID, Provider, AgentID, Status, and empty MetaData.
 func authCreateSandbox(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, int, error) {
 	// Get authenticated user session
-	userSession := request.GetReqSession(req)
+	usr := helpers.GetLoadedUser(req)
 	// Parse request body
 	data, err := request.GetJSONPostAs[*CreateSandboxTemplateRequest](req)
 	if err != nil {
@@ -131,11 +132,11 @@ func authCreateSandbox(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandb
 	}
 
 	// Build config from template
-	config := template.BuildSandboxConfig(userSession.User.ID())
+	config := template.BuildSandboxConfig(usr.ID())
 
 	// Create sandbox via service
 	service := sandbox_service.NewSandboxService()
-	sandboxInfo, err := service.CreateSandbox(req.Context(), userSession.User.ID(), config)
+	sandboxInfo, err := service.CreateSandbox(req.Context(), usr.ID(), config)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.AdminBadRequestError[*sandbox.Sandbox](err)
@@ -155,25 +156,23 @@ func authCreateSandbox(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandb
 	// Status tracks sandbox state (active, terminated, etc.)
 	// MetaData stores sync timestamps and statistics in JSONB format
 	sandboxModel := sandbox.New()
-	sandboxModel.AccountID.Set(userSession.User.ID())
+	sandboxModel.AccountID.Set(usr.ID())
 	if data.AgentID != "" {
 		sandboxModel.AgentID.Set(data.AgentID)
 	}
 	sandboxModel.Type.Set(data.Type)
 	sandboxModel.ExternalID.Set(sandboxInfo.SandboxID)
 	sandboxModel.Status.Set(constants.STATUS_ACTIVE)
+	sandboxModel.OrganizationID.Set(usr.OrganizationID.Get())
 	sandboxModel.MetaData.Set(&sandbox.MetaData{})
 
-	err = sandboxModel.Save(userSession.User)
+	err = sandboxModel.Save(usr)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		// Note: Sandbox was created in Modal but DB save failed
 		// TODO: Consider adding cleanup logic here or async cleanup task
 		return response.AdminBadRequestError[*sandbox.Sandbox](err)
 	}
-
-	log.Infof("Created sandbox %s (external_id: %s) for account %s",
-		sandboxModel.ID(), sandboxInfo.SandboxID, userSession.User.ID())
 
 	return response.Success(sandboxModel)
 }

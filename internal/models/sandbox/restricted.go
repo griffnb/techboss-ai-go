@@ -51,7 +51,7 @@ func GetRestricted(ctx context.Context, id types.UUID, sessionAccount coremodel.
 		WithCondition("%s.id = :id:", TABLE).
 		WithParam(":id:", id).
 		WithCondition("%s = :organization_id:", Columns.OrganizationID.Column()).
-		WithParam(":organization_id:", sessionAccount.ID())
+		WithParam(":organization_id:", sessionAccount.GetString("organization_id"))
 
 	return FindFirst(ctx, options)
 }

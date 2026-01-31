@@ -182,8 +182,14 @@ func authStreamClaude(w http.ResponseWriter, req *http.Request) {
 
 	// Get sandbox from database and verify ownership
 	sandboxModel, err := sandbox.GetRestricted(req.Context(), types.UUID(id), usr)
-	if err != nil || tools.Empty(sandboxModel) {
+	if err != nil {
 		log.ErrorContext(err, req.Context())
+		http.Error(w, "sandbox not found", http.StatusNotFound)
+		return
+	}
+
+	if tools.Empty(sandboxModel) {
+		log.ErrorContext(errors.Errorf("sandbox not found"), req.Context())
 		http.Error(w, "sandbox not found", http.StatusNotFound)
 		return
 	}

@@ -119,6 +119,11 @@ func (s *SandboxService) TerminateSandbox(
 // It executes Claude via the integration layer, sets SSE headers, and streams formatted
 // output using the claude package's ProcessStream function. Token usage is automatically
 // tracked via callback during streaming.
+//
+// If the sandbox is not running (terminated or error state), this function automatically
+// creates a new sandbox with the same configuration before executing Claude. The sandboxInfo
+// parameter is updated in-place with the new sandbox details.
+//
 // Returns the ClaudeProcess which contains:
 // - Token usage information (InputTokens, OutputTokens, CacheTokens) populated during streaming
 // - Full response body (ResponseBody) captured during streaming
@@ -140,6 +145,40 @@ func (s *SandboxService) ExecuteClaudeStream(
 	}
 	if responseWriter == nil {
 		return nil, errors.New("responseWriter cannot be nil")
+	}
+
+	// Check if sandbox is still running
+	status, err := s.client.GetSandboxStatusFromInfo(ctx, sandboxInfo)
+	if err != nil {
+		log.Errorf(err, "failed to check sandbox status for %s", sandboxInfo.SandboxID)
+		// Continue anyway - let ExecClaude handle the error
+	} else if status != modal.SandboxStatusRunning {
+		// Sandbox is not running - auto-create a new one with the same config
+		log.Infof("Sandbox %s is %s - creating new sandbox with same config", sandboxInfo.SandboxID, status)
+
+		// Validate we have the config needed to recreate
+		if sandboxInfo.Config == nil {
+			return nil, errors.Errorf("cannot recreate sandbox %s: config is nil", sandboxInfo.SandboxID)
+		}
+
+		// Create new sandbox with the same configuration
+		newSandboxInfo, err := s.CreateSandbox(ctx, sandboxInfo.Config.AccountID, sandboxInfo.Config)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to auto-create new sandbox for terminated sandbox %s", sandboxInfo.SandboxID)
+		}
+
+		log.Infof("Successfully created new sandbox %s to replace terminated sandbox %s",
+			newSandboxInfo.SandboxID, sandboxInfo.SandboxID)
+
+		// Update the sandboxInfo in-place so caller's reference points to new sandbox
+		sandboxInfo.SandboxID = newSandboxInfo.SandboxID
+		sandboxInfo.Sandbox = newSandboxInfo.Sandbox
+		sandboxInfo.Config = newSandboxInfo.Config
+		sandboxInfo.CreatedAt = newSandboxInfo.CreatedAt
+		sandboxInfo.Status = newSandboxInfo.Status
+
+		// TODO: Update database record with new ExternalID
+		// This requires passing the database model ID or looking it up by old ExternalID
 	}
 
 	// Execute Claude via integration layer (returns process with raw stdout)

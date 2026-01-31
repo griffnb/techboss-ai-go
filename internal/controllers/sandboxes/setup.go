@@ -103,7 +103,7 @@ func Setup(coreRouter *router.CoreRouter) {
 			}))
 			// POST /sandbox/{sandboxID}/claude - Execute Claude with streaming (Task 11)
 			authR.Post("/{id}/claude", helpers.RoleHandler(helpers.RoleHandlerMap{
-				constants.ROLE_READ_ADMIN: router.NoTimeoutStreamingMiddleware(adminStreamClaude),
+				constants.ROLE_ANY_AUTHORIZED: router.NoTimeoutStreamingMiddleware(authStreamClaude),
 			}))
 		})
 	})
