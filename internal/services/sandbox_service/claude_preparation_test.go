@@ -8,7 +8,7 @@ import (
 func Test_BuildPermissionFixCommand_standardInputs(t *testing.T) {
 	t.Run("with valid workdir and username", func(t *testing.T) {
 		// Arrange
-		workdir := "/mnt/workspace"
+		workdir := VOLUME_MOUNT_PATH
 		username := "claudeuser"
 
 		// Act
@@ -41,7 +41,7 @@ func Test_BuildPermissionFixCommand_differentWorkdirs(t *testing.T) {
 	}{
 		{
 			name:     "standard workspace path",
-			workdir:  "/mnt/workspace",
+			workdir:  VOLUME_MOUNT_PATH,
 			username: "claudeuser",
 		},
 		{
@@ -91,27 +91,27 @@ func Test_BuildPermissionFixCommand_differentUsernames(t *testing.T) {
 		{
 			name:     "claudeuser",
 			username: "claudeuser",
-			workdir:  "/mnt/workspace",
+			workdir:  VOLUME_MOUNT_PATH,
 		},
 		{
 			name:     "root user",
 			username: "root",
-			workdir:  "/mnt/workspace",
+			workdir:  VOLUME_MOUNT_PATH,
 		},
 		{
 			name:     "testuser",
 			username: "testuser",
-			workdir:  "/mnt/workspace",
+			workdir:  VOLUME_MOUNT_PATH,
 		},
 		{
 			name:     "appuser",
 			username: "appuser",
-			workdir:  "/mnt/workspace",
+			workdir:  VOLUME_MOUNT_PATH,
 		},
 		{
 			name:     "user with numbers",
 			username: "user123",
-			workdir:  "/mnt/workspace",
+			workdir:  VOLUME_MOUNT_PATH,
 		},
 	}
 

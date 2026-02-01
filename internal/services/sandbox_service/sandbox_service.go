@@ -9,10 +9,12 @@ import (
 	"net/http"
 
 	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/model/coremodel"
 	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/environment"
 	"github.com/griffnb/techboss-ai-go/internal/integrations/claude"
 	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
+	"github.com/griffnb/techboss-ai-go/internal/models/sandbox"
 	"github.com/pkg/errors"
 )
 
@@ -28,6 +30,87 @@ func NewSandboxService() *SandboxService {
 	return &SandboxService{
 		client: modal.Client(),
 	}
+}
+
+// ensureSandboxRunning checks if the sandbox is running and auto-restarts it if terminated.
+// This is a centralized helper to avoid duplicating auto-restart logic across multiple methods.
+// It updates sandboxInfo in-place with the new sandbox if recreated.
+// If sandboxModel and user are provided, automatically updates the database with the new ExternalID.
+//
+// Parameters:
+//   - ctx: Context for cancellation and timeouts
+//   - sandboxInfo: Sandbox info to check and potentially update
+//   - sandboxModel: Optional database model to update (can be nil for operations without DB access)
+//   - user: Optional user context for database save (can be nil, required if sandboxModel provided)
+//   - operation: Description of the operation (for logging)
+//
+// Returns true if sandbox is ready to use, false if it should be skipped (nil sandbox).
+// Returns error if auto-restart fails.
+func (s *SandboxService) ensureSandboxRunning(
+	ctx context.Context,
+	sandboxInfo *modal.SandboxInfo,
+	sandboxModel *sandbox.Sandbox,
+	user coremodel.Model,
+	operation string,
+) (bool, error) {
+	// Skip if sandbox is nil (test environment or uninitialized)
+	if sandboxInfo.Sandbox == nil {
+		return false, nil
+	}
+
+	// Check sandbox status
+	status, err := s.client.GetSandboxStatusFromInfo(ctx, sandboxInfo)
+	if err != nil {
+		log.Errorf(err, "failed to check sandbox status for %s", sandboxInfo.SandboxID)
+		// Continue anyway - let caller handle the error
+		return true, nil
+	}
+
+	// If running, we're good to go
+	if status == modal.SandboxStatusRunning {
+		return true, nil
+	}
+
+	// Sandbox is not running - auto-create a new one with the same config
+	log.Infof("Sandbox %s is %s - creating new sandbox with same config for %s", sandboxInfo.SandboxID, status, operation)
+
+	// Validate we have the config needed to recreate
+	if sandboxInfo.Config == nil {
+		return false, errors.Errorf("cannot recreate sandbox %s: config is nil", sandboxInfo.SandboxID)
+	}
+
+	// Store old sandbox ID for logging and database update
+	oldSandboxID := sandboxInfo.SandboxID
+
+	// Create new sandbox with the same configuration
+	newSandboxInfo, err := s.CreateSandbox(ctx, sandboxInfo.Config.AccountID, sandboxInfo.Config)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to auto-create new sandbox for terminated sandbox %s", sandboxInfo.SandboxID)
+	}
+
+	log.Infof("Successfully created new sandbox %s to replace terminated sandbox %s",
+		newSandboxInfo.SandboxID, oldSandboxID)
+
+	// Update the sandboxInfo in-place so caller's reference points to new sandbox
+	sandboxInfo.SandboxID = newSandboxInfo.SandboxID
+	sandboxInfo.Sandbox = newSandboxInfo.Sandbox
+	sandboxInfo.Config = newSandboxInfo.Config
+	sandboxInfo.CreatedAt = newSandboxInfo.CreatedAt
+	sandboxInfo.Status = newSandboxInfo.Status
+
+	// Update database if model and user were provided
+	if sandboxModel != nil && user != nil {
+		sandboxModel.ExternalID.Set(newSandboxInfo.SandboxID)
+		if err := sandboxModel.Save(user); err != nil {
+			// Log error but don't fail - sandbox is already created and working
+			log.Errorf(err, "failed to update database with new ExternalID %s (replaced %s)", newSandboxInfo.SandboxID, oldSandboxID)
+		} else {
+			log.Infof("Updated database sandbox %s with new ExternalID: %s (replaced %s)",
+				sandboxModel.ID(), newSandboxInfo.SandboxID, oldSandboxID)
+		}
+	}
+
+	return true, nil
 }
 
 // CreateSandbox creates a new sandbox with the given configuration.
@@ -71,7 +154,7 @@ func (s *SandboxService) CreateSandbox(
 				BucketName: bucketName,
 				SecretName: "s3-bucket",
 				KeyPrefix:  fmt.Sprintf("docs/%s/", accountID), // Must end with /
-				MountPath:  "/mnt/s3-bucket",
+				MountPath:  S3_MOUNT_PATH,
 				ReadOnly:   true,
 			}
 		}
@@ -147,38 +230,11 @@ func (s *SandboxService) ExecuteClaudeStream(
 		return nil, errors.New("responseWriter cannot be nil")
 	}
 
-	// Check if sandbox is still running
-	status, err := s.client.GetSandboxStatusFromInfo(ctx, sandboxInfo)
+	// Check if sandbox is still running, auto-restart if needed
+	// Claude execution doesn't update database here - controller handles that
+	_, err := s.ensureSandboxRunning(ctx, sandboxInfo, nil, nil, "claude execution")
 	if err != nil {
-		log.Errorf(err, "failed to check sandbox status for %s", sandboxInfo.SandboxID)
-		// Continue anyway - let ExecClaude handle the error
-	} else if status != modal.SandboxStatusRunning {
-		// Sandbox is not running - auto-create a new one with the same config
-		log.Infof("Sandbox %s is %s - creating new sandbox with same config", sandboxInfo.SandboxID, status)
-
-		// Validate we have the config needed to recreate
-		if sandboxInfo.Config == nil {
-			return nil, errors.Errorf("cannot recreate sandbox %s: config is nil", sandboxInfo.SandboxID)
-		}
-
-		// Create new sandbox with the same configuration
-		newSandboxInfo, err := s.CreateSandbox(ctx, sandboxInfo.Config.AccountID, sandboxInfo.Config)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to auto-create new sandbox for terminated sandbox %s", sandboxInfo.SandboxID)
-		}
-
-		log.Infof("Successfully created new sandbox %s to replace terminated sandbox %s",
-			newSandboxInfo.SandboxID, sandboxInfo.SandboxID)
-
-		// Update the sandboxInfo in-place so caller's reference points to new sandbox
-		sandboxInfo.SandboxID = newSandboxInfo.SandboxID
-		sandboxInfo.Sandbox = newSandboxInfo.Sandbox
-		sandboxInfo.Config = newSandboxInfo.Config
-		sandboxInfo.CreatedAt = newSandboxInfo.CreatedAt
-		sandboxInfo.Status = newSandboxInfo.Status
-
-		// TODO: Update database record with new ExternalID
-		// This requires passing the database model ID or looking it up by old ExternalID
+		return nil, err
 	}
 
 	// Execute Claude via integration layer (returns process with raw stdout)
@@ -214,6 +270,12 @@ func (s *SandboxService) ExecuteClaudeStream(
 
 	// TODO: Log Claude execution for audit trail
 	// TODO: Track Claude usage for billing
+
+	err = s.ForceVolumeSync(ctx, sandboxInfo, nil)
+	if err != nil {
+		log.Errorf(err, "failed to force volume sync after Claude execution in sandbox %s", sandboxInfo.SandboxID)
+		// Log error but don't fail - streaming is complete
+	}
 
 	return claudeProcess, nil
 }

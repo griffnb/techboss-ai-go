@@ -28,8 +28,8 @@ func ReconstructSandboxInfo(ctx context.Context, model *sandbox.Sandbox, account
 			AccountID:       accountID,
 			Image:           modal.GetImageConfigFromTemplate("claude"),
 			VolumeName:      "",
-			VolumeMountPath: "/mnt/workspace",
-			Workdir:         "/mnt/workspace",
+			VolumeMountPath: VOLUME_MOUNT_PATH,
+			Workdir:         VOLUME_MOUNT_PATH,
 		}
 	} else {
 		config = template.BuildSandboxConfig(accountID)

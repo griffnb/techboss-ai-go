@@ -27,8 +27,21 @@ type SyncSandboxRequest struct {
 	// Empty struct - no parameters needed
 }
 
-// createSandbox creates a new sandbox using a premade template based on provider/agent.
-// It saves the sandbox to the database with ExternalID, Provider, AgentID, Status, and empty MetaData.
+// Creates a new sandbox using a premade template based on provider/agent
+//
+//	@Title			Create Sandbox
+//	@Summary		Create sandbox
+//	@Description	Creates a new sandbox using a premade template based on provider/agent
+//	@Tags			Sandbox
+//	@Tags			AdminOnly
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body	CreateSandboxTemplateRequest	true	"Sandbox creation request"
+//	@Success		200	{object}	response.SuccessResponse{data=sandbox.Sandbox}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Failure		404	{object}	response.ErrorResponse
+//	@Failure		500	{object}	response.ErrorResponse
+//	@Router			/admin/sandbox/ [post]
 func adminCreateSandbox(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, int, error) {
 	// Get authenticated user session
 	userSession := request.GetReqSession(req)
@@ -94,9 +107,21 @@ func adminCreateSandbox(_ http.ResponseWriter, req *http.Request) (*sandbox.Sand
 	return response.Success(sandboxModel)
 }
 
-// authDelete terminates a sandbox and soft-deletes the database record.
-// The auth framework already handles ownership verification.
-// If Modal termination fails, logs a warning but continues with soft delete.
+// Terminates a sandbox and soft-deletes the database record
+//
+//	@Title			Delete Sandbox
+//	@Public
+//	@Summary		Delete sandbox
+//	@Description	Terminates a sandbox and soft-deletes the database record
+//	@Tags			Sandbox
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path	string	true	"Sandbox ID"
+//	@Success		200	{object}	response.SuccessResponse{data=sandbox.Sandbox}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Failure		404	{object}	response.ErrorResponse
+//	@Failure		500	{object}	response.ErrorResponse
+//	@Router			/sandbox/{id} [delete]
 func authDelete(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, int, error) {
 	userSession := request.GetReqSession(req)
 	accountID := userSession.User.ID()

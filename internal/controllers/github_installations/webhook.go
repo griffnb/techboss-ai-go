@@ -62,7 +62,7 @@ type WebhookSender struct {
 // @Accept json
 // @Produce json
 // @Param X-Hub-Signature-256 header string true "GitHub webhook signature"
-// @Success 200 {object} response.JSONDataResponse
+// @Success 200 {object} response.SuccessResponse{data=string}
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 401 {object} response.ErrorResponse
 // @Router /admin/github_installation/callback [post]

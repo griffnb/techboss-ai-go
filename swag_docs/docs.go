@@ -1481,6 +1481,815 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/github_installation": {
+            "get": {
+                "description": "List GithubInstallation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GitHub",
+                    "AdminOnly",
+                    "CRUD"
+                ],
+                "summary": "List GithubInstallation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "search by q",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 100,
+                        "description": "limit results",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 0,
+                        "description": "offset results",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "created_at desc",
+                        "description": "sort results e.g. 'created_at desc'",
+                        "name": "order",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filters, see readme",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_installation.GithubInstallationJoined"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/github_installation/": {
+            "post": {
+                "description": "Create GithubInstallation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GitHub",
+                    "AdminOnly",
+                    "CRUD"
+                ],
+                "summary": "Create GithubInstallation",
+                "parameters": [
+                    {
+                        "description": "GithubInstallation Data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_installation.GithubInstallation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_installation.GithubInstallation"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/github_installation/callback": {
+            "post": {
+                "description": "Processes GitHub App installation webhooks (created, deleted, suspend, unsuspend)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GitHub"
+                ],
+                "summary": "GitHub Installation Webhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "GitHub webhook signature",
+                        "name": "X-Hub-Signature-256",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/github_installation/count": {
+            "get": {
+                "description": "Count GithubInstallation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GitHub",
+                    "AdminOnly",
+                    "CRUD"
+                ],
+                "summary": "Count GithubInstallation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "search by q",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filters, see readme",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/github_installation/{id}": {
+            "get": {
+                "description": "Get GithubInstallation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GitHub",
+                    "AdminOnly",
+                    "CRUD"
+                ],
+                "summary": "Get GithubInstallation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "GithubInstallation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_installation.GithubInstallationJoined"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update GithubInstallation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GitHub",
+                    "AdminOnly",
+                    "CRUD"
+                ],
+                "summary": "Update GithubInstallation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "GithubInstallation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "GithubInstallation Data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_installation.GithubInstallation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_installation.GithubInstallation"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/sandbox/": {
+            "post": {
+                "description": "Creates a new sandbox using a premade template based on provider/agent",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sandbox",
+                    "AdminOnly"
+                ],
+                "summary": "Create sandbox",
+                "parameters": [
+                    {
+                        "description": "Sandbox creation request",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sandboxes.CreateSandboxTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/sandbox.Sandbox"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/sandbox/{id}/claude": {
+            "post": {
+                "description": "Executes Claude Code CLI in a sandbox and streams output using Server-Sent Events (SSE)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "Sandbox",
+                    "AdminOnly"
+                ],
+                "summary": "Execute Claude with streaming",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sandbox ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Claude execution request",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sandboxes.ClaudeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SSE stream",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/sandbox/{id}/files": {
+            "get": {
+                "description": "Lists files in a sandbox volume or S3 bucket with pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sandbox",
+                    "AdminOnly"
+                ],
+                "summary": "List files in sandbox",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sandbox ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "volume",
+                            "s3"
+                        ],
+                        "type": "string",
+                        "default": "volume",
+                        "description": "Source location (volume or s3)",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Root path to list from (e.g., /workspace/src)",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Include subdirectories",
+                        "name": "recursive",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 100,
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/sandbox_service.FileListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/sandbox/{id}/files/content": {
+            "get": {
+                "description": "Retrieves and serves the raw content of a file from a sandbox (not wrapped in JSON)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Sandbox",
+                    "AdminOnly"
+                ],
+                "summary": "Get file content from sandbox",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sandbox ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Full path to the file (e.g., /workspace/test.txt)",
+                        "name": "file_path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "volume",
+                            "s3"
+                        ],
+                        "type": "string",
+                        "default": "volume",
+                        "description": "Source location (volume or s3)",
+                        "name": "source",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File content",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/sandbox/{id}/files/tree": {
+            "get": {
+                "description": "Retrieves a hierarchical tree structure of files in a sandbox",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sandbox",
+                    "AdminOnly"
+                ],
+                "summary": "Get file tree structure",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sandbox ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "volume",
+                            "s3"
+                        ],
+                        "type": "string",
+                        "default": "volume",
+                        "description": "Source location (volume or s3)",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "",
+                        "description": "Root path to list from",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Include subdirectories",
+                        "name": "recursive",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/sandbox_service.FileTreeNode"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/account/{id}": {
             "get": {
                 "description": "Retrieves account and associated organization data by account ID",
@@ -1524,6 +2333,580 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/sandbox/": {
+            "post": {
+                "description": "Creates a new sandbox using a premade template based on provider/agent",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sandbox"
+                ],
+                "summary": "Create sandbox",
+                "parameters": [
+                    {
+                        "description": "Sandbox creation request",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sandboxes.CreateSandboxTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/sandbox.SandboxPublic"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/sandbox/{id}": {
+            "put": {
+                "description": "Updates sandbox metadata",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sandbox"
+                ],
+                "summary": "Update sandbox",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sandbox ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Sandbox Data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sandbox.SandboxPublic"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/sandbox.SandboxPublic"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Terminates a sandbox and soft-deletes the database record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sandbox"
+                ],
+                "summary": "Delete sandbox",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sandbox ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/sandbox.SandboxPublic"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/sandbox/{id}/claude": {
+            "post": {
+                "description": "Executes Claude Code CLI in a sandbox and streams output using Server-Sent Events (SSE)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "Sandbox"
+                ],
+                "summary": "Execute Claude with streaming",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sandbox ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Claude execution request",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sandboxes.ClaudeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SSE stream",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/sandbox/{id}/files": {
+            "get": {
+                "description": "Lists files in a sandbox volume or S3 bucket with pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sandbox"
+                ],
+                "summary": "List files in sandbox",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sandbox ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "volume",
+                            "s3"
+                        ],
+                        "type": "string",
+                        "default": "volume",
+                        "description": "Source location (volume or s3)",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Root path to list from (e.g., /workspace/src)",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Include subdirectories",
+                        "name": "recursive",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 1000,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 100,
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/sandbox_service.FileListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/sandbox/{id}/files/content": {
+            "get": {
+                "description": "Retrieves and serves the raw content of a file from a sandbox (not wrapped in JSON)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Sandbox"
+                ],
+                "summary": "Get file content from sandbox",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sandbox ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Full path to the file (e.g., /workspace/test.txt)",
+                        "name": "file_path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "volume",
+                            "s3"
+                        ],
+                        "type": "string",
+                        "default": "volume",
+                        "description": "Source location (volume or s3)",
+                        "name": "source",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File content",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/sandbox/{id}/files/tree": {
+            "get": {
+                "description": "Retrieves a hierarchical tree structure of files in a sandbox",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sandbox"
+                ],
+                "summary": "Get file tree structure",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sandbox ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "volume",
+                            "s3"
+                        ],
+                        "type": "string",
+                        "default": "volume",
+                        "description": "Source location (volume or s3)",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "",
+                        "description": "Root path to list from",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Include subdirectories",
+                        "name": "recursive",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/sandbox_service.FileTreeNode"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/sandbox/{id}/sync": {
+            "post": {
+                "description": "Syncs the sandbox volume to S3 without terminating for manual backups/snapshots",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sandbox"
+                ],
+                "summary": "Sync sandbox to S3",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sandbox ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/sandboxes.SyncSandboxResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1740,13 +3123,53 @@ const docTemplate = `{
                     "$ref": "#/definitions/account.Properties"
                 },
                 "role": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        -1,
+                        0,
+                        1,
+                        40,
+                        50,
+                        100
+                    ],
+                    "x-enum-comments": {
+                        "ROLE_ADMIN": "System Admin",
+                        "ROLE_ANY_AUTHORIZED": "Any Authorized",
+                        "ROLE_UNAUTHORIZED": "Unauthorized",
+                        "ROLE_USER": "User"
+                    },
+                    "x-enum-descriptions": [
+                        "Unauthorized",
+                        "Any Authorized",
+                        "User",
+                        "",
+                        "",
+                        "System Admin"
+                    ],
+                    "x-enum-varnames": [
+                        "ROLE_UNAUTHORIZED",
+                        "ROLE_ANY_AUTHORIZED",
+                        "ROLE_USER",
+                        "ROLE_ORG_ADMIN",
+                        "ROLE_ORG_OWNER",
+                        "ROLE_ADMIN"
+                    ]
                 },
                 "signup_properties": {
                     "$ref": "#/definitions/account.SignupProperties"
                 },
                 "status": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        100,
+                        200,
+                        300
+                    ],
+                    "x-enum-varnames": [
+                        "STATUS_ACTIVE",
+                        "STATUS_DISABLED",
+                        "STATUS_DELETED"
+                    ]
                 },
                 "test_user_type": {
                     "type": "integer"
@@ -1861,13 +3284,53 @@ const docTemplate = `{
                     "$ref": "#/definitions/account.Properties"
                 },
                 "role": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        -1,
+                        0,
+                        1,
+                        40,
+                        50,
+                        100
+                    ],
+                    "x-enum-comments": {
+                        "ROLE_ADMIN": "System Admin",
+                        "ROLE_ANY_AUTHORIZED": "Any Authorized",
+                        "ROLE_UNAUTHORIZED": "Unauthorized",
+                        "ROLE_USER": "User"
+                    },
+                    "x-enum-descriptions": [
+                        "Unauthorized",
+                        "Any Authorized",
+                        "User",
+                        "",
+                        "",
+                        "System Admin"
+                    ],
+                    "x-enum-varnames": [
+                        "ROLE_UNAUTHORIZED",
+                        "ROLE_ANY_AUTHORIZED",
+                        "ROLE_USER",
+                        "ROLE_ORG_ADMIN",
+                        "ROLE_ORG_OWNER",
+                        "ROLE_ADMIN"
+                    ]
                 },
                 "signup_properties": {
                     "$ref": "#/definitions/account.SignupProperties"
                 },
                 "status": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        100,
+                        200,
+                        300
+                    ],
+                    "x-enum-varnames": [
+                        "STATUS_ACTIVE",
+                        "STATUS_DISABLED",
+                        "STATUS_DELETED"
+                    ]
                 },
                 "test_user_type": {
                     "type": "integer"
@@ -1951,10 +3414,50 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "role": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        -1,
+                        0,
+                        1,
+                        40,
+                        50,
+                        100
+                    ],
+                    "x-enum-comments": {
+                        "ROLE_ADMIN": "System Admin",
+                        "ROLE_ANY_AUTHORIZED": "Any Authorized",
+                        "ROLE_UNAUTHORIZED": "Unauthorized",
+                        "ROLE_USER": "User"
+                    },
+                    "x-enum-descriptions": [
+                        "Unauthorized",
+                        "Any Authorized",
+                        "User",
+                        "",
+                        "",
+                        "System Admin"
+                    ],
+                    "x-enum-varnames": [
+                        "ROLE_UNAUTHORIZED",
+                        "ROLE_ANY_AUTHORIZED",
+                        "ROLE_USER",
+                        "ROLE_ORG_ADMIN",
+                        "ROLE_ORG_OWNER",
+                        "ROLE_ADMIN"
+                    ]
                 },
                 "status": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        100,
+                        200,
+                        300
+                    ],
+                    "x-enum-varnames": [
+                        "STATUS_ACTIVE",
+                        "STATUS_DISABLED",
+                        "STATUS_DELETED"
+                    ]
                 },
                 "test_user_type": {
                     "type": "integer"
@@ -2035,10 +3538,50 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "role": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        -1,
+                        0,
+                        1,
+                        40,
+                        50,
+                        100
+                    ],
+                    "x-enum-comments": {
+                        "ROLE_ADMIN": "System Admin",
+                        "ROLE_ANY_AUTHORIZED": "Any Authorized",
+                        "ROLE_UNAUTHORIZED": "Unauthorized",
+                        "ROLE_USER": "User"
+                    },
+                    "x-enum-descriptions": [
+                        "Unauthorized",
+                        "Any Authorized",
+                        "User",
+                        "",
+                        "",
+                        "System Admin"
+                    ],
+                    "x-enum-varnames": [
+                        "ROLE_UNAUTHORIZED",
+                        "ROLE_ANY_AUTHORIZED",
+                        "ROLE_USER",
+                        "ROLE_ORG_ADMIN",
+                        "ROLE_ORG_OWNER",
+                        "ROLE_ADMIN"
+                    ]
                 },
                 "status": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        100,
+                        200,
+                        300
+                    ],
+                    "x-enum-varnames": [
+                        "STATUS_ACTIVE",
+                        "STATUS_DISABLED",
+                        "STATUS_DELETED"
+                    ]
                 },
                 "test_user_type": {
                     "type": "integer"
@@ -2140,10 +3683,50 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "role": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        -1,
+                        0,
+                        1,
+                        40,
+                        50,
+                        100
+                    ],
+                    "x-enum-comments": {
+                        "ROLE_ADMIN": "System Admin",
+                        "ROLE_ANY_AUTHORIZED": "Any Authorized",
+                        "ROLE_UNAUTHORIZED": "Unauthorized",
+                        "ROLE_USER": "User"
+                    },
+                    "x-enum-descriptions": [
+                        "Unauthorized",
+                        "Any Authorized",
+                        "User",
+                        "",
+                        "",
+                        "System Admin"
+                    ],
+                    "x-enum-varnames": [
+                        "ROLE_UNAUTHORIZED",
+                        "ROLE_ANY_AUTHORIZED",
+                        "ROLE_USER",
+                        "ROLE_ORG_ADMIN",
+                        "ROLE_ORG_OWNER",
+                        "ROLE_ADMIN"
+                    ]
                 },
                 "status": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        100,
+                        200,
+                        300
+                    ],
+                    "x-enum-varnames": [
+                        "STATUS_ACTIVE",
+                        "STATUS_DISABLED",
+                        "STATUS_DELETED"
+                    ]
                 },
                 "test_user_type": {
                     "type": "integer"
@@ -2163,6 +3746,13 @@ const docTemplate = `{
         "account.Properties": {
             "type": "object",
             "title": "AccountProperties",
+            "required": [
+                "invite_key",
+                "invite_ts",
+                "last_seen",
+                "external_user_info",
+                "verify_email_key"
+            ],
             "properties": {
                 "external_user_info": {},
                 "invite_key": {
@@ -2196,6 +3786,9 @@ const docTemplate = `{
         },
         "account_service.TestUserInput": {
             "type": "object",
+            "required": [
+                "organization_id"
+            ],
             "properties": {
                 "organization_id": {
                     "type": "string"
@@ -2204,6 +3797,10 @@ const docTemplate = `{
         },
         "accounts.APIResponse": {
             "type": "object",
+            "required": [
+                "account",
+                "organization"
+            ],
             "properties": {
                 "account": {
                     "$ref": "#/definitions/account.Account"
@@ -2215,6 +3812,9 @@ const docTemplate = `{
         },
         "accounts.CheckKeyResponse": {
             "type": "object",
+            "required": [
+                "valid"
+            ],
             "properties": {
                 "valid": {
                     "type": "boolean"
@@ -2223,6 +3823,10 @@ const docTemplate = `{
         },
         "accounts.ExistingCheck": {
             "type": "object",
+            "required": [
+                "cf_token",
+                "email"
+            ],
             "properties": {
                 "cf_token": {
                     "type": "string"
@@ -2234,6 +3838,9 @@ const docTemplate = `{
         },
         "accounts.ExistingResponse": {
             "type": "object",
+            "required": [
+                "exists"
+            ],
             "properties": {
                 "exists": {
                     "type": "boolean"
@@ -2242,6 +3849,11 @@ const docTemplate = `{
         },
         "accounts.PasswordInput": {
             "type": "object",
+            "required": [
+                "current_password",
+                "password",
+                "password_confirmation"
+            ],
             "properties": {
                 "current_password": {
                     "type": "string"
@@ -2256,6 +3868,10 @@ const docTemplate = `{
         },
         "accounts.PasswordResetInput": {
             "type": "object",
+            "required": [
+                "email",
+                "hash"
+            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -2267,6 +3883,9 @@ const docTemplate = `{
         },
         "accounts.ResendVerifyEmailPayload": {
             "type": "object",
+            "required": [
+                "cf_token"
+            ],
             "properties": {
                 "cf_token": {
                     "type": "string"
@@ -2275,6 +3894,11 @@ const docTemplate = `{
         },
         "accounts.ResetPasswordInput": {
             "type": "object",
+            "required": [
+                "password",
+                "password_confirmation",
+                "resetKey"
+            ],
             "properties": {
                 "password": {
                     "type": "string"
@@ -2289,6 +3913,11 @@ const docTemplate = `{
         },
         "accounts.SetPasswordInput": {
             "type": "object",
+            "required": [
+                "password",
+                "password_confirmation",
+                "verify"
+            ],
             "properties": {
                 "password": {
                     "type": "string"
@@ -2303,6 +3932,9 @@ const docTemplate = `{
         },
         "accounts.SignupResponse": {
             "type": "object",
+            "required": [
+                "token"
+            ],
             "properties": {
                 "redirect_url": {
                     "type": "string"
@@ -2317,6 +3949,10 @@ const docTemplate = `{
         },
         "accounts.UpdatePrimaryEmailAddressPayload": {
             "type": "object",
+            "required": [
+                "cf_token",
+                "email"
+            ],
             "properties": {
                 "cf_token": {
                     "type": "string"
@@ -2328,6 +3964,9 @@ const docTemplate = `{
         },
         "accounts.VerifyInput": {
             "type": "object",
+            "required": [
+                "verify"
+            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -2339,6 +3978,9 @@ const docTemplate = `{
         },
         "accounts.VerifyResponse": {
             "type": "object",
+            "required": [
+                "token"
+            ],
             "properties": {
                 "redirect_url": {
                     "type": "string"
@@ -2351,6 +3993,11 @@ const docTemplate = `{
         "billing_plan.FeatureSet": {
             "type": "object",
             "title": "BillingPlanFeatureSet",
+            "required": [
+                "custom_branding",
+                "advanced_analytics",
+                "priority_support"
+            ],
             "properties": {
                 "advanced_analytics": {
                     "type": "integer",
@@ -2369,6 +4016,9 @@ const docTemplate = `{
         "billing_plan.FeatureSetPublic": {
             "type": "object",
             "title": "BillingPlanFeatureSetPublic",
+            "required": [
+                "advanced_analytics"
+            ],
             "properties": {
                 "advanced_analytics": {
                     "type": "integer",
@@ -2376,9 +4026,219 @@ const docTemplate = `{
                 }
             }
         },
+        "github_installation.GithubInstallation": {
+            "type": "object",
+            "title": "GithubInstallation",
+            "required": [
+                "id",
+                "urn",
+                "created_by_urn",
+                "updated_by_urn",
+                "status",
+                "deleted",
+                "disabled",
+                "updated_at",
+                "created_at",
+                "account_id",
+                "installation_id",
+                "github_account_id",
+                "github_account_type",
+                "github_account_name",
+                "repository_access",
+                "permissions",
+                "suspended",
+                "app_slug"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "app_slug": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by_urn": {
+                    "type": "string"
+                },
+                "deleted": {
+                    "type": "integer"
+                },
+                "disabled": {
+                    "type": "integer"
+                },
+                "github_account_id": {
+                    "type": "string"
+                },
+                "github_account_name": {
+                    "type": "string"
+                },
+                "github_account_type": {
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ],
+                    "x-enum-varnames": [
+                        "ACCOUNT_TYPE_USER",
+                        "ACCOUNT_TYPE_ORGANIZATION"
+                    ]
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "installation_id": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "repository_access": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer",
+                    "enum": [
+                        100,
+                        200,
+                        300
+                    ],
+                    "x-enum-varnames": [
+                        "STATUS_ACTIVE",
+                        "STATUS_DISABLED",
+                        "STATUS_DELETED"
+                    ]
+                },
+                "suspended": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_by_urn": {
+                    "type": "string"
+                },
+                "urn": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_installation.GithubInstallationJoined": {
+            "type": "object",
+            "title": "GithubInstallationJoined",
+            "required": [
+                "id",
+                "urn",
+                "created_by_urn",
+                "updated_by_urn",
+                "status",
+                "deleted",
+                "disabled",
+                "updated_at",
+                "created_at",
+                "account_id",
+                "installation_id",
+                "github_account_id",
+                "github_account_type",
+                "github_account_name",
+                "repository_access",
+                "permissions",
+                "suspended",
+                "app_slug"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "app_slug": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by_urn": {
+                    "type": "string"
+                },
+                "deleted": {
+                    "type": "integer"
+                },
+                "disabled": {
+                    "type": "integer"
+                },
+                "github_account_id": {
+                    "type": "string"
+                },
+                "github_account_name": {
+                    "type": "string"
+                },
+                "github_account_type": {
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ],
+                    "x-enum-varnames": [
+                        "ACCOUNT_TYPE_USER",
+                        "ACCOUNT_TYPE_ORGANIZATION"
+                    ]
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "installation_id": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "repository_access": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer",
+                    "enum": [
+                        100,
+                        200,
+                        300
+                    ],
+                    "x-enum-varnames": [
+                        "STATUS_ACTIVE",
+                        "STATUS_DISABLED",
+                        "STATUS_DELETED"
+                    ]
+                },
+                "suspended": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_by_urn": {
+                    "type": "string"
+                },
+                "urn": {
+                    "type": "string"
+                }
+            }
+        },
         "organization.MetaData": {
             "type": "object",
             "title": "OrganizationMetaData",
+            "required": [
+                "vector_store_id",
+                "onboard_answers"
+            ],
             "properties": {
                 "onboard_answers": {
                     "type": "object",
@@ -2459,7 +4319,17 @@ const docTemplate = `{
                     "$ref": "#/definitions/organization.Properties"
                 },
                 "status": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        100,
+                        200,
+                        300
+                    ],
+                    "x-enum-varnames": [
+                        "STATUS_ACTIVE",
+                        "STATUS_DISABLED",
+                        "STATUS_DELETED"
+                    ]
                 },
                 "stripe_id": {
                     "type": "string"
@@ -2482,6 +4352,9 @@ const docTemplate = `{
         "organization.Properties": {
             "type": "object",
             "title": "OrganizationProperties",
+            "required": [
+                "billing_email"
+            ],
             "properties": {
                 "billing_email": {
                     "type": "string"
@@ -2490,6 +4363,10 @@ const docTemplate = `{
         },
         "response.ErrorResponse": {
             "type": "object",
+            "required": [
+                "error",
+                "success"
+            ],
             "properties": {
                 "error": {
                     "type": "string"
@@ -2502,11 +4379,437 @@ const docTemplate = `{
         },
         "response.SuccessResponse": {
             "type": "object",
+            "required": [
+                "data",
+                "success"
+            ],
             "properties": {
                 "data": {},
                 "success": {
                     "type": "boolean",
                     "default": true
+                }
+            }
+        },
+        "sandbox.MetaData": {
+            "type": "object",
+            "title": "SandboxMetaData",
+            "required": [
+                "last_s3_sync",
+                "sync_stats"
+            ],
+            "properties": {
+                "last_s3_sync": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "sync_stats": {
+                    "$ref": "#/definitions/sandbox.SyncStats"
+                }
+            }
+        },
+        "sandbox.Sandbox": {
+            "type": "object",
+            "title": "Sandbox",
+            "required": [
+                "id",
+                "urn",
+                "created_by_urn",
+                "updated_by_urn",
+                "status",
+                "deleted",
+                "disabled",
+                "updated_at",
+                "created_at",
+                "organization_id",
+                "account_id",
+                "meta_data",
+                "type",
+                "agent_id",
+                "external_id"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "agent_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by_urn": {
+                    "type": "string"
+                },
+                "deleted": {
+                    "type": "integer"
+                },
+                "disabled": {
+                    "type": "integer"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "meta_data": {
+                    "$ref": "#/definitions/sandbox.MetaData"
+                },
+                "organization_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "status": {
+                    "type": "integer",
+                    "enum": [
+                        100,
+                        200,
+                        300
+                    ],
+                    "x-enum-varnames": [
+                        "STATUS_ACTIVE",
+                        "STATUS_DISABLED",
+                        "STATUS_DELETED"
+                    ]
+                },
+                "type": {
+                    "type": "integer",
+                    "enum": [
+                        1
+                    ],
+                    "x-enum-varnames": [
+                        "TYPE_CLAUDE_CODE"
+                    ]
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_by_urn": {
+                    "type": "string"
+                },
+                "urn": {
+                    "type": "string"
+                }
+            }
+        },
+        "sandbox.SandboxPublic": {
+            "type": "object",
+            "title": "SandboxPublic",
+            "required": [
+                "id",
+                "urn",
+                "created_by_urn",
+                "updated_by_urn",
+                "status",
+                "deleted",
+                "disabled",
+                "updated_at",
+                "created_at",
+                "organization_id",
+                "account_id",
+                "agent_id",
+                "external_id"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "agent_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "created_by_urn": {
+                    "type": "string"
+                },
+                "deleted": {
+                    "type": "integer"
+                },
+                "disabled": {
+                    "type": "integer"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "organization_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "status": {
+                    "type": "integer",
+                    "enum": [
+                        100,
+                        200,
+                        300
+                    ],
+                    "x-enum-varnames": [
+                        "STATUS_ACTIVE",
+                        "STATUS_DISABLED",
+                        "STATUS_DELETED"
+                    ]
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_by_urn": {
+                    "type": "string"
+                },
+                "urn": {
+                    "type": "string"
+                }
+            }
+        },
+        "sandbox.SyncStats": {
+            "type": "object",
+            "title": "SandboxSyncStats",
+            "required": [
+                "files_downloaded",
+                "files_deleted",
+                "files_skipped",
+                "bytes_transferred",
+                "duration_ms"
+            ],
+            "properties": {
+                "bytes_transferred": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "duration_ms": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "files_deleted": {
+                    "type": "integer"
+                },
+                "files_downloaded": {
+                    "type": "integer"
+                },
+                "files_skipped": {
+                    "type": "integer"
+                }
+            }
+        },
+        "sandbox.Type": {
+            "type": "integer",
+            "enum": [
+                1
+            ],
+            "x-enum-varnames": [
+                "TYPE_CLAUDE_CODE"
+            ]
+        },
+        "sandbox_service.FileInfo": {
+            "type": "object",
+            "required": [
+                "is_directory",
+                "modified_at",
+                "name",
+                "path",
+                "size"
+            ],
+            "properties": {
+                "checksum": {
+                    "type": "string"
+                },
+                "is_directory": {
+                    "type": "boolean"
+                },
+                "modified_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "sandbox_service.FileListResponse": {
+            "type": "object",
+            "required": [
+                "files",
+                "page",
+                "per_page",
+                "total_count",
+                "total_pages"
+            ],
+            "properties": {
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sandbox_service.FileInfo"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "per_page": {
+                    "type": "integer"
+                },
+                "total_count": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "sandbox_service.FileTreeNode": {
+            "type": "object",
+            "required": [
+                "is_directory",
+                "name",
+                "path"
+            ],
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/sandbox_service.FileTreeNode"
+                    }
+                },
+                "is_directory": {
+                    "type": "boolean"
+                },
+                "modified_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "sandboxes.ClaudeRequest": {
+            "type": "object",
+            "required": [
+                "messages",
+                "model"
+            ],
+            "properties": {
+                "messages": {
+                    "description": "Conversation messages",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "content",
+                            "role"
+                        ],
+                        "properties": {
+                            "content": {
+                                "description": "Content of the message (string or array)",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/sandboxes.ContentItem"
+                                }
+                            },
+                            "role": {
+                                "description": "Role of the message (e.g., \"user\", \"assistant\")",
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "model": {
+                    "description": "Model to use (optional, default handled by service)",
+                    "type": "string"
+                }
+            }
+        },
+        "sandboxes.ContentItem": {
+            "type": "object",
+            "required": [
+                "text",
+                "type"
+            ],
+            "properties": {
+                "text": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "sandboxes.CreateSandboxTemplateRequest": {
+            "type": "object",
+            "required": [
+                "account_id",
+                "agent_id",
+                "type"
+            ],
+            "properties": {
+                "account_id": {
+                    "description": "Account ID (optional, for future use)",
+                    "type": "string"
+                },
+                "agent_id": {
+                    "description": "Agent ID (optional, for future use)",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Provider type (1=Claude Code)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/sandbox.Type"
+                        }
+                    ]
+                }
+            }
+        },
+        "sandboxes.SyncSandboxResponse": {
+            "type": "object",
+            "required": [
+                "bytes_transferred",
+                "duration_ms",
+                "files_deleted",
+                "files_downloaded",
+                "files_skipped",
+                "sandbox_id"
+            ],
+            "properties": {
+                "bytes_transferred": {
+                    "type": "integer"
+                },
+                "duration_ms": {
+                    "type": "integer"
+                },
+                "files_deleted": {
+                    "type": "integer"
+                },
+                "files_downloaded": {
+                    "type": "integer"
+                },
+                "files_skipped": {
+                    "type": "integer"
+                },
+                "sandbox_id": {
+                    "type": "string"
                 }
             }
         }

@@ -53,17 +53,22 @@ type ClaudeRequest struct {
 	} `json:"messages"` // Conversation messages
 }
 
-// streamClaude executes Claude Code CLI in a sandbox and streams output using SSE.
-// It parses the request body for the prompt, validates inputs, retrieves sandbox info
-// from the database with ownership verification, and streams the Claude output to the
-// client in real-time.
+// Executes Claude Code CLI in a sandbox and streams output using SSE
 //
-// The streaming uses Server-Sent Events (SSE) with the following flow:
-// 1. Parse request and validate prompt
-// 2. Retrieve sandboxInfo from database with ownership verification
-// 3. Build ClaudeExecConfig
-// 4. Call service.ExecuteClaudeStream which sets SSE headers and streams formatted output
-// 5. Service layer calls claude.ProcessStream to emit typed SSE events per Vercel AI SDK spec
+//	@Title			Execute Claude
+//	@Summary		Execute Claude with streaming
+//	@Description	Executes Claude Code CLI in a sandbox and streams output using Server-Sent Events (SSE)
+//	@Tags			Sandbox
+//	@Tags			AdminOnly
+//	@Accept			json
+//	@Produce		text/event-stream
+//	@Param			id		path	string			true	"Sandbox ID"
+//	@Param			data	body	ClaudeRequest	true	"Claude execution request"
+//	@Success		200	{string}	string	"SSE stream"
+//	@Failure		400	{string}	string	"Bad Request"
+//	@Failure		404	{string}	string	"Not Found"
+//	@Failure		500	{string}	string	"Internal Server Error"
+//	@Router			/admin/sandbox/{id}/claude [post]
 func adminStreamClaude(w http.ResponseWriter, req *http.Request) {
 	id := chi.URLParam(req, "id")
 
@@ -138,17 +143,22 @@ func adminStreamClaude(w http.ResponseWriter, req *http.Request) {
 		claudeProcess.InputTokens, claudeProcess.OutputTokens, claudeProcess.CacheTokens)
 }
 
-// streamClaude executes Claude Code CLI in a sandbox and streams output using SSE.
-// It parses the request body for the prompt, validates inputs, retrieves sandbox info
-// from the database with ownership verification, and streams the Claude output to the
-// client in real-time.
+// Executes Claude Code CLI in a sandbox and streams output using SSE for authenticated users
 //
-// The streaming uses Server-Sent Events (SSE) with the following flow:
-// 1. Parse request and validate prompt
-// 2. Retrieve sandboxInfo from database with ownership verification
-// 3. Build ClaudeExecConfig
-// 4. Call service.ExecuteClaudeStream which sets SSE headers and streams formatted output
-// 5. Service layer calls claude.ProcessStream to emit typed SSE events per Vercel AI SDK spec
+//	@Title			Execute Claude
+//	@Public
+//	@Summary		Execute Claude with streaming
+//	@Description	Executes Claude Code CLI in a sandbox and streams output using Server-Sent Events (SSE)
+//	@Tags			Sandbox
+//	@Accept			json
+//	@Produce		text/event-stream
+//	@Param			id		path	string			true	"Sandbox ID"
+//	@Param			data	body	ClaudeRequest	true	"Claude execution request"
+//	@Success		200	{string}	string	"SSE stream"
+//	@Failure		400	{string}	string	"Bad Request"
+//	@Failure		404	{string}	string	"Not Found"
+//	@Failure		500	{string}	string	"Internal Server Error"
+//	@Router			/sandbox/{id}/claude [post]
 func authStreamClaude(w http.ResponseWriter, req *http.Request) {
 	id := chi.URLParam(req, "id")
 

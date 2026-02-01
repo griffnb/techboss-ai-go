@@ -14,7 +14,22 @@ import (
 	"github.com/griffnb/techboss-ai-go/internal/services/sandbox_service"
 )
 
-// TODO: Implement authUpdate to allow updating sandbox metadata.
+// Updates sandbox metadata (TODO: Implement)
+//
+//	@Title			Update Sandbox
+//	@Public
+//	@Summary		Update sandbox
+//	@Description	Updates sandbox metadata
+//	@Tags			Sandbox
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path	string			true	"Sandbox ID"
+//	@Param			data	body	sandbox.Sandbox	true	"Sandbox Data"
+//	@Success		200	{object}	response.SuccessResponse{data=sandbox.Sandbox}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Failure		404	{object}	response.ErrorResponse
+//	@Failure		500	{object}	response.ErrorResponse
+//	@Router			/sandbox/{id} [put]
 func authUpdate(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, int, error) {
 	user := request.GetReqSession(req).User
 
@@ -40,9 +55,21 @@ type SyncSandboxResponse struct {
 	DurationMs       int64  `json:"duration_ms"`
 }
 
-// syncSandbox syncs the sandbox volume to S3 without terminating.
-// This allows manual backups/snapshots of the current workspace state.
-// Updates metadata with sync statistics (files processed, bytes transferred, duration).
+// Syncs the sandbox volume to S3 without terminating
+//
+//	@Title			Sync Sandbox
+//	@Public
+//	@Summary		Sync sandbox to S3
+//	@Description	Syncs the sandbox volume to S3 without terminating for manual backups/snapshots
+//	@Tags			Sandbox
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path	string	true	"Sandbox ID"
+//	@Success		200	{object}	response.SuccessResponse{data=SyncSandboxResponse}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Failure		404	{object}	response.ErrorResponse
+//	@Failure		500	{object}	response.ErrorResponse
+//	@Router			/sandbox/{id}/sync [post]
 func syncSandbox(_ http.ResponseWriter, req *http.Request) (*SyncSandboxResponse, int, error) {
 	userSession := request.GetReqSession(req)
 	accountID := userSession.User.ID()
@@ -112,8 +139,21 @@ func syncSandbox(_ http.ResponseWriter, req *http.Request) (*SyncSandboxResponse
 	return response.Success(resp)
 }
 
-// createSandbox creates a new sandbox using a premade template based on provider/agent.
-// It saves the sandbox to the database with ExternalID, Provider, AgentID, Status, and empty MetaData.
+// Creates a new sandbox using a premade template based on provider/agent for authenticated users
+//
+//	@Title			Create Sandbox
+//	@Public
+//	@Summary		Create sandbox
+//	@Description	Creates a new sandbox using a premade template based on provider/agent
+//	@Tags			Sandbox
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body	CreateSandboxTemplateRequest	true	"Sandbox creation request"
+//	@Success		200	{object}	response.SuccessResponse{data=sandbox.Sandbox}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Failure		404	{object}	response.ErrorResponse
+//	@Failure		500	{object}	response.ErrorResponse
+//	@Router			/sandbox/ [post]
 func authCreateSandbox(_ http.ResponseWriter, req *http.Request) (*sandbox.Sandbox, int, error) {
 	// Get authenticated user session
 	usr := helpers.GetLoadedUser(req)

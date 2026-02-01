@@ -51,11 +51,6 @@ func OrchestratePullSync(
 		return nil, errors.New("S3Config is required for pull sync")
 	}
 
-	// Default threshold if not specified
-	if staleThresholdSeconds == 0 {
-		staleThresholdSeconds = defaultStaleThresholdSeconds
-	}
-
 	// For now, we'll use the existing InitVolumeFromS3WithState method which already
 	// implements the state-based sync logic internally. This simplifies the orchestration
 	// layer and uses the battle-tested implementation in the modal package.

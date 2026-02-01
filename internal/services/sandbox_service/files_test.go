@@ -662,10 +662,10 @@ func Test_SandboxService_buildListFilesCommand(t *testing.T) {
 func Test_parseFileMetadata(t *testing.T) {
 	t.Run("parses single file successfully", func(t *testing.T) {
 		// Arrange
-		output := "/workspace/main.go|2048|1735560000|f"
+		output := "/workspace/main.go|2048|1735560000|regular file"
 
 		// Act
-		files, err := parseFileMetadata(output)
+		files, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Empty(t, err)
@@ -678,10 +678,10 @@ func Test_parseFileMetadata(t *testing.T) {
 
 	t.Run("parses single directory successfully", func(t *testing.T) {
 		// Arrange
-		output := "/workspace/src|4096|1735560000|d"
+		output := "/workspace/src|4096|1735560000|directory"
 
 		// Act
-		files, err := parseFileMetadata(output)
+		files, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Empty(t, err)
@@ -694,10 +694,10 @@ func Test_parseFileMetadata(t *testing.T) {
 
 	t.Run("parses multiple files successfully", func(t *testing.T) {
 		// Arrange
-		output := "/workspace/main.go|2048|1735560000|f\n/workspace/README.md|1024|1735560100|f\n/workspace/config.json|512|1735560200|f"
+		output := "/workspace/main.go|2048|1735560000|regular file\n/workspace/README.md|1024|1735560100|regular file\n/workspace/config.json|512|1735560200|regular file"
 
 		// Act
-		files, err := parseFileMetadata(output)
+		files, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Empty(t, err)
@@ -709,10 +709,10 @@ func Test_parseFileMetadata(t *testing.T) {
 
 	t.Run("parses mixed files and directories", func(t *testing.T) {
 		// Arrange
-		output := "/workspace/main.go|2048|1735560000|f\n/workspace/src|4096|1735560100|d\n/workspace/tests|4096|1735560200|d\n/workspace/go.mod|256|1735560300|f"
+		output := "/workspace/main.go|2048|1735560000|regular file\n/workspace/src|4096|1735560100|directory\n/workspace/tests|4096|1735560200|directory\n/workspace/go.mod|256|1735560300|regular file"
 
 		// Act
-		files, err := parseFileMetadata(output)
+		files, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Empty(t, err)
@@ -728,7 +728,7 @@ func Test_parseFileMetadata(t *testing.T) {
 		output := ""
 
 		// Act
-		files, err := parseFileMetadata(output)
+		files, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Empty(t, err)
@@ -737,10 +737,10 @@ func Test_parseFileMetadata(t *testing.T) {
 
 	t.Run("skips empty lines in output", func(t *testing.T) {
 		// Arrange
-		output := "/workspace/main.go|2048|1735560000|f\n\n/workspace/README.md|1024|1735560100|f\n\n\n"
+		output := "/workspace/main.go|2048|1735560000|regular file\n\n/workspace/README.md|1024|1735560100|regular file\n\n\n"
 
 		// Act
-		files, err := parseFileMetadata(output)
+		files, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Empty(t, err)
@@ -754,7 +754,7 @@ func Test_parseFileMetadata(t *testing.T) {
 		output := "/workspace/main.go|2048"
 
 		// Act
-		_, err := parseFileMetadata(output)
+		_, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Error(t, err)
@@ -763,10 +763,10 @@ func Test_parseFileMetadata(t *testing.T) {
 
 	t.Run("returns error for malformed data invalid size", func(t *testing.T) {
 		// Arrange
-		output := "/workspace/main.go|invalid_size|1735560000|f"
+		output := "/workspace/main.go|invalid_size|1735560000|regular file"
 
 		// Act
-		_, err := parseFileMetadata(output)
+		_, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Error(t, err)
@@ -775,10 +775,10 @@ func Test_parseFileMetadata(t *testing.T) {
 
 	t.Run("returns error for malformed data invalid timestamp", func(t *testing.T) {
 		// Arrange
-		output := "/workspace/main.go|2048|invalid_timestamp|f"
+		output := "/workspace/main.go|2048|invalid_timestamp|regular file"
 
 		// Act
-		_, err := parseFileMetadata(output)
+		_, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Error(t, err)
@@ -787,10 +787,10 @@ func Test_parseFileMetadata(t *testing.T) {
 
 	t.Run("handles special characters in path", func(t *testing.T) {
 		// Arrange
-		output := "/workspace/my-file_name with spaces.go|2048|1735560000|f"
+		output := "/workspace/my-file_name with spaces.go|2048|1735560000|regular file"
 
 		// Act
-		files, err := parseFileMetadata(output)
+		files, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Empty(t, err)
@@ -801,10 +801,10 @@ func Test_parseFileMetadata(t *testing.T) {
 
 	t.Run("handles large file size", func(t *testing.T) {
 		// Arrange
-		output := "/workspace/large_file.bin|1073741824|1735560000|f"
+		output := "/workspace/large_file.bin|1073741824|1735560000|regular file"
 
 		// Act
-		files, err := parseFileMetadata(output)
+		files, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Empty(t, err)
@@ -814,10 +814,10 @@ func Test_parseFileMetadata(t *testing.T) {
 
 	t.Run("handles zero size file", func(t *testing.T) {
 		// Arrange
-		output := "/workspace/empty.txt|0|1735560000|f"
+		output := "/workspace/empty.txt|0|1735560000|regular file"
 
 		// Act
-		files, err := parseFileMetadata(output)
+		files, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Empty(t, err)
@@ -827,10 +827,10 @@ func Test_parseFileMetadata(t *testing.T) {
 
 	t.Run("extracts name correctly from path", func(t *testing.T) {
 		// Arrange
-		output := "/workspace/cmd/server/handlers/main.go|2048|1735560000|f"
+		output := "/workspace/cmd/server/handlers/main.go|2048|1735560000|regular file"
 
 		// Act
-		files, err := parseFileMetadata(output)
+		files, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Empty(t, err)
@@ -841,10 +841,10 @@ func Test_parseFileMetadata(t *testing.T) {
 
 	t.Run("handles root directory path", func(t *testing.T) {
 		// Arrange
-		output := "/workspace|4096|1735560000|d"
+		output := "/workspace|4096|1735560000|directory"
 
 		// Act
-		files, err := parseFileMetadata(output)
+		files, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Empty(t, err)
@@ -856,10 +856,10 @@ func Test_parseFileMetadata(t *testing.T) {
 
 	t.Run("converts unix timestamp to time.Time correctly", func(t *testing.T) {
 		// Arrange
-		output := "/workspace/main.go|2048|1735560000|f"
+		output := "/workspace/main.go|2048|1735560000|regular file"
 
 		// Act
-		files, err := parseFileMetadata(output)
+		files, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Empty(t, err)
@@ -872,10 +872,10 @@ func Test_parseFileMetadata(t *testing.T) {
 
 	t.Run("handles s3-bucket paths", func(t *testing.T) {
 		// Arrange
-		output := "/s3-bucket/data/output.json|512|1735560000|f"
+		output := "/s3-bucket/data/output.json|512|1735560000|regular file"
 
 		// Act
-		files, err := parseFileMetadata(output)
+		files, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Empty(t, err)
@@ -884,24 +884,26 @@ func Test_parseFileMetadata(t *testing.T) {
 		assert.Equal(t, "/s3-bucket/data/output.json", files[0].Path)
 	})
 
-	t.Run("returns error when type is invalid", func(t *testing.T) {
-		// Arrange
-		output := "/workspace/main.go|2048|1735560000|x"
+	t.Run("treats unknown file types as non-directory", func(t *testing.T) {
+		// Arrange - stat can output various types like "symbolic link", "socket", "fifo", etc.
+		output := "/workspace/main.go|2048|1735560000|symbolic link"
 
 		// Act
-		_, err := parseFileMetadata(output)
+		files, err := parseFileMetadata(output, "")
 
 		// Assert
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "type")
+		assert.Empty(t, err)
+		assert.Equal(t, 1, len(files))
+		assert.Equal(t, false, files[0].IsDirectory) // Anything that's not "directory" is treated as non-directory
+		assert.Equal(t, "main.go", files[0].Name)
 	})
 
 	t.Run("handles multiple errors in batch and returns first error", func(t *testing.T) {
 		// Arrange
-		output := "/workspace/main.go|2048|1735560000|f\n/workspace/bad.go|invalid|1735560100|f\n/workspace/good.go|1024|1735560200|f"
+		output := "/workspace/main.go|2048|1735560000|regular file\n/workspace/bad.go|invalid|1735560100|regular file\n/workspace/good.go|1024|1735560200|regular file"
 
 		// Act
-		_, err := parseFileMetadata(output)
+		_, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Error(t, err)
@@ -910,15 +912,47 @@ func Test_parseFileMetadata(t *testing.T) {
 
 	t.Run("checksum field is empty by default", func(t *testing.T) {
 		// Arrange
-		output := "/workspace/main.go|2048|1735560000|f"
+		output := "/workspace/main.go|2048|1735560000|regular file"
 
 		// Act
-		files, err := parseFileMetadata(output)
+		files, err := parseFileMetadata(output, "")
 
 		// Assert
 		assert.Empty(t, err)
 		assert.Equal(t, 1, len(files))
 		assert.Equal(t, "", files[0].Checksum)
+	})
+
+	t.Run("filters out excluded path", func(t *testing.T) {
+		// Arrange
+		output := "/mnt/workspace|4096|1735560000|directory\n/mnt/workspace/test.txt|512|1735560100|regular file\n/mnt/workspace/README.md|1024|1735560200|regular file"
+
+		// Act - exclude the root directory itself
+		files, err := parseFileMetadata(output, "/mnt/workspace")
+
+		// Assert
+		assert.Empty(t, err)
+		assert.Equal(t, 2, len(files))               // Root directory excluded
+		assert.Equal(t, "test.txt", files[0].Name)   // First file
+		assert.Equal(t, "README.md", files[1].Name)  // Second file
+		assert.Equal(t, false, files[0].IsDirectory) // File, not directory
+		assert.Equal(t, "/mnt/workspace/test.txt", files[0].Path)
+		assert.Equal(t, "/mnt/workspace/README.md", files[1].Path)
+	})
+
+	t.Run("no filtering when excludePath is empty", func(t *testing.T) {
+		// Arrange
+		output := "/mnt/workspace|4096|1735560000|directory\n/mnt/workspace/test.txt|512|1735560100|regular file"
+
+		// Act - no exclusion
+		files, err := parseFileMetadata(output, "")
+
+		// Assert
+		assert.Empty(t, err)
+		assert.Equal(t, 2, len(files))              // Both included
+		assert.Equal(t, "workspace", files[0].Name) // Directory name extracted from path
+		assert.Equal(t, true, files[0].IsDirectory)
+		assert.Equal(t, "test.txt", files[1].Name)
 	})
 }
 
@@ -1317,7 +1351,7 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 
 		// Act
 		// This will fail because ListFiles doesn't exist yet (RED phase)
-		response, err := service.ListFiles(ctx, sandboxInfo, opts)
+		response, err := service.ListFiles(ctx, sandboxInfo, nil, nil, opts)
 
 		// Assert
 		// When implemented, should return valid response
@@ -1350,7 +1384,7 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		}
 
 		// Act
-		response, err := service.ListFiles(ctx, sandboxInfo, opts)
+		response, err := service.ListFiles(ctx, sandboxInfo, nil, nil, opts)
 
 		// Assert
 		assert.NoError(t, err)
@@ -1382,7 +1416,7 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		}
 
 		// Act
-		response, err := service.ListFiles(ctx, sandboxInfo, opts)
+		response, err := service.ListFiles(ctx, sandboxInfo, nil, nil, opts)
 
 		// Assert
 		assert.Error(t, err)
@@ -1413,7 +1447,7 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		}
 
 		// Act
-		response, err := service.ListFiles(ctx, sandboxInfo, opts)
+		response, err := service.ListFiles(ctx, sandboxInfo, nil, nil, opts)
 
 		// Assert
 		// Should use default /workspace path and succeed
@@ -1445,7 +1479,7 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 
 		// Act
 		// When implemented with mocked command output showing multiple files
-		response, err := service.ListFiles(ctx, sandboxInfo, opts)
+		response, err := service.ListFiles(ctx, sandboxInfo, nil, nil, opts)
 
 		// Assert
 		assert.NoError(t, err)
@@ -1477,7 +1511,7 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 
 		// Act
 		// When implemented, should handle empty directory gracefully
-		response, err := service.ListFiles(ctx, sandboxInfo, opts)
+		response, err := service.ListFiles(ctx, sandboxInfo, nil, nil, opts)
 
 		// Assert
 		assert.NoError(t, err)
@@ -1509,7 +1543,7 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		}
 
 		// Act
-		response, err := service.ListFiles(ctx, sandboxInfo, opts)
+		response, err := service.ListFiles(ctx, sandboxInfo, nil, nil, opts)
 
 		// Assert
 		assert.Error(t, err)
@@ -1540,7 +1574,7 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		}
 
 		// Act
-		response, err := service.ListFiles(ctx, sandboxInfo, opts)
+		response, err := service.ListFiles(ctx, sandboxInfo, nil, nil, opts)
 
 		// Assert
 		assert.NoError(t, err)
@@ -1573,7 +1607,7 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 
 		// Act
 		// The command built should contain "find /workspace/src"
-		response, err := service.ListFiles(ctx, sandboxInfo, opts)
+		response, err := service.ListFiles(ctx, sandboxInfo, nil, nil, opts)
 
 		// Assert
 		// Implementation should use buildListFilesCommand helper
@@ -1605,7 +1639,7 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 
 		// Act
 		// The command built should contain "find /s3-bucket/data -maxdepth 1"
-		response, err := service.ListFiles(ctx, sandboxInfo, opts)
+		response, err := service.ListFiles(ctx, sandboxInfo, nil, nil, opts)
 
 		// Assert
 		assert.NoError(t, err)
@@ -1626,7 +1660,7 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		}
 
 		// Act
-		response, err := service.ListFiles(ctx, nil, opts)
+		response, err := service.ListFiles(ctx, nil, nil, nil, opts)
 
 		// Assert
 		assert.Error(t, err)
@@ -1649,7 +1683,7 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		}
 
 		// Act
-		response, err := service.ListFiles(ctx, sandboxInfo, nil)
+		response, err := service.ListFiles(ctx, sandboxInfo, nil, nil, nil)
 
 		// Assert
 		assert.Error(t, err)
@@ -1681,7 +1715,7 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		}
 
 		// Act
-		response, err := service.ListFiles(ctx, sandboxInfo, opts)
+		response, err := service.ListFiles(ctx, sandboxInfo, nil, nil, opts)
 
 		// Assert
 		// Should respect context cancellation
@@ -1717,7 +1751,7 @@ func Test_SandboxService_ListFiles(t *testing.T) {
 		// 2. Execute command via sandboxInfo.Sandbox.Exec()
 		// 3. Call parseFileMetadata() on output
 		// 4. Call paginateFiles() with parsed files
-		response, err := service.ListFiles(ctx, sandboxInfo, opts)
+		response, err := service.ListFiles(ctx, sandboxInfo, nil, nil, opts)
 
 		// Assert
 		assert.NoError(t, err)
@@ -1874,7 +1908,7 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		filePath := "/test.txt"
 
 		// Act
-		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+		content, err := service.GetFileContent(ctx, sandboxInfo, nil, nil, source, filePath)
 
 		// Assert
 		// Should return error when sandbox not connected (expected behavior)
@@ -1900,7 +1934,7 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		filePath := "/data.json"
 
 		// Act
-		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+		content, err := service.GetFileContent(ctx, sandboxInfo, nil, nil, source, filePath)
 
 		// Assert
 		assert.Error(t, err)
@@ -1925,7 +1959,7 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		filePath := "/image.png"
 
 		// Act
-		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+		content, err := service.GetFileContent(ctx, sandboxInfo, nil, nil, source, filePath)
 
 		// Assert
 		// For disconnected sandbox, should get "not connected" error
@@ -1950,7 +1984,7 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		filePath := "/nonexistent.txt"
 
 		// Act
-		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+		content, err := service.GetFileContent(ctx, sandboxInfo, nil, nil, source, filePath)
 
 		// Assert
 		assert.Error(t, err)
@@ -1975,7 +2009,7 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		filePath := "/large.bin"
 
 		// Act
-		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+		content, err := service.GetFileContent(ctx, sandboxInfo, nil, nil, source, filePath)
 
 		// Assert
 		assert.Error(t, err)
@@ -2000,7 +2034,7 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		filePath := "/empty.txt"
 
 		// Act
-		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+		content, err := service.GetFileContent(ctx, sandboxInfo, nil, nil, source, filePath)
 
 		// Assert
 		assert.Error(t, err)
@@ -2025,7 +2059,7 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		filePath := "/test.txt"
 
 		// Act
-		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+		content, err := service.GetFileContent(ctx, sandboxInfo, nil, nil, source, filePath)
 
 		// Assert
 		assert.Error(t, err)
@@ -2042,7 +2076,7 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		filePath := "/test.txt"
 
 		// Act
-		content, err := service.GetFileContent(ctx, nil, source, filePath)
+		content, err := service.GetFileContent(ctx, nil, nil, nil, source, filePath)
 
 		// Assert
 		assert.Error(t, err)
@@ -2067,7 +2101,7 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		filePath := "/workspace/../etc/passwd" // Directory traversal
 
 		// Act
-		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+		content, err := service.GetFileContent(ctx, sandboxInfo, nil, nil, source, filePath)
 
 		// Assert
 		assert.Error(t, err)
@@ -2093,7 +2127,7 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		filePath := "/test.txt"
 
 		// Act
-		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+		content, err := service.GetFileContent(ctx, sandboxInfo, nil, nil, source, filePath)
 
 		// Assert
 		// Should respect context cancellation - either nil sandbox or context error
@@ -2125,7 +2159,7 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 
 		for _, tc := range testCases {
 			// Act
-			content, err := service.GetFileContent(ctx, sandboxInfo, "volume", tc.filePath)
+			content, err := service.GetFileContent(ctx, sandboxInfo, nil, nil, "volume", tc.filePath)
 
 			// Assert (if file exists)
 			if err == nil && content != nil {
@@ -2151,7 +2185,7 @@ func Test_SandboxService_GetFileContent(t *testing.T) {
 		filePath := "/deep/nested/path/file.txt"
 
 		// Act
-		content, err := service.GetFileContent(ctx, sandboxInfo, source, filePath)
+		content, err := service.GetFileContent(ctx, sandboxInfo, nil, nil, source, filePath)
 
 		// Assert (if file exists)
 		if err == nil && content != nil {
@@ -2479,6 +2513,76 @@ func Test_detectMimeType(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, "text/x-go", mimeType)
+	})
+}
+
+// Test_ConvertTreePathsToUserFacing tests converting mount paths to user-facing paths in tree
+func Test_ConvertTreePathsToUserFacing(t *testing.T) {
+	t.Run("converts volume mount paths to user-facing paths", func(t *testing.T) {
+		// Arrange
+		tree := &FileTreeNode{
+			Name:        "workspace",
+			Path:        "/mnt/workspace",
+			IsDirectory: true,
+			Children: []*FileTreeNode{
+				{
+					Name:        "test.txt",
+					Path:        "/mnt/workspace/test.txt",
+					IsDirectory: false,
+				},
+				{
+					Name:        "src",
+					Path:        "/mnt/workspace/src",
+					IsDirectory: true,
+					Children: []*FileTreeNode{
+						{
+							Name:        "main.go",
+							Path:        "/mnt/workspace/src/main.go",
+							IsDirectory: false,
+						},
+					},
+				},
+			},
+		}
+
+		// Act
+		ConvertTreePathsToUserFacing(tree)
+
+		// Assert
+		assert.Equal(t, "/workspace", tree.Path)
+		assert.Equal(t, "/workspace/test.txt", tree.Children[0].Path)
+		assert.Equal(t, "/workspace/src", tree.Children[1].Path)
+		assert.Equal(t, "/workspace/src/main.go", tree.Children[1].Children[0].Path)
+	})
+
+	t.Run("converts s3 mount paths to user-facing paths", func(t *testing.T) {
+		// Arrange
+		tree := &FileTreeNode{
+			Name:        "s3-bucket",
+			Path:        "/mnt/s3-bucket",
+			IsDirectory: true,
+			Children: []*FileTreeNode{
+				{
+					Name:        "data.json",
+					Path:        "/mnt/s3-bucket/data.json",
+					IsDirectory: false,
+				},
+			},
+		}
+
+		// Act
+		ConvertTreePathsToUserFacing(tree)
+
+		// Assert
+		assert.Equal(t, "/s3-bucket", tree.Path)
+		assert.Equal(t, "/s3-bucket/data.json", tree.Children[0].Path)
+	})
+
+	t.Run("handles nil node gracefully", func(t *testing.T) {
+		// Act - should not panic
+		ConvertTreePathsToUserFacing(nil)
+
+		// Assert - no panic occurred
 	})
 }
 

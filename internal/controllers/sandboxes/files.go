@@ -3,9 +3,11 @@ package sandboxes
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/router/request"
 	"github.com/griffnb/core/lib/router/response"
 	"github.com/griffnb/core/lib/types"
 	"github.com/griffnb/techboss-ai-go/internal/models/sandbox"
@@ -78,18 +80,26 @@ func parseFileListOptions(req *http.Request) (*sandbox_service.FileListOptions, 
 	}, nil
 }
 
-// adminListFiles lists files in a sandbox volume or S3 bucket with pagination.
-// It extracts the sandbox ID from URL, parses query parameters, loads the sandbox,
-// and calls the sandbox service to retrieve files.
+// Lists files in a sandbox volume or S3 bucket with pagination
 //
-// Query parameters:
-// - source: "volume" or "s3" (default: "volume")
-// - path: Root path to list from (e.g., "/workspace/src")
-// - recursive: Include subdirectories (default: true)
-// - page: Page number (default: 1)
-// - per_page: Items per page (default: 100, max: 1000)
-//
-// Returns FileListResponse with files array, pagination metadata, and HTTP status.
+//	@Title			List Sandbox Files
+//	@Summary		List files in sandbox
+//	@Description	Lists files in a sandbox volume or S3 bucket with pagination
+//	@Tags			Sandbox
+//	@Tags			AdminOnly
+//	@Accept			json
+//	@Produce		json
+//	@Param			id			path	string	true	"Sandbox ID"
+//	@Param			source		query	string	false	"Source location (volume or s3)"	default(volume)	enums(volume, s3)
+//	@Param			path		query	string	false	"Root path to list from (e.g., /workspace/src)"
+//	@Param			recursive	query	bool	false	"Include subdirectories"	default(true)
+//	@Param			page		query	int		false	"Page number"	default(1)	minimum(1)
+//	@Param			per_page	query	int		false	"Items per page"	default(100)	minimum(1)	maximum(1000)
+//	@Success		200	{object}	response.SuccessResponse{data=sandbox_service.FileListResponse}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Failure		404	{object}	response.ErrorResponse
+//	@Failure		500	{object}	response.ErrorResponse
+//	@Router			/admin/sandbox/{id}/files [get]
 func adminListFiles(_ http.ResponseWriter, req *http.Request) (*sandbox_service.FileListResponse, int, error) {
 	// Extract sandbox ID from URL parameter
 	id := chi.URLParam(req, "id")
@@ -115,9 +125,12 @@ func adminListFiles(_ http.ResponseWriter, req *http.Request) (*sandbox_service.
 		return response.AdminBadRequestError[*sandbox_service.FileListResponse](err)
 	}
 
-	// Call service to list files
+	// Get user session for database updates
+	userSession := request.GetReqSession(req)
+
+	// Call service to list files (handles auto-restart and database updates internally)
 	service := sandbox_service.NewSandboxService()
-	files, err := service.ListFiles(req.Context(), sandboxInfo, opts)
+	files, err := service.ListFiles(req.Context(), sandboxInfo, sandboxModel, userSession.User, opts)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.AdminBadRequestError[*sandbox_service.FileListResponse](err)
@@ -126,17 +139,26 @@ func adminListFiles(_ http.ResponseWriter, req *http.Request) (*sandbox_service.
 	return response.Success(files)
 }
 
-// authListFiles lists files in a sandbox volume or S3 bucket with pagination for authenticated users.
-// The auth framework verifies ownership automatically, ensuring only the sandbox owner can access.
+// Lists files in a sandbox volume or S3 bucket with pagination for authenticated users
 //
-// Query parameters:
-// - source: "volume" or "s3" (default: "volume")
-// - path: Root path to list from (e.g., "/workspace/src")
-// - recursive: Include subdirectories (default: true)
-// - page: Page number (default: 1)
-// - per_page: Items per page (default: 100, max: 1000)
-//
-// Returns FileListResponse with files array, pagination metadata, and HTTP status.
+//	@Title			List Sandbox Files
+//	@Public
+//	@Summary		List files in sandbox
+//	@Description	Lists files in a sandbox volume or S3 bucket with pagination
+//	@Tags			Sandbox
+//	@Accept			json
+//	@Produce		json
+//	@Param			id			path	string	true	"Sandbox ID"
+//	@Param			source		query	string	false	"Source location (volume or s3)"	default(volume)	enums(volume, s3)
+//	@Param			path		query	string	false	"Root path to list from (e.g., /workspace/src)"
+//	@Param			recursive	query	bool	false	"Include subdirectories"	default(true)
+//	@Param			page		query	int		false	"Page number"	default(1)	minimum(1)
+//	@Param			per_page	query	int		false	"Items per page"	default(100)	minimum(1)	maximum(1000)
+//	@Success		200	{object}	response.SuccessResponse{data=sandbox_service.FileListResponse}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Failure		404	{object}	response.ErrorResponse
+//	@Failure		500	{object}	response.ErrorResponse
+//	@Router			/sandbox/{id}/files [get]
 func authListFiles(_ http.ResponseWriter, req *http.Request) (*sandbox_service.FileListResponse, int, error) {
 	// Extract sandbox ID from URL parameter
 	id := chi.URLParam(req, "id")
@@ -162,34 +184,38 @@ func authListFiles(_ http.ResponseWriter, req *http.Request) (*sandbox_service.F
 		return response.PublicBadRequestError[*sandbox_service.FileListResponse]()
 	}
 
-	// Call service to list files
+	// Get user session for database updates
+	userSession := request.GetReqSession(req)
+
+	// Call service to list files (handles auto-restart and database updates internally)
 	service := sandbox_service.NewSandboxService()
-	files, err := service.ListFiles(req.Context(), sandboxInfo, opts)
+	files, err := service.ListFiles(req.Context(), sandboxInfo, sandboxModel, userSession.User, opts)
 	if err != nil {
-		log.ErrorContext(err, req.Context())
+		log.ErrorContext(errors.WithMessagef(err, "failed pulling for sandbox id:%s ExternalID: %s", id, sandboxInfo.SandboxID), req.Context())
 		return response.PublicBadRequestError[*sandbox_service.FileListResponse]()
 	}
 
 	return response.Success(files)
 }
 
-// adminGetFileContent retrieves and serves the raw content of a file from a sandbox.
-// This endpoint returns the actual file content directly, not wrapped in JSON.
-// It sets appropriate Content-Type, Content-Disposition, and Content-Length headers.
+// Retrieves and serves raw file content from a sandbox
 //
-// Query parameters:
-// - file_path: Required. Full path to the file (e.g., "/workspace/test.txt")
-// - source: "volume" or "s3" (default: "volume")
-//
-// Response headers:
-// - Content-Type: MIME type based on file extension
-// - Content-Disposition: attachment; filename="<filename>"
-// - Content-Length: Size of the file in bytes
-//
-// Returns:
-// - 200 OK: File content successfully retrieved
-// - 400 Bad Request: Missing file_path parameter or invalid sandbox ID
-// - 404 Not Found: File does not exist at the specified path
+//	@Title			Get File Content
+//	@Summary		Get file content from sandbox
+//	@Description	Retrieves and serves the raw content of a file from a sandbox (not wrapped in JSON)
+//	@Tags			Sandbox
+//	@Tags			AdminOnly
+//	@Accept			json
+//	@Produce		octet-stream
+//	@Param			id			path	string	true	"Sandbox ID"
+//	@Param			file_path	query	string	true	"Full path to the file (e.g., /workspace/test.txt)"
+//	@Param			source		query	string	false	"Source location (volume or s3)"	default(volume)	enums(volume, s3)
+//	@Param			download	query	bool	false	"Download as attachment (true) or display inline/stream (false)"	default(false)
+//	@Success		200	{file}		binary	"File content"
+//	@Failure		400	{string}	string	"Bad Request"
+//	@Failure		404	{string}	string	"Not Found"
+//	@Failure		500	{string}	string	"Internal Server Error"
+//	@Router			/admin/sandbox/{id}/files/content [get]
 func adminGetFileContent(w http.ResponseWriter, req *http.Request) {
 	// Extract sandbox ID from URL parameter
 	id := chi.URLParam(req, "id")
@@ -207,6 +233,9 @@ func adminGetFileContent(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Parse download parameter (default: false = inline/stream)
+	download := req.URL.Query().Get("download") == "true"
+
 	// Load sandbox from database
 	sandboxModel, err := sandbox.Get(req.Context(), types.UUID(id))
 	if err != nil {
@@ -225,9 +254,12 @@ func adminGetFileContent(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Call service to get file content
+	// Get user session for database updates
+	userSession := request.GetReqSession(req)
+
+	// Call service to get file content (handles auto-restart and database updates internally)
 	service := sandbox_service.NewSandboxService()
-	fileContent, err := service.GetFileContent(req.Context(), sandboxInfo, source, filePath)
+	fileContent, err := service.GetFileContent(req.Context(), sandboxInfo, sandboxModel, userSession.User, source, filePath)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		// Check if error message contains "file not found" to return 404
@@ -244,7 +276,11 @@ func adminGetFileContent(w http.ResponseWriter, req *http.Request) {
 
 	// Set response headers
 	w.Header().Set("Content-Type", fileContent.ContentType)
-	w.Header().Set("Content-Disposition", "attachment; filename=\""+fileContent.FileName+"\"")
+	if download {
+		w.Header().Set("Content-Disposition", "attachment; filename=\""+fileContent.FileName+"\"")
+	} else {
+		w.Header().Set("Content-Disposition", "inline; filename=\""+fileContent.FileName+"\"")
+	}
 	w.Header().Set("Content-Length", strconv.FormatInt(fileContent.Size, 10))
 
 	// Write content
@@ -252,24 +288,24 @@ func adminGetFileContent(w http.ResponseWriter, req *http.Request) {
 	_, _ = w.Write(fileContent.Content)
 }
 
-// authGetFileContent retrieves and serves the raw content of a file from a sandbox for authenticated users.
-// The auth framework verifies ownership automatically, ensuring only the sandbox owner can access.
-// This endpoint returns the actual file content directly, not wrapped in JSON.
-// It sets appropriate Content-Type, Content-Disposition, and Content-Length headers.
+// Retrieves and serves raw file content from a sandbox for authenticated users
 //
-// Query parameters:
-// - file_path: Required. Full path to the file (e.g., "/workspace/test.txt")
-// - source: "volume" or "s3" (default: "volume")
-//
-// Response headers:
-// - Content-Type: MIME type based on file extension
-// - Content-Disposition: attachment; filename="<filename>"
-// - Content-Length: Size of the file in bytes
-//
-// Returns:
-// - 200 OK: File content successfully retrieved
-// - 400 Bad Request: Missing file_path parameter or invalid sandbox ID
-// - 404 Not Found: File does not exist at the specified path
+//	@Title			Get File Content
+//	@Public
+//	@Summary		Get file content from sandbox
+//	@Description	Retrieves and serves the raw content of a file from a sandbox (not wrapped in JSON)
+//	@Tags			Sandbox
+//	@Accept			json
+//	@Produce		octet-stream
+//	@Param			id			path	string	true	"Sandbox ID"
+//	@Param			file_path	query	string	true	"Full path to the file (e.g., /workspace/test.txt)"
+//	@Param			source		query	string	false	"Source location (volume or s3)"	default(volume)	enums(volume, s3)
+//	@Param			download	query	bool	false	"Download as attachment (true) or display inline/stream (false)"	default(false)
+//	@Success		200	{file}		binary	"File content"
+//	@Failure		400	{string}	string	"Bad Request"
+//	@Failure		404	{string}	string	"Not Found"
+//	@Failure		500	{string}	string	"Internal Server Error"
+//	@Router			/sandbox/{id}/files/content [get]
 func authGetFileContent(w http.ResponseWriter, req *http.Request) {
 	// Extract sandbox ID from URL parameter
 	id := chi.URLParam(req, "id")
@@ -287,6 +323,9 @@ func authGetFileContent(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Parse download parameter (default: false = inline/stream)
+	download := req.URL.Query().Get("download") == "true"
+
 	// Load sandbox from database
 	sandboxModel, err := sandbox.Get(req.Context(), types.UUID(id))
 	if err != nil {
@@ -305,9 +344,12 @@ func authGetFileContent(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Call service to get file content
+	// Get user session for database updates
+	userSession := request.GetReqSession(req)
+
+	// Call service to get file content (handles auto-restart and database updates internally)
 	service := sandbox_service.NewSandboxService()
-	fileContent, err := service.GetFileContent(req.Context(), sandboxInfo, source, filePath)
+	fileContent, err := service.GetFileContent(req.Context(), sandboxInfo, sandboxModel, userSession.User, source, filePath)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		// Check if error message contains "file not found" to return 404
@@ -321,10 +363,13 @@ func authGetFileContent(w http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
-
+	if download {
+		w.Header().Set("Content-Disposition", "attachment; filename=\""+fileContent.FileName+"\"")
+	} else {
+		w.Header().Set("Content-Disposition", "inline; filename=\""+fileContent.FileName+"\"")
+	}
 	// Set response headers
 	w.Header().Set("Content-Type", fileContent.ContentType)
-	w.Header().Set("Content-Disposition", "attachment; filename=\""+fileContent.FileName+"\"")
 	w.Header().Set("Content-Length", strconv.FormatInt(fileContent.Size, 10))
 
 	// Write content
@@ -332,16 +377,24 @@ func authGetFileContent(w http.ResponseWriter, req *http.Request) {
 	_, _ = w.Write(fileContent.Content)
 }
 
-// adminGetFileTree retrieves a hierarchical tree structure of files in a sandbox.
-// It extracts the sandbox ID from URL, parses query parameters (source, path),
-// loads the sandbox, lists files, and builds a tree structure.
+// Retrieves a hierarchical tree structure of files in a sandbox
 //
-// Query parameters:
-// - source: "volume" or "s3" (default: "volume")
-// - path: Root path to list from (default: "" = workspace root)
-// - recursive: Include subdirectories (default: true)
-//
-// Returns FileTreeNode with nested children structure and HTTP status.
+//	@Title			Get File Tree
+//	@Summary		Get file tree structure
+//	@Description	Retrieves a hierarchical tree structure of files in a sandbox
+//	@Tags			Sandbox
+//	@Tags			AdminOnly
+//	@Accept			json
+//	@Produce		json
+//	@Param			id			path	string	true	"Sandbox ID"
+//	@Param			source		query	string	false	"Source location (volume or s3)"	default(volume)	enums(volume, s3)
+//	@Param			path		query	string	false	"Root path to list from"	default()
+//	@Param			recursive	query	bool	false	"Include subdirectories"	default(true)
+//	@Success		200	{object}	response.SuccessResponse{data=sandbox_service.FileTreeNode}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Failure		404	{object}	response.ErrorResponse
+//	@Failure		500	{object}	response.ErrorResponse
+//	@Router			/admin/sandbox/{id}/files/tree [get]
 func adminGetFileTree(_ http.ResponseWriter, req *http.Request) (*sandbox_service.FileTreeNode, int, error) {
 	// Extract sandbox ID from URL parameter
 	id := chi.URLParam(req, "id")
@@ -367,42 +420,64 @@ func adminGetFileTree(_ http.ResponseWriter, req *http.Request) (*sandbox_servic
 		return response.AdminBadRequestError[*sandbox_service.FileTreeNode](err)
 	}
 
-	// Call service to list files first
+	// Get user session for database updates
+	userSession := request.GetReqSession(req)
+
+	// Call service to list files first (handles auto-restart and database updates internally)
 	service := sandbox_service.NewSandboxService()
-	fileList, err := service.ListFiles(req.Context(), sandboxInfo, opts)
+	fileList, err := service.ListFiles(req.Context(), sandboxInfo, sandboxModel, userSession.User, opts)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.AdminBadRequestError[*sandbox_service.FileTreeNode](err)
 	}
 
-	// Determine root path based on source
-	rootPath := "/workspace"
+	// Determine root path for tree building - use actual mount paths
+	// The files returned from ListFiles have mount paths (/mnt/workspace, /mnt/s3-bucket)
+	// so we need to match those paths when building the tree
+	rootPath := sandbox_service.VOLUME_MOUNT_PATH // /mnt/workspace
 	if opts.Source == "s3" {
-		rootPath = "/s3-bucket"
+		rootPath = sandbox_service.S3_MOUNT_PATH // /mnt/s3-bucket
 	}
 	if opts.Path != "" && opts.Path != "/" {
-		rootPath = opts.Path
+		// Convert user-facing path to mount path
+		if strings.HasPrefix(opts.Path, "/workspace") {
+			rootPath = strings.Replace(opts.Path, "/workspace", sandbox_service.VOLUME_MOUNT_PATH, 1)
+		} else if strings.HasPrefix(opts.Path, "/s3-bucket") {
+			rootPath = strings.Replace(opts.Path, "/s3-bucket", sandbox_service.S3_MOUNT_PATH, 1)
+		}
 	}
 
-	// Build tree structure from flat file list
+	// Build tree structure from flat file list using mount paths
 	tree, err := service.BuildFileTree(fileList.Files, rootPath)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.AdminBadRequestError[*sandbox_service.FileTreeNode](err)
 	}
 
+	// Convert mount paths back to user-facing paths for API response
+	sandbox_service.ConvertTreePathsToUserFacing(tree)
+
 	return response.Success(tree)
 }
 
-// authGetFileTree retrieves a hierarchical tree structure of files in a sandbox for authenticated users.
-// The auth framework verifies ownership automatically, ensuring only the sandbox owner can access.
+// Retrieves a hierarchical tree structure of files in a sandbox for authenticated users
 //
-// Query parameters:
-// - source: "volume" or "s3" (default: "volume")
-// - path: Root path to list from (default: "" = workspace root)
-// - recursive: Include subdirectories (default: true)
-//
-// Returns FileTreeNode with nested children structure and HTTP status.
+//	@Title			Get File Tree
+//	@Public
+//	@Summary		Get file tree structure
+//	@Description	Retrieves a hierarchical tree structure of files in a sandbox
+//	@Tags			Sandbox
+//	@Accept			json
+//	@Produce		json
+//	@Param			id			path	string	true	"Sandbox ID"
+//	@Param			source		query	string	false	"Source location (volume or s3)"	default(volume)	enums(volume, s3)
+//	@Param			path		query	string	false	"Root path to list from"	default()
+//	@Param			recursive	query	bool	false	"Include subdirectories"	default(true)
+//	@Success		200	{object}	response.SuccessResponse{data=sandbox_service.FileTreeNode}
+//	@Failure		400	{object}	response.ErrorResponse
+//	@Failure		404	{object}	response.ErrorResponse
+//	@Failure		500	{object}	response.ErrorResponse
+//	@Router			/sandbox/{id}/files/tree [get]
 func authGetFileTree(_ http.ResponseWriter, req *http.Request) (*sandbox_service.FileTreeNode, int, error) {
 	// Extract sandbox ID from URL parameter
 	id := chi.URLParam(req, "id")
@@ -428,29 +503,42 @@ func authGetFileTree(_ http.ResponseWriter, req *http.Request) (*sandbox_service
 		return response.PublicBadRequestError[*sandbox_service.FileTreeNode]()
 	}
 
-	// Call service to list files first
+	// Get user session for database updates
+	userSession := request.GetReqSession(req)
+
+	// Call service to list files first (handles auto-restart and database updates internally)
 	service := sandbox_service.NewSandboxService()
-	fileList, err := service.ListFiles(req.Context(), sandboxInfo, opts)
+	fileList, err := service.ListFiles(req.Context(), sandboxInfo, sandboxModel, userSession.User, opts)
 	if err != nil {
-		log.ErrorContext(err, req.Context())
+		log.ErrorContext(errors.WithMessagef(err, "failed pulling for sandbox id:%s ExternalID: %s", id, sandboxInfo.SandboxID), req.Context())
 		return response.PublicBadRequestError[*sandbox_service.FileTreeNode]()
 	}
 
-	// Determine root path based on source
-	rootPath := "/workspace"
+	// Determine root path for tree building - use actual mount paths
+	// The files returned from ListFiles have mount paths (/mnt/workspace, /mnt/s3-bucket)
+	// so we need to match those paths when building the tree
+	rootPath := sandbox_service.VOLUME_MOUNT_PATH // /mnt/workspace
 	if opts.Source == "s3" {
-		rootPath = "/s3-bucket"
+		rootPath = sandbox_service.S3_MOUNT_PATH // /mnt/s3-bucket
 	}
 	if opts.Path != "" && opts.Path != "/" {
-		rootPath = opts.Path
+		// Convert user-facing path to mount path
+		if strings.HasPrefix(opts.Path, "/workspace") {
+			rootPath = strings.Replace(opts.Path, "/workspace", sandbox_service.VOLUME_MOUNT_PATH, 1)
+		} else if strings.HasPrefix(opts.Path, "/s3-bucket") {
+			rootPath = strings.Replace(opts.Path, "/s3-bucket", sandbox_service.S3_MOUNT_PATH, 1)
+		}
 	}
 
-	// Build tree structure from flat file list
+	// Build tree structure from flat file list using mount paths
 	tree, err := service.BuildFileTree(fileList.Files, rootPath)
 	if err != nil {
 		log.ErrorContext(err, req.Context())
 		return response.PublicBadRequestError[*sandbox_service.FileTreeNode]()
 	}
+
+	// Convert mount paths back to user-facing paths for API response
+	sandbox_service.ConvertTreePathsToUserFacing(tree)
 
 	return response.Success(tree)
 }

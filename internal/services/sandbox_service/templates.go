@@ -58,8 +58,8 @@ func (t *SandboxTemplate) BuildSandboxConfig(accountID types.UUID) *modal.Sandbo
 		AccountID:       accountID,
 		Image:           t.ImageConfig,
 		VolumeName:      t.VolumeName,
-		VolumeMountPath: "/mnt/workspace",
-		Workdir:         "/mnt/workspace",
+		VolumeMountPath: VOLUME_MOUNT_PATH,
+		Workdir:         VOLUME_MOUNT_PATH,
 	}
 
 	// Add S3 config if specified
@@ -68,7 +68,7 @@ func (t *SandboxTemplate) BuildSandboxConfig(accountID types.UUID) *modal.Sandbo
 			BucketName: t.S3BucketName,
 			SecretName: "s3-bucket",
 			KeyPrefix:  t.S3KeyPrefix,
-			MountPath:  "/mnt/s3-bucket",
+			MountPath:  S3_MOUNT_PATH,
 			ReadOnly:   true,
 		}
 	}

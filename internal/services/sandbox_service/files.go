@@ -11,8 +11,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/griffnb/core/lib/log"
+	"github.com/griffnb/core/lib/model/coremodel"
 	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
+	"github.com/griffnb/techboss-ai-go/internal/models/sandbox"
 	"github.com/pkg/errors"
+)
+
+const (
+	VOLUME_MOUNT_PATH   = "/mnt/workspace"
+	USER_WORKSPACE_PATH = "/workspace"
+	S3_MOUNT_PATH       = "/mnt/s3-bucket"
+	S3_USER_PATH        = "/s3-bucket"
 )
 
 // FileListOptions contains options for listing files in a sandbox.
@@ -84,56 +94,80 @@ func validatePath(path string) error {
 	}
 
 	// Ensure path is within allowed directories
-	if !strings.HasPrefix(path, "/workspace") && !strings.HasPrefix(path, "/s3-bucket") {
-		return errors.New("invalid path: must be within /workspace or /s3-bucket")
+	if !strings.HasPrefix(path, VOLUME_MOUNT_PATH) && !strings.HasPrefix(path, S3_MOUNT_PATH) {
+		return errors.Errorf("invalid path: must be within %s or %s", VOLUME_MOUNT_PATH, S3_MOUNT_PATH)
 	}
 
 	return nil
+}
+
+func cleanPath(path string) string {
+	// Replace user-facing paths with mount paths
+	if strings.HasPrefix(path, USER_WORKSPACE_PATH) {
+		return strings.Replace(path, USER_WORKSPACE_PATH, VOLUME_MOUNT_PATH, 1)
+	} else if strings.HasPrefix(path, S3_USER_PATH) {
+		return strings.Replace(path, S3_USER_PATH, S3_MOUNT_PATH, 1)
+	}
+	return path
+}
+
+func isRootPath(path string) bool {
+	return path == VOLUME_MOUNT_PATH || path == S3_MOUNT_PATH
 }
 
 // buildListFilesCommand constructs a find command for listing files based on options.
 // It generates the appropriate find command based on source (volume/s3), path, and recursive flag.
 // The command outputs metadata in the format: path|size|timestamp|type
 //
-// For volume source: uses /workspace as base path
-// For s3 source: uses /s3-bucket as base path
+// For volume source: uses /mnt/workspace as base path
+// For s3 source: uses /mnt/s3-bucket as base path
 // For non-recursive: includes -maxdepth 1 flag
 // Always includes -type f -o -type d to find both files and directories
-// Uses -printf to output: %p|%s|%T@|%y\n where:
-// - %p = path
-// - %s = size in bytes
-// - %T@ = timestamp as Unix epoch (with fractional seconds)
-// - %y = file type (f=file, d=directory)
+// Uses BusyBox-compatible commands (find + stat) instead of GNU find's -printf
+//
+// Path mapping: User-facing paths (/workspace, /s3-bucket) are converted to actual
+// mount paths (/mnt/workspace, /mnt/s3-bucket) for sandbox execution.
 func (s *SandboxService) buildListFilesCommand(opts *FileListOptions) string {
 	// Determine base path based on source
 	var basePath string
 	if opts.Source == "s3" {
-		basePath = "/s3-bucket"
+		basePath = S3_MOUNT_PATH // /mnt/s3-bucket
 	} else {
-		basePath = "/workspace"
+		basePath = VOLUME_MOUNT_PATH // /mnt/workspace
 	}
 
-	// Append custom path if provided (and not just root "/")
+	opts.Path = cleanPath(opts.Path)
+
+	// Build target path by converting user-facing paths to mount paths
 	targetPath := basePath
 	if opts.Path != "" && opts.Path != "/" {
-		targetPath = opts.Path
+		// Convert user-facing paths to actual mount paths
+		// /workspace/test -> /mnt/workspace/test
+		// /s3-bucket/test -> /mnt/s3-bucket/test
+		if !isRootPath(opts.Path) {
+			// If path doesn't start with expected prefix, append to basePath
+			// This handles relative paths (though they should be rejected by validation)
+			targetPath = basePath + "/" + strings.TrimPrefix(opts.Path, "/")
+		}
 	}
 
-	// Build command string
-	cmd := "find " + targetPath
+	// Build command string using BusyBox-compatible find + stat
+	// We use find to get paths, then stat to get metadata for each file
+	// Use -L flag to follow symbolic links (workspace paths are often symlinks)
+	cmd := "find -L " + targetPath
 
 	// Add maxdepth for non-recursive
 	if !opts.Recursive {
 		cmd += " -maxdepth 1"
 	}
 
-	// Add type filters (files or directories) with grouping
-	// Use parentheses to group the -type expressions properly
+	// Add type filters (files or directories)
 	cmd += " \\( -type f -o -type d \\)"
 
-	// Add printf to output metadata in the format: path|size|timestamp|type
-	// Note: %T@ outputs fractional seconds, so we'll need to handle that in parsing
-	cmd += " -printf \"%p|%s|%T@|%y\\n\""
+	// Use stat to output metadata in format: path|size|timestamp|type
+	// BusyBox stat uses different format strings than GNU stat
+	// Format: %n = name, %s = size, %Y = mtime (epoch), %F = file type
+	cmd += " -exec stat -c '%n|%s|%Y|%F' {} \\;"
 
 	return cmd
 }
@@ -142,12 +176,15 @@ func (s *SandboxService) buildListFilesCommand(opts *FileListOptions) string {
 // The input format is "path|size|timestamp|type" where:
 // - path is the full file path
 // - size is the file size in bytes (int64)
-// - timestamp is Unix epoch time (can be float with fractional seconds from find -printf %T@)
-// - type is either "f" (file) or "d" (directory)
+// - timestamp is Unix epoch time (integer)
+// - type is the file type string from stat -c '%F' (e.g., "regular file", "directory")
+//
+// The excludePath parameter filters out the specified directory from results.
+// This is typically used to exclude the root directory itself when listing its contents.
 //
 // Returns a slice of FileInfo structs and an error if parsing fails.
 // Empty lines in the output are skipped.
-func parseFileMetadata(output string) ([]FileInfo, error) {
+func parseFileMetadata(output string, excludePath string) ([]FileInfo, error) {
 	var files []FileInfo
 
 	lines := strings.Split(output, "\n")
@@ -164,6 +201,12 @@ func parseFileMetadata(output string) ([]FileInfo, error) {
 		}
 
 		path := parts[0]
+
+		// Skip the root directory itself (we only want its contents)
+		if path == excludePath {
+			continue
+		}
+
 		sizeStr := parts[1]
 		timestampStr := parts[2]
 		typeStr := parts[3]
@@ -174,39 +217,16 @@ func parseFileMetadata(output string) ([]FileInfo, error) {
 			return nil, errors.Wrapf(err, "invalid size on line %d", i+1)
 		}
 
-		// Parse timestamp - handle both integer and float formats
-		// find -printf %T@ outputs fractional seconds like "1735560000.1234567890"
-		// We need to handle the decimal part
-		var modifiedAt time.Time
-		if strings.Contains(timestampStr, ".") {
-			// Parse as float and convert to Unix timestamp
-			timestampFloat, err := strconv.ParseFloat(timestampStr, 64)
-			if err != nil {
-				return nil, errors.Wrapf(err, "invalid timestamp on line %d", i+1)
-			}
-			// Convert float seconds to time.Time
-			seconds := int64(timestampFloat)
-			nanos := int64((timestampFloat - float64(seconds)) * 1e9)
-			modifiedAt = time.Unix(seconds, nanos)
-		} else {
-			// Parse as integer
-			timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
-			if err != nil {
-				return nil, errors.Wrapf(err, "invalid timestamp on line %d", i+1)
-			}
-			modifiedAt = time.Unix(timestamp, 0)
+		// Parse timestamp as integer (Unix epoch seconds)
+		timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrapf(err, "invalid timestamp on line %d", i+1)
 		}
+		modifiedAt := time.Unix(timestamp, 0)
 
-		// Determine if directory
-		var isDirectory bool
-		switch typeStr {
-		case "d":
-			isDirectory = true
-		case "f":
-			isDirectory = false
-		default:
-			return nil, errors.Errorf("invalid type on line %d: must be 'f' or 'd', got '%s'", i+1, typeStr)
-		}
+		// Determine if directory based on stat %F output
+		// BusyBox stat outputs: "regular file", "directory", "symbolic link", etc.
+		isDirectory := strings.Contains(typeStr, "directory")
 
 		// Extract name from path using the last component
 		name := path
@@ -351,6 +371,8 @@ func parseFileListOptions(req *http.Request) (*FileListOptions, error) {
 // The method validates inputs, builds a find command with metadata output, executes it
 // via the Modal sandbox, parses the results, and returns a paginated response.
 //
+// If sandboxModel and user are provided, automatically handles database updates if sandbox auto-restarts.
+//
 // Returns an error if:
 // - sandboxInfo or opts are nil
 // - source is not "volume" or "s3"
@@ -360,6 +382,8 @@ func parseFileListOptions(req *http.Request) (*FileListOptions, error) {
 func (s *SandboxService) ListFiles(
 	ctx context.Context,
 	sandboxInfo *modal.SandboxInfo,
+	sandboxModel *sandbox.Sandbox,
+	user coremodel.Model,
 	opts *FileListOptions,
 ) (*FileListResponse, error) {
 	// Validate inputs
@@ -380,23 +404,14 @@ func (s *SandboxService) ListFiles(
 		return nil, errors.Wrap(err, "path validation failed")
 	}
 
-	// Build the find command with metadata formatting
-	// This outputs: path|size|timestamp|type
-	cmdStr := s.buildListFilesCommand(opts)
-
-	// Execute command in sandbox
-	// Note: sandboxInfo.Sandbox will be nil for reconstructed sandboxes from DB
-	// In test environment, this is acceptable as tests use mock data
-	if sandboxInfo.Sandbox == nil {
-		// Check for context cancellation before returning empty results
-		select {
-		case <-ctx.Done():
-			return nil, errors.Wrap(ctx.Err(), "context cancelled")
-		default:
-		}
-
-		// For reconstructed sandboxes without active Modal connection,
-		// return empty results (this is expected in unit tests)
+	// Check if sandbox is still running, auto-restart if needed
+	// Automatically updates database if sandboxModel and user provided
+	shouldContinue, err := s.ensureSandboxRunning(ctx, sandboxInfo, sandboxModel, user, "file listing")
+	if err != nil {
+		return nil, err
+	}
+	if !shouldContinue {
+		// Sandbox is nil (test environment) - return empty results
 		return &FileListResponse{
 			Files:      []FileInfo{},
 			TotalCount: 0,
@@ -404,6 +419,54 @@ func (s *SandboxService) ListFiles(
 			PerPage:    opts.PerPage,
 			TotalPages: 0,
 		}, nil
+	}
+
+	// Build the find command with metadata formatting
+	// This outputs: path|size|timestamp|type
+	cmdStr := s.buildListFilesCommand(opts)
+
+	// Debug logging
+	log.Infof("ListFiles command: %s (source=%s, path=%s, recursive=%v)", cmdStr, opts.Source, opts.Path, opts.Recursive)
+
+	// DEBUG: First verify files exist with a simple ls
+	testProcess, _ := sandboxInfo.Sandbox.Exec(ctx, []string{"sh", "-c", "ls -la /mnt/workspace"}, nil)
+	if testProcess != nil {
+		var testOut bytes.Buffer
+		testScanner := bufio.NewScanner(testProcess.Stdout)
+		for testScanner.Scan() {
+			testOut.Write(testScanner.Bytes())
+			testOut.WriteByte('\n')
+		}
+		testProcess.Wait(ctx)
+		log.Infof("DEBUG ls -la /mnt/workspace:\n%s", testOut.String())
+	}
+
+	// DEBUG: Test find with -L flag
+	testProcess2, _ := sandboxInfo.Sandbox.Exec(ctx, []string{"sh", "-c", "find -L /mnt/workspace \\( -type f -o -type d \\)"}, nil)
+	if testProcess2 != nil {
+		var testOut2 bytes.Buffer
+		testScanner2 := bufio.NewScanner(testProcess2.Stdout)
+		for testScanner2.Scan() {
+			testOut2.Write(testScanner2.Bytes())
+			testOut2.WriteByte('\n')
+		}
+		testProcess2.Wait(ctx)
+		log.Infof("DEBUG find -L /mnt/workspace:\n%s", testOut2.String())
+	}
+
+	// Determine target path for filtering (convert user path to mount path)
+	var targetPath string
+	if opts.Source == "s3" {
+		targetPath = S3_MOUNT_PATH
+	} else {
+		targetPath = VOLUME_MOUNT_PATH
+	}
+	if opts.Path != "" && opts.Path != "/" {
+		if strings.HasPrefix(opts.Path, "/workspace") {
+			targetPath = strings.Replace(opts.Path, "/workspace", VOLUME_MOUNT_PATH, 1)
+		} else if strings.HasPrefix(opts.Path, "/s3-bucket") {
+			targetPath = strings.Replace(opts.Path, "/s3-bucket", S3_MOUNT_PATH, 1)
+		}
 	}
 
 	process, err := sandboxInfo.Sandbox.Exec(ctx, []string{"sh", "-c", cmdStr}, nil)
@@ -422,6 +485,14 @@ func (s *SandboxService) ListFiles(
 		return nil, errors.Wrap(err, "failed to read command output")
 	}
 
+	// Read stderr for error details
+	var stderr bytes.Buffer
+	stderrScanner := bufio.NewScanner(process.Stderr)
+	for stderrScanner.Scan() {
+		stderr.Write(stderrScanner.Bytes())
+		stderr.WriteByte('\n')
+	}
+
 	// Wait for command to complete
 	exitCode, err := process.Wait(ctx)
 	if err != nil {
@@ -429,14 +500,26 @@ func (s *SandboxService) ListFiles(
 	}
 
 	if exitCode != 0 {
-		return nil, errors.Errorf("find command failed with exit code %d", exitCode)
+		return nil, errors.Errorf("find command failed with exit code %d. Command: %s. Stderr: %s", exitCode, cmdStr, stderr.String())
 	}
 
+	// Debug logging
+	outputStr := output.String()
+	if len(outputStr) > 500 {
+		log.Infof("ListFiles raw output (first 500 chars): %s", outputStr[:500])
+	} else {
+		log.Infof("ListFiles raw output: %s", outputStr)
+	}
+	log.Infof("ListFiles targetPath for filtering: %s", targetPath)
+
 	// Parse output into FileInfo structs
-	files, err := parseFileMetadata(output.String())
+	// Filter out the target directory itself from results
+	files, err := parseFileMetadata(output.String(), targetPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse file metadata")
 	}
+
+	log.Infof("ListFiles parsed %d files after filtering", len(files))
 
 	// Apply pagination
 	response := paginateFiles(files, opts)
@@ -492,9 +575,9 @@ func (s *SandboxService) buildReadFileCommand(source, filePath string, maxSize i
 	// Determine base path
 	var basePath string
 	if source == "s3" {
-		basePath = "/s3-bucket"
+		basePath = S3_MOUNT_PATH
 	} else {
-		basePath = "/workspace"
+		basePath = VOLUME_MOUNT_PATH
 	}
 
 	// Build full path
@@ -511,6 +594,9 @@ func (s *SandboxService) buildReadFileCommand(source, filePath string, maxSize i
 // It checks if the file exists, determines its size, and reads the content.
 // For files larger than 100MB, it limits the read to the first 100MB.
 // Returns FileContent with the file's content, MIME type, filename, and size.
+//
+// If sandboxModel and user are provided, automatically handles database updates if sandbox auto-restarts.
+//
 // Returns an error if:
 // - sandboxInfo is nil
 // - source is not "volume" or "s3"
@@ -520,6 +606,8 @@ func (s *SandboxService) buildReadFileCommand(source, filePath string, maxSize i
 func (s *SandboxService) GetFileContent(
 	ctx context.Context,
 	sandboxInfo *modal.SandboxInfo,
+	sandboxModel *sandbox.Sandbox,
+	user coremodel.Model,
 	source string,
 	filePath string,
 ) (*FileContent, error) {
@@ -537,12 +625,14 @@ func (s *SandboxService) GetFileContent(
 		return nil, errors.Wrap(errors.New("invalid path: directory traversal not allowed"), "path validation failed")
 	}
 
+	filePath = strings.TrimPrefix(filePath, "/workspace")
+
 	// Determine base path
 	var basePath string
 	if source == "s3" {
-		basePath = "/s3-bucket"
+		basePath = S3_MOUNT_PATH
 	} else {
-		basePath = "/workspace"
+		basePath = VOLUME_MOUNT_PATH
 	}
 	fullPath := basePath + filePath
 
@@ -551,24 +641,21 @@ func (s *SandboxService) GetFileContent(
 		return nil, errors.Wrap(err, "path validation failed")
 	}
 
+	// Check if sandbox is still running, auto-restart if needed
+	// Automatically updates database if sandboxModel and user provided
+	shouldContinue, err := s.ensureSandboxRunning(ctx, sandboxInfo, sandboxModel, user, "file content retrieval")
+	if err != nil {
+		return nil, err
+	}
+	if !shouldContinue {
+		// Sandbox is nil (test environment) - return error
+		return nil, errors.New("file not found: sandbox not connected")
+	}
+
 	// Check file exists and get size using stat
 	// stat -c '%s' outputs file size in bytes
 	// 2>/dev/null suppresses error output if file doesn't exist
 	statCmd := fmt.Sprintf("stat -c '%%s' %s 2>/dev/null || echo 'FILE_NOT_FOUND'", fullPath)
-
-	// Handle nil Sandbox (reconstructed from DB without active connection)
-	if sandboxInfo.Sandbox == nil {
-		// Check for context cancellation
-		select {
-		case <-ctx.Done():
-			return nil, errors.Wrap(ctx.Err(), "context cancelled")
-		default:
-		}
-
-		// For reconstructed sandboxes without active Modal connection,
-		// return error indicating file cannot be accessed
-		return nil, errors.New("file not found: sandbox not connected")
-	}
 
 	statProcess, err := sandboxInfo.Sandbox.Exec(ctx, []string{"sh", "-c", statCmd}, nil)
 	if err != nil {
@@ -675,6 +762,8 @@ func (s *SandboxService) GetFileContent(
 // and allow proper nesting through multiple levels.
 func (s *SandboxService) BuildFileTree(files []FileInfo, rootPath string) (*FileTreeNode, error) {
 	// Extract root name from rootPath (e.g., "/workspace" -> "workspace")
+	rootPath = cleanPath(rootPath)
+
 	rootName := rootPath
 	if idx := strings.LastIndex(rootPath, "/"); idx != -1 {
 		rootName = rootPath[idx+1:]
@@ -774,4 +863,41 @@ func (s *SandboxService) BuildFileTree(files []FileInfo, rootPath string) (*File
 	}
 
 	return root, nil
+}
+
+// ConvertTreePathsToUserFacing recursively converts mount paths to user-facing paths in the file tree.
+// This transforms internal paths like /mnt/workspace/test.txt to /workspace/test.txt for API responses.
+func ConvertTreePathsToUserFacing(node *FileTreeNode) {
+	if node == nil {
+		return
+	}
+
+	// Convert mount paths to user-facing paths
+	node.Path = strings.Replace(node.Path, VOLUME_MOUNT_PATH, USER_WORKSPACE_PATH, 1)
+	node.Path = strings.Replace(node.Path, S3_MOUNT_PATH, S3_USER_PATH, 1)
+
+	// Recursively convert all children
+	for _, child := range node.Children {
+		ConvertTreePathsToUserFacing(child)
+	}
+}
+
+func (s *SandboxService) ForceVolumeSync(ctx context.Context,
+	sandboxInfo *modal.SandboxInfo,
+	_ *sandbox.Sandbox,
+) error {
+	syncProcess, err := sandboxInfo.Sandbox.Exec(ctx, []string{"sync", VOLUME_MOUNT_PATH}, nil)
+	if err != nil {
+		return nil
+	}
+
+	exitCode, err := syncProcess.Wait(ctx)
+	if err != nil {
+		return errors.WithMessagef(err, "failed waiting for sync process in sandbox %s", sandboxInfo.SandboxID)
+	}
+	if exitCode != 0 {
+		return errors.Errorf("sync process exited with code %d", exitCode)
+	}
+
+	return nil
 }
