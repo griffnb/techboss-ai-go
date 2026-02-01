@@ -20,9 +20,7 @@ type APIClientInterface interface {
 	GetSandboxStatus(arg0 context.Context, sandboxID string) (SandboxStatus, error)
 	GetSandboxStatusFromInfo(ctx context.Context, sandboxInfo *SandboxInfo) (SandboxStatus, error)
 	InitVolumeFromS3(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
-	InitVolumeFromS3WithState(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
 	SyncVolumeToS3(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
-	SyncVolumeToS3WithState(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
 	TerminateSandbox(ctx context.Context, sandboxInfo *SandboxInfo, syncToS3 bool) error
 	WaitForClaude(ctx context.Context, claudeProcess *ClaudeProcess) (int, error)
 }
@@ -37,9 +35,7 @@ type MockAPIClient struct {
 	GetSandboxStatusFunc            func(arg0 context.Context, sandboxID string) (SandboxStatus, error)
 	GetSandboxStatusFromInfoFunc    func(ctx context.Context, sandboxInfo *SandboxInfo) (SandboxStatus, error)
 	InitVolumeFromS3Func            func(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
-	InitVolumeFromS3WithStateFunc   func(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
 	SyncVolumeToS3Func              func(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
-	SyncVolumeToS3WithStateFunc     func(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error)
 	TerminateSandboxFunc            func(ctx context.Context, sandboxInfo *SandboxInfo, syncToS3 bool) error
 	WaitForClaudeFunc               func(ctx context.Context, claudeProcess *ClaudeProcess) (int, error)
 }
@@ -132,17 +128,6 @@ func (m *MockAPIClient) InitVolumeFromS3(ctx context.Context, sandboxInfo *Sandb
 	return m.APIClient.InitVolumeFromS3(ctx, sandboxInfo)
 }
 
-// InitVolumeFromS3WithState overrides the real implementation for MockAPIClient.
-func (m *MockAPIClient) InitVolumeFromS3WithState(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error) {
-	if m.InitVolumeFromS3WithStateFunc != nil {
-		return m.InitVolumeFromS3WithStateFunc(ctx, sandboxInfo)
-	}
-	if m.APIClient == nil {
-		return nil, nil
-	}
-	return m.APIClient.InitVolumeFromS3WithState(ctx, sandboxInfo)
-}
-
 // SyncVolumeToS3 overrides the real implementation for MockAPIClient.
 func (m *MockAPIClient) SyncVolumeToS3(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error) {
 	if m.SyncVolumeToS3Func != nil {
@@ -152,17 +137,6 @@ func (m *MockAPIClient) SyncVolumeToS3(ctx context.Context, sandboxInfo *Sandbox
 		return nil, nil
 	}
 	return m.APIClient.SyncVolumeToS3(ctx, sandboxInfo)
-}
-
-// SyncVolumeToS3WithState overrides the real implementation for MockAPIClient.
-func (m *MockAPIClient) SyncVolumeToS3WithState(ctx context.Context, sandboxInfo *SandboxInfo) (*SyncStats, error) {
-	if m.SyncVolumeToS3WithStateFunc != nil {
-		return m.SyncVolumeToS3WithStateFunc(ctx, sandboxInfo)
-	}
-	if m.APIClient == nil {
-		return nil, nil
-	}
-	return m.APIClient.SyncVolumeToS3WithState(ctx, sandboxInfo)
 }
 
 // TerminateSandbox overrides the real implementation for MockAPIClient.

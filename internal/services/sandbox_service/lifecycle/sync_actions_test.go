@@ -1,4 +1,4 @@
-package sandbox_service
+package lifecycle
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/griffnb/core/lib/testtools/assert"
 	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
+	"github.com/griffnb/techboss-ai-go/internal/services/sandbox_service/state_files"
 )
 
 // Test_ExecuteSyncActions_nilInputs tests error handling for nil inputs.
@@ -14,7 +15,7 @@ func Test_ExecuteSyncActions_nilInputs(t *testing.T) {
 	t.Run("returns error for nil client", func(t *testing.T) {
 		ctx := context.Background()
 		sandboxInfo := &modal.SandboxInfo{}
-		diff := &modal.StateDiff{}
+		diff := &state_files.StateDiff{}
 
 		stats, err := ExecuteSyncActions(ctx, nil, sandboxInfo, diff)
 
@@ -25,7 +26,7 @@ func Test_ExecuteSyncActions_nilInputs(t *testing.T) {
 	t.Run("returns error for nil sandboxInfo", func(t *testing.T) {
 		ctx := context.Background()
 		mockClient := modal.MockClient()
-		diff := &modal.StateDiff{}
+		diff := &state_files.StateDiff{}
 
 		stats, err := ExecuteSyncActions(ctx, mockClient, nil, diff)
 
@@ -50,7 +51,7 @@ func Test_ExecuteSyncActions_nilInputs(t *testing.T) {
 		sandboxInfo := &modal.SandboxInfo{
 			Config: nil,
 		}
-		diff := &modal.StateDiff{}
+		diff := &state_files.StateDiff{}
 
 		stats, err := ExecuteSyncActions(ctx, mockClient, sandboxInfo, diff)
 
@@ -67,7 +68,7 @@ func Test_ExecuteSyncActions_nilInputs(t *testing.T) {
 				S3Config:        nil,
 			},
 		}
-		diff := &modal.StateDiff{}
+		diff := &state_files.StateDiff{}
 
 		stats, err := ExecuteSyncActions(ctx, mockClient, sandboxInfo, diff)
 
@@ -93,10 +94,10 @@ func Test_ExecuteSyncActions_emptyDiff(t *testing.T) {
 			},
 		}
 
-		diff := &modal.StateDiff{
-			FilesToDownload: []modal.FileEntry{},
+		diff := &state_files.StateDiff{
+			FilesToDownload: []state_files.FileEntry{},
 			FilesToDelete:   []string{},
-			FilesToSkip:     []modal.FileEntry{},
+			FilesToSkip:     []state_files.FileEntry{},
 		}
 
 		stats, err := ExecuteSyncActions(ctx, mockClient, sandboxInfo, diff)
@@ -125,10 +126,10 @@ func Test_ExecuteSyncActions_emptyDiff(t *testing.T) {
 			},
 		}
 
-		diff := &modal.StateDiff{
-			FilesToDownload: []modal.FileEntry{},
+		diff := &state_files.StateDiff{
+			FilesToDownload: []state_files.FileEntry{},
 			FilesToDelete:   []string{},
-			FilesToSkip: []modal.FileEntry{
+			FilesToSkip: []state_files.FileEntry{
 				{Path: "file1.txt", Size: 100},
 				{Path: "file2.txt", Size: 200},
 				{Path: "file3.txt", Size: 300},

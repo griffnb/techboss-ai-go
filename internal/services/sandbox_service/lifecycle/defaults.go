@@ -7,6 +7,7 @@ import (
 	"github.com/griffnb/core/lib/log"
 	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
 	"github.com/griffnb/techboss-ai-go/internal/models/conversation"
+	"github.com/griffnb/techboss-ai-go/internal/services/sandbox_service/state_files"
 	"github.com/pkg/errors"
 )
 
@@ -26,11 +27,41 @@ func DefaultOnColdStart(ctx context.Context, hookData *HookData) error {
 
 	// Perform state-based sync from S3
 	// This is critical - if sync fails, sandbox should not be created
-	client := modal.Client()
-	_, err := client.InitVolumeFromS3WithState(ctx, hookData.SandboxInfo)
+
+	// Read local state
+	localState, err := state_files.ReadLocalStateFile(ctx, hookData.SandboxInfo, hookData.SandboxInfo.Config.VolumeMountPath)
 	if err != nil {
-		// Return error to caller (critical failure)
-		log.Error(errors.Wrapf(err, "Critical: Cold start S3 sync failed for conversation %s", string(hookData.ConversationID)))
+		log.Error(errors.Wrapf(err, "Critical: Failed to read local state for conversation %s", string(hookData.ConversationID)))
+		return err
+	}
+
+	// Read/generate S3 state
+	s3State, err := state_files.ReadS3StateFile(ctx, hookData.SandboxInfo, hookData.SandboxInfo.Config.S3Config.MountPath)
+	if err != nil {
+		log.Error(errors.Wrapf(err, "Critical: Failed to read S3 state for conversation %s", string(hookData.ConversationID)))
+		return err
+	}
+	if s3State == nil {
+		s3State, err = state_files.GenerateStateFile(ctx, hookData.SandboxInfo, hookData.SandboxInfo.Config.S3Config.MountPath)
+		if err != nil {
+			log.Error(errors.Wrapf(err, "Critical: Failed to generate S3 state for conversation %s", string(hookData.ConversationID)))
+			return err
+		}
+	}
+
+	// Compare and sync
+	diff := state_files.CompareStateFiles(localState, s3State)
+	client := modal.Client()
+	_, err = ExecuteSyncActions(ctx, client, hookData.SandboxInfo, diff)
+	if err != nil {
+		log.Error(errors.Wrapf(err, "Critical: Failed to execute sync actions for conversation %s", string(hookData.ConversationID)))
+		return err
+	}
+
+	// Update local state
+	err = state_files.WriteLocalStateFile(ctx, hookData.SandboxInfo, hookData.SandboxInfo.Config.VolumeMountPath, s3State)
+	if err != nil {
+		log.Error(errors.Wrapf(err, "Critical: Failed to write local state for conversation %s", string(hookData.ConversationID)))
 		return err
 	}
 
@@ -109,7 +140,7 @@ func DefaultOnStreamFinish(ctx context.Context, hookData *HookData) error {
 	// Sync to S3 if configured
 	if hookData.SandboxInfo.Config.S3Config != nil {
 		client := modal.Client()
-		_, err := client.SyncVolumeToS3WithState(ctx, hookData.SandboxInfo)
+		_, err := client.SyncVolumeToS3(ctx, hookData.SandboxInfo)
 		if err != nil {
 			log.Error(errors.Wrap(err, "Non-critical: Failed to sync to S3 but continuing"))
 			// Continue to update stats even if sync fails

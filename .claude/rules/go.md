@@ -110,7 +110,7 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 ## Error Handling Patterns
 
 ### Creating Errors
-
+- REQUIREMENT ONLY USE `github.com/pkg/errors` for errors
 - Use `errors.Errorf` for dynamic errors
 - Create custom error types for domain-specific errors
 - Export error variables for sentinel errors

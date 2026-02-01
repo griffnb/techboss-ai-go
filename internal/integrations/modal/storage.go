@@ -120,13 +120,8 @@ func (c *APIClient) SyncVolumeToS3(ctx context.Context, sandboxInfo *SandboxInfo
 
 	startTime := time.Now()
 
-	// Generate timestamp for versioning
-	// This creates immutable snapshots of workspace state over time
-	// Format: s3://bucket/docs/{account_id}/{unix_timestamp}/
-	// Each sync creates a new version, preserving history
+	// Generate timestamped S3 path
 	timestamp := time.Now().Unix()
-
-	// Build S3 path with account and timestamp
 	s3Path := fmt.Sprintf("s3://%s/docs/%s/%d/",
 		sandboxInfo.Config.S3Config.BucketName,
 		sandboxInfo.Config.AccountID,
@@ -251,6 +246,8 @@ func (c *APIClient) SyncVolumeToS3(ctx context.Context, sandboxInfo *SandboxInfo
 	return stats, nil
 }
 
+//	TODO move to service
+//
 // GetLatestVersion retrieves the most recent timestamp version for an account.
 // It creates a temporary sandbox to list S3 prefixes and finds the highest timestamp.
 // Returns 0 if no versions exist. This is used to restore the most recent work state.

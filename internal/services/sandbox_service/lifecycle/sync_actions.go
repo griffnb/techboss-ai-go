@@ -1,4 +1,4 @@
-package sandbox_service
+package lifecycle
 
 import (
 	"bufio"
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/griffnb/techboss-ai-go/internal/integrations/modal"
+	"github.com/griffnb/techboss-ai-go/internal/services/sandbox_service/state_files"
 	"github.com/pkg/errors"
 )
 
@@ -31,8 +32,8 @@ func ExecuteSyncActions(
 	ctx context.Context,
 	client modal.APIClientInterface,
 	sandboxInfo *modal.SandboxInfo,
-	diff *modal.StateDiff,
-) (*modal.SyncStats, error) {
+	diff *state_files.StateDiff,
+) (*state_files.SyncStats, error) {
 	// Validate inputs
 	if client == nil {
 		return nil, errors.New("client cannot be nil")
@@ -52,7 +53,7 @@ func ExecuteSyncActions(
 
 	startTime := time.Now()
 
-	stats := &modal.SyncStats{
+	stats := &state_files.SyncStats{
 		FilesDownloaded:  0,
 		FilesDeleted:     0,
 		FilesSkipped:     len(diff.FilesToSkip),
@@ -99,7 +100,7 @@ func ExecuteSyncActions(
 
 // downloadFile downloads a single file from S3 mount to local volume.
 // It creates parent directories if needed and preserves timestamps with cp -p flag.
-func downloadFile(ctx context.Context, sandboxInfo *modal.SandboxInfo, file modal.FileEntry) error {
+func downloadFile(ctx context.Context, sandboxInfo *modal.SandboxInfo, file state_files.FileEntry) error {
 	sourcePath := fmt.Sprintf("%s/%s", sandboxInfo.Config.S3Config.MountPath, file.Path)
 	destPath := fmt.Sprintf("%s/%s", sandboxInfo.Config.VolumeMountPath, file.Path)
 
