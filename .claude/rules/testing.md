@@ -1,5 +1,5 @@
 ---
-paths: *.go
+paths: *_test.go
 ---
 
 ## 🧪 CRITICAL: TEST-DRIVEN DEVELOPMENT (TDD) IS MANDATORY

@@ -1,0 +1,4 @@
+---
+paths:
+  - "internal/models/**/*.go"
+---

@@ -27,7 +27,7 @@ func Test_ExecuteHook_LoggingFormat(t *testing.T) {
 		}
 
 		hookCalled := false
-		mockHook := func(ctx context.Context, hookData *HookData) error {
+		mockHook := func(_ context.Context, hookData *HookData) error {
 			hookCalled = true
 			assert.Equal(t, conversationID, hookData.ConversationID)
 			assert.Equal(t, sandboxID, hookData.SandboxInfo.SandboxID)
@@ -62,7 +62,7 @@ func Test_ExecuteHook_LoggingFormat(t *testing.T) {
 			},
 		}
 
-		mockHook := func(ctx context.Context, hookData *HookData) error {
+		mockHook := func(_ context.Context, hookData *HookData) error {
 			// Simulate some work
 			return nil
 		}
@@ -91,7 +91,7 @@ func Test_ExecuteHook_LoggingFormat(t *testing.T) {
 		}
 
 		testError := errors.New("test error")
-		mockHook := func(ctx context.Context, hookData *HookData) error {
+		mockHook := func(_ context.Context, _ *HookData) error {
 			return testError
 		}
 
